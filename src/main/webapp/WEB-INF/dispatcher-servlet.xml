@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/mvc
+    https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+	<!-- application.properties의 카카오 api 인식을 위해 추가 컨트롤러에서 인식하기 위해서 -->
+	<context:property-placeholder location="classpath:application.properties"/>
+
+	<!-- ② @Controller, @RequestMapping 어노테이션 인식 활성화 -->
+	<context:component-scan base-package="com.roommate" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.RestController"/>
+		<!-- ✅ 전역 예외 처리기(@RestControllerAdvice/@ControllerAdvice) 스캔 -->
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice"/>
+	</context:component-scan>
+
+	<!-- ✅ 설정(@Configuration) 전용 스캔 추가 -->
+	<context:component-scan base-package="com.roommate.common.config">
+		<context:include-filter type="annotation" expression="org.springframework.context.annotation.Configuration"/>
+	</context:component-scan>
+
+
+	<mvc:annotation-driven validator="validator">
+		<!--
+            ✅ JSON 변환기(MessageConverter) 설정
+            Spring MVC는 @ResponseBody 또는 @RequestBody를 처리할 때
+            내부적으로 여러 종류의 HttpMessageConverter를 사용합니다.
+
+            이 중 JSON 처리를 담당하는 것이 MappingJackson2HttpMessageConverter입니다.
+            아래 설정은 우리가 직접 만든 ObjectMapper(커스텀 JSON 설정)를 이 컨버터에 주입하여
+            전역 JSON 포맷을 통일하도록 하는 역할을 합니다.
+
+            주요 역할:
+            1. 컨트롤러 응답을 JSON으로 변환할 때 JacksonConfig의 ObjectMapper 사용
+            2. 요청 본문(JSON → Java 객체) 변환 시에도 동일 규칙 적용
+            3. register-defaults="true" → 기존 기본 컨버터들도 함께 등록 (기본 text/xml 등 유지)
+        -->
+		<mvc:message-converters register-defaults="true">
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper" ref="objectMapper"/>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<bean id="validator" class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean"/>
+
+    <!-- 뷰 인식 활성활 -->
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/views/"></property>
+		<property name="suffix" value=".jsp"></property>
+		<property name="order" value="1"></property>
+	</bean>
+	
+	    <!-- ✅ 정적 리소스 허용(css나 js를 선언했을경우 이걸 안하면 디스패처에서 가로채서 인식을 못함)) -->
+    <mvc:resources mapping="/resources/**" location="/resources/"></mvc:resources>
+    
+	<!-- 사진 10메가로 올리기 위해서 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize">
+			<value>10485760</value>
+		</property>
+	</bean>
+	
+</beans>

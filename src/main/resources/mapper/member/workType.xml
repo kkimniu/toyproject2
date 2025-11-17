@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+	<mapper namespace="com.roommate.domain.member.repository.WorkTypeRepository">
+	  <select id="findAll" resultType="com.roommate.domain.member.entity.WorkTypeEntity">
+		  SELECT
+		  work_type_id,
+		  work_type_name,
+		  created_at as createdAt
+		  FROM
+		  work_types
+	  </select>
+	</mapper>
