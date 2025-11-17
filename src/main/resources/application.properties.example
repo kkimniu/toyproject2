@@ -1,0 +1,18 @@
+###############################################
+# 🔐 JWT CONFIG
+###############################################
+jwt.secret.key=__CHANGE_ME__
+jwt.token.expiration.time=7200000
+
+###############################################
+# 🗄️ DATABASE CONFIG
+###############################################
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql://localhost:3306/roommate?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+db.username=roommate_user
+db.password=__CHANGE_ME__
+
+###############################################
+# 🗺️ KAKAO MAP CONFIG
+###############################################
+kakao.map.api.key=__CHANGE_ME__

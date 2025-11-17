@@ -25,6 +25,13 @@ out/
 .settings/
 bin/
 
+# STS & Eclipse 자동 생성 파일
+.factorypath
+.springBeans
+
+# Smart Tomcat 설정
+.smarttomcat/
+
 ############################################
 # OS 파일
 ############################################
