@@ -13,7 +13,6 @@ import lombok.ToString;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
 @Data
 public class WorkTypeEntity {
 	private Long workTypeId;
