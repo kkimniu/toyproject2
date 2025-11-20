@@ -27,8 +27,19 @@
         <filter-name>encodingFilter</filter-name>
         <url-pattern>/*</url-pattern>
     </filter-mapping>
+    <!--      Spring Security 필터 체인 등록
+        - 모든 요청(/*)을 가로채서 SecurityConfig에서 정의한
+          인증/인가 필터 흐름을 적용하기 위한 설정
+        - DelegatingFilterProxy가 springSecurityFilterChain 빈을 자동으로 찾아 실행함 -->
+    <filter>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+    </filter>
 
-
+    <filter-mapping>
+        <filter-name>springSecurityFilterChain</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
 	<!-- bean 객체의 컨트롤러 자동 등록 context설정하기 -->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
