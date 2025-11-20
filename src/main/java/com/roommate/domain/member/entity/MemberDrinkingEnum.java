@@ -5,10 +5,10 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public enum MemberRoleEnum {
-    USER("ROLE_USER"),
-    ADMIN("ROLE_ADMIN"),
-    BANNED("BANNED");
+public enum MemberDrinkingEnum {
+    NONE("NONE"),
+    SOCIAL("SOCIAL"),
+    OFTEN("OFTEN");
 
-    private final String authority;
+    private final String drinkingType;
 }

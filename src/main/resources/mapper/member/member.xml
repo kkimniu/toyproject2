@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.member.repository.MemberRepository">
+    <resultMap id="memberMap" type="com.roommate.domain.member.entity.MemberEntity">
+        <id property="memberId" column="member_id"/>
+        <result property="workTypeId" column="work_type_id"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="photoUrl" column="photo_url"/>
+        <result property="role" column="role" javaType="com.roommate.domain.member.entity.MemberRoleEnum"/>
+        <result property="reportCount" column="report_count"/>
+        <result property="deleted" column="deleted"/>
+        <result property="memberCreatedAt" column="member_created_at"/>
+        <result property="memberUpdatedAt" column="member_updated_at"/>
+        <result property="sleepTime" column="sleep_time"/>
+        <result property="smoking" column="smoking" javaType="com.roommate.domain.member.entity.MemberSmokingEnum"/>
+        <result property="drinking" column="drinking" javaType="com.roommate.domain.member.entity.MemberDrinkingEnum"/>
+        <result property="mbti" column="mbti"/>
+    </resultMap>
+
+    <select id="findById" resultMap="memberMap">
+        SELECT *
+        FROM members
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="findByEmail" resultMap="memberMap">
+        SELECT *
+        FROM members
+        WHERE email = #{email}
+    </select>
+    <insert id="save" useGeneratedKeys="true" keyProperty="memberId" parameterType="com.roommate.domain.member.entity.MemberEntity">
+        INSERT INTO members (
+        work_type_id,
+        email,
+        password,
+        name,
+        phone,
+        photo_url,
+        role,
+        report_count,
+        deleted,
+        sleep_time,
+        smoking,
+        drinking,
+        mbti
+        )
+        VALUES (
+        #{workTypeId},
+        #{email},
+        #{password},
+        #{name},
+        #{phone},
+        #{photoUrl},
+        #{role},
+        #{reportCount},
+        #{deleted},
+        #{sleepTime},
+        #{smoking},
+        #{drinking},
+        #{mbti}
+        )
+    </insert>
+    <update id="updateMember" parameterType="com.roommate.domain.member.entity.MemberEntity">
+        UPDATE members
+        <set>
+            work_type_id = #{workTypeId},
+            phone = #{phone},
+            photo_url = #{photoUrl},
+            sleep_time = #{sleepTime},
+            smoking = #{smoking},
+            drinking = #{drinking},
+            mbti = #{mbti},
+            member_updated_at = NOW()
+        </set>
+        WHERE
+            member_id = #{memberId}
+    </update>
+</mapper>
