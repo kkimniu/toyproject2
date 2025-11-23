@@ -10,7 +10,11 @@ import java.util.Optional;
 public interface MemberRepository {
 
     void save(MemberEntity memberEntity);
+
     Optional<MemberEntity> findById(@Param("memberId") Long memberId);
+
     Optional<MemberEntity> findByEmail(@Param("email") String email);
+
     void updateMember(MemberEntity memberEntity);
+
 }

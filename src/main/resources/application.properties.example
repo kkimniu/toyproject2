@@ -2,7 +2,8 @@
 # 🔐 JWT CONFIG
 ###############################################
 jwt.secret.key=__CHANGE_ME__
-jwt.token.expiration.time=7200000
+jwt.access.expiration.time=3600000
+jwt.refresh.expiration.time=604800000
 
 ###############################################
 # 🗄️ DATABASE CONFIG
