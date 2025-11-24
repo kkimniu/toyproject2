@@ -9,9 +9,12 @@ import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 /**
  * Spring MVC에서 @ResponseBody 또는 @RequestBody로 JSON을 주고받을 때,
@@ -27,7 +30,7 @@ import java.time.format.DateTimeFormatter;
  * 이 설정은 Spring MVC 컨텍스트에 등록된 MappingJackson2HttpMessageConverter에서 자동으로 참조됩니다.
  */
 @Configuration
-public class JacksonConfig implements WebMvcConfigurer {
+public class WebMvcConfig implements WebMvcConfigurer {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -46,4 +49,14 @@ public class JacksonConfig implements WebMvcConfigurer {
         return om;
     }
 
+    /**
+     * @AuthenticationPrincipal 을 통해 SecurityContext에 저장된 인증 사용자(UserDetailsImpl)를
+     * 컨트롤러 메서드 매개변수로 자동 주입할 수 있도록 ArgumentResolver 등록.
+     *
+     * Spring Boot가 아닌 순수 Spring MVC 환경에서는 기본적으로 등록되지 않기 때문에 필수 설정.
+     */
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new AuthenticationPrincipalArgumentResolver());
+    }
 }

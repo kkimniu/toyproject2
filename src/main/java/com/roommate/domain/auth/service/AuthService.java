@@ -5,9 +5,6 @@ import com.roommate.domain.auth.dto.request.LoginRequest;
 import com.roommate.domain.auth.dto.request.SignUpRequest;
 import com.roommate.domain.auth.dto.response.LoginResponse;
 import com.roommate.domain.auth.dto.response.SignUpResponse;
-import com.roommate.domain.member.entity.MemberEntity;
-
-import java.lang.reflect.Member;
 
 public interface AuthService {
 

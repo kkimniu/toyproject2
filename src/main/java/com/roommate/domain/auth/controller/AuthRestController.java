@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthRestController {
 
@@ -24,12 +24,12 @@ public class AuthRestController {
     @PostMapping("/signup")
     public ResponseEntity<SignUpResponse> signUp(@Valid @RequestBody SignUpRequest signUpRequest){
         SignUpResponse signUpResponse=authService.signUp(signUpRequest);
-        return ResponseEntity.status(201).body(signUpResponse);
+        return ResponseEntity.status(200).body(signUpResponse);
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest){
         LoginResponse loginResponse = authService.login(loginRequest);
-        return ResponseEntity.status(200).body(loginResponse);
+        return ResponseEntity.status(201).body(loginResponse);
     }
 }
