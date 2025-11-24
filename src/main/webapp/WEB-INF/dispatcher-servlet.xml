@@ -29,8 +29,12 @@
 
 
 	<mvc:annotation-driven validator="validator">
+		<!-- @AuthenticationPrincipal 지원 ArgumentResolver 등록 -->
+		<mvc:argument-resolvers>
+			<bean class="org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver"/>
+		</mvc:argument-resolvers>
 		<!--
-            ✅ JSON 변환기(MessageConverter) 설정
+            JSON 변환기(MessageConverter) 설정
             Spring MVC는 @ResponseBody 또는 @RequestBody를 처리할 때
             내부적으로 여러 종류의 HttpMessageConverter를 사용합니다.
 

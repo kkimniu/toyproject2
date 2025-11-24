@@ -106,7 +106,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
-        MemberEntity memberEntity = memberRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new ApiException(ErrorCode.INVALID_EMAIL));
+        MemberEntity memberEntity = memberRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new ApiException(ErrorCode.INVALID_EMAIL_FORMAT));
         validatePassword(loginRequest.getPassword(), memberEntity.getPassword());
         String accessToken = jwtUtil.createAccessToken(memberEntity.getMemberId(), memberEntity.getRole());
         String refreshToken = jwtUtil.createRefreshToken(memberEntity.getMemberId(), memberEntity.getRole());

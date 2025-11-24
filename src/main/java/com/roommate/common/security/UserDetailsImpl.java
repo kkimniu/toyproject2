@@ -1,6 +1,7 @@
 package com.roommate.common.security;
 
 import com.roommate.domain.member.entity.MemberEntity;
+import com.roommate.domain.member.entity.MemberRoleEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,21 +15,30 @@ import java.util.Collections;
 @Getter
 public class UserDetailsImpl implements UserDetails {
 
-    private final MemberEntity memberEntity;
+    private final MemberRoleEnum role;
+    private final Long memberId;
+    private final String email;
+    private final String password;
 
+    public UserDetailsImpl(MemberEntity memberEntity){
+        this.memberId = memberEntity.getMemberId();
+        this.email = memberEntity.getEmail();
+        this.password = memberEntity.getPassword();
+        this.role = memberEntity.getRole();
+    }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(memberEntity.getRole().getAuthority()));
+        return Collections.singletonList(new SimpleGrantedAuthority(role.getAuthority()));
     }
 
     @Override
     public String getPassword() {
-        return memberEntity.getPassword();
+        return password;
     }
 
     @Override
     public String getUsername() {
-        return memberEntity.getEmail();
+        return email;
     }
 
     @Override
