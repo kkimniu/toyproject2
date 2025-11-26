@@ -13,7 +13,11 @@ public enum ErrorCode {
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "유효하지 않은 인증 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "만료된 토큰입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "A004", "접근 권한이 없습니다."),
-
+    // ===== REFRESH TOKEN 관련 (추가) =====
+    INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "유효하지 않은 리프레시 토큰입니다."),
+    EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A006", "만료된 리프레시 토큰입니다."),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A007", "리프레시 토큰이 존재하지 않습니다."),
+    REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "A008", "이미 사용된 리프레시 토큰입니다."),
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),
     DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "M002", "이미 사용중인 닉네임입니다."),

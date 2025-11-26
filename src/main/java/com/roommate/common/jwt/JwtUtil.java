@@ -123,5 +123,20 @@ public class JwtUtil {
                 .parseSignedClaims(token)
                 .getPayload();
     }
+    /**
+     * Refresh Token 전용 검증 메서드
+     * - 현재는 validateToken 과 동일하게 동작하지만,
+     *   추후 Refresh 전용 정책이 생길 경우 이 메서드에서 확장한다.
+     */
+    public boolean validateRefreshToken(String token) {
+        return validateToken(token);
+    }
 
+    /**
+     * Refresh Token 에서 memberId(subject)를 추출한다.
+     */
+    public Long getMemberIdFromRefreshToken(String token){
+        Claims claims = getUserInfoFromToken(token);
+        return Long.parseLong(claims.getSubject());
+    }
 }

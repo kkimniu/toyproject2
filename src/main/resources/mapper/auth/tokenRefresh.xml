@@ -2,7 +2,25 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.roommate.domain.auth.repository.AuthRepository">
+<mapper namespace="com.roommate.domain.auth.repository.TokenRefreshRepository">
+    <resultMap id="tokenRefreshMap" type="com.roommate.domain.auth.entity.TokenRefreshEntity">
+        <id property="tokenId" column="token_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="refreshTokenHash" column="refresh_token_hash"/>
+        <result property="expiresAt" column="expires_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="tokenRefreshMap">
+        SELECT *
+        FROM token_refresh
+        WHERE token_id = #{tokenId}
+    </select>
+    <select id="findByMemberId" resultMap="tokenRefreshMap">
+        SELECT *
+        FROM token_refresh
+        WHERE member_id = #{memberId}
+    </select>
     <insert id="save" useGeneratedKeys="true" keyProperty="tokenId">
         INSERT INTO token_refresh (
         member_id,
@@ -15,4 +33,17 @@
         #{expiresAt}
         )
     </insert>
+    <update id="updateTokenRefresh" parameterType="com.roommate.domain.auth.entity.TokenRefreshEntity">
+        UPDATE token_refresh
+        <set>
+            refresh_token_hash = #{refreshTokenHash},
+            expires_at = #{expiresAt}
+        </set>
+        WHERE member_id = #{memberId}
+    </update>
+    <delete id="deleteByMemberId" parameterType="long">
+        DELETE
+        FROM token_refresh
+        WHERE member_id = #{memberId}
+    </delete>
 </mapper>
