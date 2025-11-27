@@ -59,6 +59,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests()
                 .antMatchers("/api/auth/signup", "/api/auth/login","/api/auth/refresh").permitAll()
+                // ★ 테스트용 뷰 페이지 허용
+                .antMatchers("/auth/login-test", "/auth/me-test").permitAll()
                 .antMatchers("/", "/index", "/resources/**", "/room").permitAll()
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated();
