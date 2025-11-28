@@ -1,5 +1,5 @@
 // login-test.js
-import { saveTokens, getAccessToken, getRefreshToken } from "./authTokenStorage.js";
+import { saveTokens, getAccessToken, getRefreshToken } from "../common/authTokenStorage.js";
 
 function renderTokens() {
   document.querySelector("#accessTokenBox").textContent =

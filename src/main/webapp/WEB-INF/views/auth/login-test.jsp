@@ -27,6 +27,6 @@
 <p>현재 저장된 Refresh Token:</p>
 <pre id="refreshTokenBox"></pre>
 
-<script type="module" src="/resources/js/auth/login.js"></script>
+<script type="module" src="/resources/js/auth/login-test.js"></script>
 </body>
 </html>
