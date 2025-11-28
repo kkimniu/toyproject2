@@ -56,7 +56,7 @@ export async function apiRequest(input, init = {}) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      refresh_token: refreshToken,
+      refreshToken: refreshToken,
     }),
   });
 
@@ -71,16 +71,16 @@ export async function apiRequest(input, init = {}) {
 
   // 응답 필드 이름은 서버 snake_case 기준
   saveTokens({
-    accessToken: refreshData.access_token,
-    refreshToken: refreshData.refresh_token,
-    tokenType: refreshData.token_type,
+    accessToken: refreshData.accessToken,
+    refreshToken: refreshData.refreshToken,
+    tokenType: refreshData.tokenType,
   });
 
   // 🔁 새 AccessToken으로 원래 요청 다시 한번 시도
   const retryOptions = { ...options };
   retryOptions.headers = {
     ...(options.headers || {}),
-    Authorization: `${refreshData.token_type} ${refreshData.access_token}`,
+    Authorization: `${refreshData.tokenType} ${refreshData.accessToken}`,
   };
 
   const retryResponse = await fetch(input, retryOptions);

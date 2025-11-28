@@ -25,6 +25,6 @@
 <p>Refresh Token:</p>
 <pre id="refreshTokenBox"></pre>
 
-<script type="module" src="/resources/js/auth/mypage.js"></script>
+<script type="module" src="/resources/js/auth/me-test.js"></script>
 </body>
 </html>

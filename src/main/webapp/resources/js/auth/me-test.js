@@ -4,8 +4,8 @@ import {
   getRefreshToken,
   saveTokens,
   clearTokens,
-} from "./authTokenStorage.js";
-import { apiRequest } from "./apiClient.js";
+} from "../common/authTokenStorage.js";
+import { apiRequest } from "../common/apiClient.js";
 
 function renderTokens() {
   document.querySelector("#accessTokenBox").textContent =
