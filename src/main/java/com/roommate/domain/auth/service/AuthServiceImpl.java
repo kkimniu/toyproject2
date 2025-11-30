@@ -13,6 +13,9 @@ import com.roommate.domain.auth.repository.TokenRefreshRepository;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
+import com.roommate.domain.member.repository.MemberHobbyRepository;
+import com.roommate.domain.member.repository.MemberPetRepository;
+import com.roommate.domain.member.repository.MemberPreferenceRepository;
 import com.roommate.domain.member.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +36,23 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final TokenRefreshRepository tokenRefreshRepository;
 
+    private final MemberHobbyRepository memberHobbyRepository;
+    private final MemberPreferenceRepository memberPreferenceRepository;
+    private final MemberPetRepository memberPetRepository;
+
+
     @Override
     public void validateEmailDuplication(String email) {
-        if (memberRepository.findByEmail(email).isPresent()) {
+        memberRepository.findByEmail(email).ifPresent(member -> {
+            // 왜 이렇게 썼는지:
+            // - soft delete 구조에서도 email UNIQUE 제약이 있기 때문에
+            //   deleted = 1 이라도 동일 이메일로 재가입을 허용하지 않는다.
+            if (member.getDeleted() == 1) {
+                // 이미 탈퇴한 이메일로 재가입 시도
+                throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+            }
             throw new ApiException(ErrorCode.DUPLICATE_EMAIL);
-        }
+        });
     }
 
     @Override
@@ -114,22 +129,16 @@ public class AuthServiceImpl implements AuthService {
         memberRepository.save(memberEntity);
         Long memberId = memberEntity.getMemberId();
 
-        if (signUpRequest.getHobbyIds() != null) {
-            for (Long hobbyId : signUpRequest.getHobbyIds()) {
-                memberRepository.insertMemberHobby(memberId, hobbyId);
-            }
+        if (signUpRequest.getHobbyIds() != null && !signUpRequest.getHobbyIds().isEmpty()) {
+            memberHobbyRepository.insertMemberHobbies(memberId, signUpRequest.getHobbyIds());
         }
 
-        if (signUpRequest.getPreferenceIds() != null) {
-            for (Long preferenceId : signUpRequest.getPreferenceIds()) {
-                memberRepository.insertMemberPreference(memberId, preferenceId);
-            }
+        if (signUpRequest.getPreferenceIds() != null && !signUpRequest.getPreferenceIds().isEmpty()) {
+            memberPreferenceRepository.insertMemberPreferences(memberId, signUpRequest.getPreferenceIds());
         }
 
-        if (signUpRequest.getPetIds() != null) {
-            for (Long petId : signUpRequest.getPetIds()) {
-                memberRepository.insertMemberPet(memberId, petId);
-            }
+        if (signUpRequest.getPetIds() != null && !signUpRequest.getPetIds().isEmpty()) {
+            memberPetRepository.insertMemberPets(memberId, signUpRequest.getPetIds());
         }
 
         SignUpResponse response = toSignUpResponse(memberEntity);
@@ -139,10 +148,19 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public LoginResponse login(LoginRequest loginRequest) {
         MemberEntity memberEntity = memberRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new ApiException(ErrorCode.INVALID_EMAIL_FORMAT));
+
+        if (memberEntity.getDeleted() == 1) {
+            // 왜 이렇게 썼는지:
+            // - soft delete 된 회원은 로그인 자체를 막아서
+            //   탈퇴 후 토큰 발급/서비스 이용을 차단하기 위함.
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+
         validatePassword(loginRequest.getPassword(), memberEntity.getPassword());
         String accessToken = jwtUtil.createAccessToken(memberEntity.getMemberId(), memberEntity.getRole());
         String refreshToken = jwtUtil.createRefreshToken(memberEntity.getMemberId(), memberEntity.getRole());
         saveOrUpdateRefreshToken(memberEntity, refreshToken);
+
         LoginResponse loginResponse = toLoginResponse(memberEntity, accessToken, refreshToken);
         return loginResponse;
     }
@@ -198,6 +216,9 @@ public class AuthServiceImpl implements AuthService {
          */
         Long memberId = jwtUtil.getMemberIdFromRefreshToken(refreshToken);
         MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+        if (memberEntity.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
         /**
          * 3) DB에 저장된 Refresh Token 검증
          *    - 서버는 Refresh Token 원본을 저장하지 않고 Bcrypt 해시값만 저장한다.

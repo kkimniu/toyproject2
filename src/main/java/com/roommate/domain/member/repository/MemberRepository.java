@@ -23,4 +23,6 @@ public interface MemberRepository {
 
     void insertMemberPet(@Param("memberId") Long memberId, @Param("petId") Long petId);
 
+    void softDeleteMember(@Param("memberId") Long memberId);
+
 }

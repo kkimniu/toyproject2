@@ -1,9 +1,9 @@
-package com.roommate.domain.favorite.repository;
+package com.roommate.domain.notification.repository;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 @Mapper
-public interface FavoriteRepository {
+public interface NotificationRepository {
     void deleteByMemberId(@Param("memberId") Long memberId);
 }

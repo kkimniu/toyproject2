@@ -13,4 +13,13 @@
         FROM preferences
         ORDER BY preference_name
     </select>
+    <select id="findByMemberId" parameterType="long" resultType="com.roommate.domain.member.entity.PreferenceEntity">
+        SELECT p.preference_id,
+        p.preference_name,
+        p.created_at
+        FROM preferences p
+        JOIN member_preferences mp ON p.preference_id = mp.preference_id
+        WHERE mp.member_id = #{memberId}
+    </select>
+
 </mapper>

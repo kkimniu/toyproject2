@@ -2,6 +2,7 @@ package com.roommate.domain.member.service;
 
 import java.util.List;
 
+import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.FormCodesResponse;
 import com.roommate.domain.member.dto.response.MemberResponse;
 import com.roommate.domain.member.dto.response.WorkTypeResponse;
@@ -13,8 +14,9 @@ public interface MemberService {
 	 */
 	public MemberResponse memberInfo(Long memberId);
 
-	/**
-	 *
-	 */
+	public MemberResponse updateMemberProfile(Long memberId, MemberProfileUpdateRequest request);
+
+	void deleteMember(Long memberId);
+
 	public FormCodesResponse getFormCodes();
 }
