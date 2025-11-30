@@ -71,9 +71,9 @@ export async function apiRequest(input, init = {}) {
 
   // 응답 필드 이름은 서버 snake_case 기준
   saveTokens({
-    accessToken: refreshData.accessToken,
-    refreshToken: refreshData.refreshToken,
-    tokenType: refreshData.tokenType,
+    access_token: refreshData.accessToken,
+    refresh_token: refreshData.refreshToken,
+    token_type: refreshData.tokenType,
   });
 
   // 🔁 새 AccessToken으로 원래 요청 다시 한번 시도

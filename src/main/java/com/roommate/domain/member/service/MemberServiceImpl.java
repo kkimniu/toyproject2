@@ -4,16 +4,10 @@ import java.util.List;
 
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
-import com.roommate.domain.member.dto.response.MemberResponse;
-import com.roommate.domain.member.dto.response.WorkTypeResponse;
-import com.roommate.domain.member.entity.MemberDrinkingEnum;
-import com.roommate.domain.member.entity.MemberEntity;
-import com.roommate.domain.member.entity.MemberSmokingEnum;
-import com.roommate.domain.member.repository.MemberRepository;
+import com.roommate.domain.member.dto.response.*;
+import com.roommate.domain.member.entity.*;
+import com.roommate.domain.member.repository.*;
 import org.springframework.stereotype.Service;
-
-import com.roommate.domain.member.entity.WorkTypeEntity;
-import com.roommate.domain.member.repository.WorkTypeRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -23,12 +17,36 @@ public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
     private final WorkTypeRepository workTypeRepository;
+    private final HobbyRepository hobbyRepository;
+    private final PreferenceRepository preferenceRepository;
+    private final PetRepository petRepository;
 
     private WorkTypeResponse toWorkTypeResponse(WorkTypeEntity workTypeEntity) {
         WorkTypeResponse workTypeResponse = new WorkTypeResponse();
         workTypeResponse.setWorkTypeId(workTypeEntity.getWorkTypeId());
         workTypeResponse.setWorkTypeName(workTypeEntity.getWorkTypeName());
         return workTypeResponse;
+    }
+
+    private HobbyResponse toHobbyResponse(HobbyEntity hobbyEntity) {
+        HobbyResponse hobbyResponse = new HobbyResponse();
+        hobbyResponse.setHobbyId(hobbyEntity.getHobbyId());
+        hobbyResponse.setHobbyName(hobbyEntity.getHobbyName());
+        return hobbyResponse;
+    }
+
+    private PreferenceResponse toPreferenceResponse(PreferenceEntity preferenceEntity) {
+        PreferenceResponse preferenceResponse = new PreferenceResponse();
+        preferenceResponse.setPreferenceId(preferenceEntity.getPreferenceId());
+        preferenceResponse.setPreferenceName(preferenceEntity.getPreferenceName());
+        return preferenceResponse;
+    }
+
+    private PetResponse toPetResponse(PetEntity petEntity) {
+        PetResponse petResponse = new PetResponse();
+        petResponse.setPetId(petEntity.getPetId());
+        petResponse.setPetName(petEntity.getPetName());
+        return petResponse;
     }
 
     private MemberResponse toMemberResponse(MemberEntity memberEntity, String workTypeName) {
@@ -47,8 +65,13 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
-    public List<WorkTypeResponse> findAllWorkType() {
-        return workTypeRepository.findAll().stream().map(this::toWorkTypeResponse).toList();
+    public FormCodesResponse getFormCodes() {
+        FormCodesResponse formCodesResponse = new FormCodesResponse();
+        formCodesResponse.setWorkTypes(workTypeRepository.findAll().stream().map(this::toWorkTypeResponse).toList());
+        formCodesResponse.setHobbies(hobbyRepository.findAll().stream().map(this::toHobbyResponse).toList());
+        formCodesResponse.setPreferences(preferenceRepository.findAll().stream().map(this::toPreferenceResponse).toList());
+        formCodesResponse.setPets(petRepository.findAll().stream().map(this::toPetResponse).toList());
+        return formCodesResponse;
     }
 
     @Override

@@ -1,6 +1,7 @@
 package com.roommate.domain.member.controller;
 
 import com.roommate.common.security.UserDetailsImpl;
+import com.roommate.domain.member.dto.response.FormCodesResponse;
 import com.roommate.domain.member.dto.response.MemberResponse;
 import com.roommate.domain.member.dto.response.WorkTypeResponse;
 import com.roommate.domain.member.service.MemberService;
@@ -25,7 +26,7 @@ public class MemberRestController {
      */
     @GetMapping("/work-types")
     public ResponseEntity<List<WorkTypeResponse>> getAllWorkTypes(){
-        List<WorkTypeResponse> workTypes = memberService.findAllWorkType();
+        List<WorkTypeResponse> workTypes = memberService.getFormCodes().getWorkTypes();
         return ResponseEntity.ok(workTypes);
     }
 
@@ -35,4 +36,13 @@ public class MemberRestController {
         return ResponseEntity.ok(memberResponse);
     }
 
+    /**
+     * 회원가입 / 프로필 수정 화면에서 사용하는
+     * 공통 코드(직업, 취미, 생활 선호, 반려동물)를 한 번에 조회합니다.
+     *
+     */
+    @GetMapping("/form-codes")
+    public ResponseEntity<FormCodesResponse> getFormCodes() {
+        return ResponseEntity.ok(memberService.getFormCodes());
+    }
 }

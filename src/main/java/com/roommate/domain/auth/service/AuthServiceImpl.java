@@ -18,6 +18,7 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -58,8 +59,9 @@ public class AuthServiceImpl implements AuthService {
         memberEntity.setPhotoUrl(signUpRequest.getPhotoUrl());
         memberEntity.setSleepTime(signUpRequest.getSleepTime());
         memberEntity.setWorkTypeId(signUpRequest.getWorkTypeId());
-        memberEntity.setSmoking(signUpRequest.getSmoking());
-        memberEntity.setDrinking(signUpRequest.getDrinking());
+        // 흡연/음주 기본값 처리
+        memberEntity.setSmoking(signUpRequest.getSmoking() != null ? signUpRequest.getSmoking() : MemberSmokingEnum.NON_SMOKER);
+        memberEntity.setDrinking(signUpRequest.getDrinking() != null ? signUpRequest.getDrinking() : MemberDrinkingEnum.NONE);
         memberEntity.setMbti(signUpRequest.getMbti());
         return memberEntity;
     }
@@ -105,10 +107,31 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public SignUpResponse signUp(SignUpRequest signUpRequest) {
         validateEmailDuplication(signUpRequest.getEmail());
         MemberEntity memberEntity = createMemberFromSignUpRequest(signUpRequest);
         memberRepository.save(memberEntity);
+        Long memberId = memberEntity.getMemberId();
+
+        if (signUpRequest.getHobbyIds() != null) {
+            for (Long hobbyId : signUpRequest.getHobbyIds()) {
+                memberRepository.insertMemberHobby(memberId, hobbyId);
+            }
+        }
+
+        if (signUpRequest.getPreferenceIds() != null) {
+            for (Long preferenceId : signUpRequest.getPreferenceIds()) {
+                memberRepository.insertMemberPreference(memberId, preferenceId);
+            }
+        }
+
+        if (signUpRequest.getPetIds() != null) {
+            for (Long petId : signUpRequest.getPetIds()) {
+                memberRepository.insertMemberPet(memberId, petId);
+            }
+        }
+
         SignUpResponse response = toSignUpResponse(memberEntity);
         return response;
     }
