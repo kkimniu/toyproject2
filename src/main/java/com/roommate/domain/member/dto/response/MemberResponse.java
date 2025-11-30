@@ -5,8 +5,12 @@ import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class MemberResponse {
+    private Long memberId;
+    private Long workTypeId;
     private String workTypeName;
     private String email;
     private String name;
@@ -17,4 +21,9 @@ public class MemberResponse {
     private MemberDrinkingEnum drinking;
     private String mbti;
     private MemberRoleEnum memberRoleEnum;
+
+    // 프로필 상세에 필요한 목록들
+    private List<HobbyResponse> hobbies;
+    private List<PreferenceResponse> preferences;
+    private List<PetResponse> pets;
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.chat.repository.ChatRoomRepository">
+
+    <update id="markDeletedByMember" parameterType="long">
+        UPDATE chat_rooms
+        SET
+        deleted_by_owner = CASE
+        WHEN owner_id = #{memberId} THEN 1
+        ELSE deleted_by_owner
+        END,
+        deleted_by_partner = CASE
+        WHEN partner_id = #{memberId} THEN 1
+        ELSE deleted_by_partner
+        END
+        WHERE owner_id = #{memberId}
+        OR partner_id = #{memberId}
+    </update>
+
+</mapper>
