@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roommate.domain.member.repository.PreferenceRepository">
+    <resultMap id="preferenceMap" type="com.roommate.domain.member.entity.PreferenceEntity">
+        <id property="preferenceId" column="preference_id"/>
+        <result property="preferenceName" column="preference_name"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="preferenceMap">
+        SELECT *
+        FROM preferences
+        ORDER BY preference_name
+    </select>
+</mapper>

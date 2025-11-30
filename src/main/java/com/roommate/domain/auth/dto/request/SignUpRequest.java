@@ -4,13 +4,12 @@ import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
+import java.util.List;
 
 @Data
 public class SignUpRequest {
+    @NotNull(message = "직업/라이프스타일을 선택해주세요")
     private Long workTypeId;
     @NotBlank(message = "이메일을 입력해주세요")
     @Email(message = "잘못된 이메일 입니다")
@@ -24,8 +23,17 @@ public class SignUpRequest {
     private String phone;
     @Size(max = 255)
     private String photoUrl;
+
     private String sleepTime;
+
+    @NotNull(message = "흡연 여부를 선택해주세요")
     private MemberSmokingEnum smoking;
+
+    @NotNull(message = "음주 여부를 선택해주세요")
     private MemberDrinkingEnum drinking;
     private String mbti;
+
+    private List<Long> hobbyIds;
+    private List<Long> preferenceIds;
+    private List<Long> petIds;
 }

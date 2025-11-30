@@ -21,4 +21,11 @@ public class AuthViewController {
         // /WEB-INF/views/auth/me-test.jsp 로 forward
         return "auth/me-test";
     }
+
+    // 로그인 화면
+    @GetMapping("/login")
+    public String loginPage() {
+        // /WEB-INF/views/auth/login.jsp 로 forward
+        return "auth/login";
+    }
 }

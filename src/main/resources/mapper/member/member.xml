@@ -65,6 +65,20 @@
         #{mbti}
         )
     </insert>
+    <insert id="insertMemberHobby">
+        INSERT INTO member_hobbies (member_id, hobby_id)
+        VALUES (#{memberId}, #{hobbyId})
+    </insert>
+
+    <insert id="insertMemberPreference">
+        INSERT INTO member_preferences (member_id, preference_id)
+        VALUES (#{memberId}, #{preferenceId})
+    </insert>
+
+    <insert id="insertMemberPet">
+        INSERT INTO member_pets (member_id, pet_id)
+        VALUES (#{memberId}, #{petId})
+    </insert>
     <update id="updateMember" parameterType="com.roommate.domain.member.entity.MemberEntity">
         UPDATE members
         <set>
