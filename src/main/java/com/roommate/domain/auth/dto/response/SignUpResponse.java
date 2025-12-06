@@ -1,9 +1,12 @@
 package com.roommate.domain.auth.dto.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
 import lombok.Data;
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Data
 public class SignUpResponse {
     private Long memberId;

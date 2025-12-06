@@ -94,7 +94,7 @@
         WHERE
             member_id = #{memberId}
     </update>
-    <!-- resources/mapper/member/member.xml -->
+    <!-- resources/mapper/member/Member.xml -->
     <update id="softDeleteMember" parameterType="long">
         UPDATE members
         SET deleted = 1

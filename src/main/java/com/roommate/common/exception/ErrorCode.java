@@ -13,22 +13,74 @@ public enum ErrorCode {
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "A002", "유효하지 않은 인증 토큰입니다."),
     EXPIRED_TOKEN(HttpStatus.UNAUTHORIZED, "A003", "만료된 토큰입니다."),
     ACCESS_DENIED(HttpStatus.FORBIDDEN, "A004", "접근 권한이 없습니다."),
+
     // ===== REFRESH TOKEN 관련 (추가) =====
     INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A005", "유효하지 않은 리프레시 토큰입니다."),
     EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "A006", "만료된 리프레시 토큰입니다."),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A007", "리프레시 토큰이 존재하지 않습니다."),
     REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "A008", "이미 사용된 리프레시 토큰입니다."),
+
+    // ===== ADMIN / 관리자 관련 =====
+    ADMIN_ONLY(HttpStatus.FORBIDDEN, "AD001", "관리자만 접근할 수 있습니다."),
+    ADMIN_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "AD002", "관리 대상 회원이 존재하지 않습니다."),
+    ADMIN_MEMBER_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD003", "회원 삭제에 실패했습니다."),
+    ADMIN_MEMBER_BAN_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD004", "회원 정지 처리에 실패했습니다."),
+
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),
-    DUPLICATE_NICKNAME(HttpStatus.CONFLICT, "M002", "이미 사용중인 닉네임입니다."),
-    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M003", "존재하지 않는 회원입니다."),
-    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "M004", "이메일 또는 비밀번호가 올바르지 않습니다."),
-    INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "M005", "이메일 형식이 올바르지 않습니다."),
-    MEMBER_DEACTIVATED(HttpStatus.FORBIDDEN, "M006", "탈퇴한 회원입니다."),
+    MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "M002", "존재하지 않는 회원입니다."),
+    INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "M003", "이메일 또는 비밀번호가 올바르지 않습니다."),
+    INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "M004", "이메일 형식이 올바르지 않습니다."),
+    MEMBER_DEACTIVATED(HttpStatus.FORBIDDEN, "M005", "탈퇴한 회원입니다."),
 
     // ===== WORK_TYPE / 근무 유형 관련 =====
     WORK_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "존재하지 않는 근무 유형입니다."),
     INVALID_WORK_TYPE(HttpStatus.BAD_REQUEST, "W002", "유효하지 않은 근무 유형 값입니다."),
+
+    // ===== ROOM / 방 관련 =====
+    ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R101", "존재하지 않는 방입니다."),
+    ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "R102", "해당 방에 대한 권한이 없습니다."),
+    ROOM_ALREADY_DELETED(HttpStatus.BAD_REQUEST, "R103", "이미 삭제된 방입니다."),
+    ROOM_STATUS_INVALID(HttpStatus.BAD_REQUEST, "R104", "유효하지 않은 방 상태입니다."),
+    ROOM_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R105", "방 등록 중 오류가 발생했습니다."),
+    ROOM_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R106", "방 수정 중 오류가 발생했습니다."),
+    ROOM_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R107", "방 삭제 중 오류가 발생했습니다."),
+    ROOM_STATUS_CHANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R108", "방 상태 변경에 실패했습니다."),
+    INVALID_ROOM_LOCATION(HttpStatus.BAD_REQUEST, "R109", "방 위치 정보가 올바르지 않습니다."),
+
+    // ===== ROOM IMAGE / 방 이미지 관련 =====
+    ROOM_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "방 이미지가 존재하지 않습니다."),
+    ROOM_IMAGE_UPLOAD_FAILED(HttpStatus.BAD_REQUEST, "I002", "방 이미지 업로드에 실패했습니다."),
+    ROOM_IMAGE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "I003", "방 이미지 삭제에 실패했습니다."),
+    ROOM_IMAGE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "I004", "방 이미지는 최대 허용 개수를 초과할 수 없습니다."),
+
+    // ===== FAVORITE / 찜 관련 =====
+    FAVORITE_ALREADY_EXISTS(HttpStatus.CONFLICT, "F001", "이미 찜한 방입니다."),
+    FAVORITE_NOT_FOUND(HttpStatus.NOT_FOUND, "F002", "찜한 내역이 존재하지 않습니다."),
+    FAVORITE_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F003", "찜 등록에 실패했습니다."),
+    FAVORITE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F004", "찜 삭제에 실패했습니다."),
+
+    // ===== CHAT / 채팅 관련 =====
+    CHAT_ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "C001", "채팅방이 존재하지 않습니다."),
+    CHAT_ROOM_ALREADY_EXISTS(HttpStatus.CONFLICT, "C002", "이미 존재하는 채팅방입니다."),
+    CHAT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "C003", "채팅방 접근 권한이 없습니다."),
+    CHAT_MESSAGE_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "C004", "메시지 전송에 실패했습니다."),
+    CHAT_ROOM_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "C005", "채팅방 삭제에 실패했습니다."),
+
+
+    // ===== REPORT / 신고 관련 =====
+    REPORT_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "RP001", "이미 신고한 대상입니다."),
+    REPORT_TARGET_NOT_FOUND(HttpStatus.NOT_FOUND, "RP002", "신고 대상이 존재하지 않습니다."),
+    REPORT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "RP003", "신고 처리 중 오류가 발생했습니다."),
+
+    // ===== MAP / 지도 조회 관련 =====
+    INVALID_MAP_BOUNDARY(HttpStatus.BAD_REQUEST, "MAP001", "지도 좌표 범위가 올바르지 않습니다."),
+    MAP_DATA_FETCH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "MAP002", "지도 데이터 조회에 실패했습니다."),
+
+    // ===== KAKAO API / 외부 API 연동 =====
+    KAKAO_API_CALL_FAILED(HttpStatus.SERVICE_UNAVAILABLE, "K001", "카카오 API 호출에 실패했습니다."),
+    KAKAO_ADDRESS_NOT_FOUND(HttpStatus.BAD_REQUEST, "K002", "주소에 해당하는 좌표를 찾을 수 없습니다."),
+    KAKAO_API_RESPONSE_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "K003", "카카오 API 응답 처리 중 오류가 발생했습니다."),
 
     // ===== INPUT / 요청 데이터 관련 =====
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "R001", "잘못된 요청입니다."),

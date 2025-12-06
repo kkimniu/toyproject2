@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roommate.domain.room.repository.RoomRepository">
+    <resultMap id="roomEntityMap" type="com.roommate.domain.room.entity.RoomEntity">
+        <id property="roomId" column="room_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="roomTitle" column="room_title"/>
+        <result property="roomContent" column="room_content"/>
+        <result property="roomTypeId" column="room_type_id"/>
+        <result property="monthlyRent" column="monthly_rent"/>
+        <result property="deposit" column="deposit"/>
+        <result property="areaM2" column="area_m2"/>
+        <result property="floor" column="floor"/>
+        <result property="address" column="address"/>
+        <result property="legalDong" column="legal_dong"/>
+        <result property="landNumber" column="land_number"/>
+        <result property="lat" column="lat"/>
+        <result property="lng" column="lng"/>
+        <result property="availableFrom" column="available_from"/>
+        <result property="maxRoommates" column="max_roommates"/>
+        <result property="views" column="views"/>
+        <result property="interestCount" column="interest_count"/>
+        <result property="status" column="status"/>
+        <result property="deleted" column="deleted"/>
+        <result property="roomCreatedAt" column="room_created_at"/>
+        <result property="roomUpdatedAt" column="room_updated_at"/>
+    </resultMap>
+    <insert id="insertRoom" parameterType="com.roommate.domain.room.entity.RoomEntity" useGeneratedKeys="true" keyProperty="roomId">
+        INSERT INTO rooms (
+        member_id, room_title, room_content, room_type_id,
+        monthly_rent, deposit, area_m2, floor,
+        address, legal_dong, land_number,
+        lat, lng, available_from, max_roommates, status
+        ) VALUES (
+        #{memberId}, #{roomTitle}, #{roomContent}, #{roomTypeId},
+        #{monthlyRent}, #{deposit}, #{areaM2}, #{floor},
+        #{address}, #{legalDong}, #{landNumber},
+        #{lat}, #{lng}, #{availableFrom}, #{maxRoommates}, #{status}
+        )
+    </insert>
+
+    <update id="updateRoom" parameterType="com.roommate.domain.room.entity.RoomEntity">
+        UPDATE rooms
+        SET room_title = #{roomTitle},
+        room_content   = #{roomContent},
+        room_type_id   = #{roomTypeId},
+        monthly_rent   = #{monthlyRent},
+        deposit        = #{deposit},
+        area_m2        = #{areaM2},
+        floor          = #{floor},
+        address        = #{address},
+        legal_dong     = #{legalDong},
+        land_number    = #{landNumber},
+        lat            = #{lat},
+        lng            = #{lng},
+        available_from = #{availableFrom},
+        max_roommates  = #{maxRoommates}
+        WHERE room_id = #{roomId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <!-- soft delete -->
+    <update id="softDeleteRoom">
+        UPDATE rooms
+        SET deleted = 1,
+        status  = 'CLOSED'
+        WHERE room_id = #{roomId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="updateRoomStatus">
+        UPDATE rooms
+        SET status = #{status}
+        WHERE room_id = #{roomId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <select id="findById" resultMap="roomEntityMap">
+        SELECT *
+        FROM rooms
+        WHERE room_id = #{roomId}
+        AND deleted = 0
+    </select>
+
+    <!-- 지도용 목록 -->
+    <select id="findForMap" resultType="com.roommate.domain.room.entity.RoomMapItemEntity">
+        SELECT
+        r.room_id       AS roomId,
+        r.lat           AS lat,
+        r.lng           AS lng,
+        r.monthly_rent  AS monthlyRent,
+        r.deposit       AS deposit,
+        r.status        AS status,
+        (SELECT ri.image_url
+        FROM room_image ri
+        WHERE ri.room_id = r.room_id
+        ORDER BY ri.sort_order ASC, ri.image_id ASC
+        LIMIT 1) AS thumbnailUrl
+        FROM rooms r
+        WHERE r.deleted = 0
+        AND r.status IN ('OPEN', 'RESERVED')  <!-- 왜: CLOSED/HIDDEN은 지도 표시 X -->
+        AND r.lat BETWEEN #{south} AND #{north}
+        AND r.lng BETWEEN #{west} AND #{east}
+    </select>
+
+    <!-- 상세 조회: 조인으로 한 번에 -->
+    <select id="findDetailById" resultType="com.roommate.domain.room.entity.RoomDetailEntity">
+        SELECT
+        r.room_id       AS roomId,
+        r.room_title    AS title,
+        r.room_content  AS content,
+        r.room_type_id  AS roomTypeId,
+        r.monthly_rent  AS monthlyRent,
+        r.deposit       AS deposit,
+        r.area_m2       AS areaM2,
+        r.floor         AS floor,
+        r.address       AS address,
+        r.legal_dong    AS legalDong,
+        r.land_number   AS landNumber,
+        r.lat           AS lat,
+        r.lng           AS lng,
+        r.available_from AS availableFrom,
+        r.max_roommates AS maxRoommates,
+        r.views         AS views,
+        r.interest_count AS interestCount,
+        r.status        AS status,
+        r.room_created_at AS roomCreatedAt,
+        m.member_id     AS ownerId,
+        m.name          AS ownerNickname,
+        m.photo_url     AS ownerPhotoUrl
+        FROM rooms r
+        JOIN members m ON r.member_id = m.member_id
+        WHERE r.room_id = #{roomId}
+        AND r.deleted = 0
+    </select>
+
+    <update id="closeAndDeleteByMemberId" parameterType="long">
+        UPDATE rooms
+        SET status = 'CLOSED',
+        deleted = 1
+        WHERE member_id = #{memberId}
+    </update>
+</mapper>

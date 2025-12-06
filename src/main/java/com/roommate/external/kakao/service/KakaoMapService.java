@@ -1,4 +1,8 @@
 package com.roommate.external.kakao.service;
 
-public class KakaoMapService {
+import com.roommate.external.kakao.dto.KakaoGeoPoint;
+
+public interface KakaoMapService {
+
+    public KakaoGeoPoint geocodeAddress(String address);
 }

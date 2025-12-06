@@ -1,14 +1,45 @@
 // /resources/js/auth/login.js
 // 로그인/회원가입 모달 전용 스크립트
-
 import {
   saveTokens,
   clearTokens,
   getAccessToken,
   getTokenType,
+  getRefreshToken,
 } from "../common/authTokenStorage.js";
+import { apiRequest } from "../common/apiClient.js";
 
-document.addEventListener("DOMContentLoaded", () => {
+  // ✅ 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
+  async function syncAuthOnPageLoad() {
+    const accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
+
+    // 둘 다 없으면 → 진짜 비로그인
+    if (!accessToken && !refreshToken) {
+      return;
+    }
+
+    try {
+      // /api/members/me 를 apiRequest 로 호출
+      //  - accessToken 유효하면 그대로 200
+      //  - accessToken 만료면 401 → apiClient.js 가 /api/auth/refresh 호출 후 재요청
+      const res = await apiRequest("/api/members/me", { method: "GET" });
+
+      if (!res.ok) {
+        // refresh 도 실패한 상황 → 토큰 다 지우고 완전 비로그인 처리
+        clearTokens();
+      }
+    } catch (err) {
+      console.error("syncAuthOnPageLoad error:", err);
+      // 에러가 나도 꼬인 토큰은 정리
+      clearTokens();
+    }
+  }
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // ✅ 1) 우선 accessToken 이 만료돼 있으면 여기서 refresh 시도
+  await syncAuthOnPageLoad();
+   // ✅ 2) 그 다음부터는 항상 "최신 accessToken 기준"으로 로그인 상태 판단
   setupTabs();
   setupLoginForm();
   setupRegisterForm();
@@ -46,19 +77,13 @@ function setupHeaderAuthButtons() {
 
   // ▶ 로그인 버튼: 로그인 탭을 열면서 모달 띄우기
   loginBtn.onclick = () => {
-    openAuthModal();
-    const loginTabBtn = document.querySelector('.auth-tab[data-tab="login"]');
-    if (loginTabBtn) loginTabBtn.click();
+    openAuthModal("login");
   };
 
   // ▶ 회원가입 버튼: 회원가입 탭을 열면서 모달 띄우기
   if (registerBtn) {
     registerBtn.onclick = () => {
-      openAuthModal();
-      const regTabBtn = document.querySelector(
-        '.auth-tab[data-tab="register"]'
-      );
-      if (regTabBtn) regTabBtn.click();
+      openAuthModal("register");
     };
   }
 
@@ -90,10 +115,31 @@ function setupHeaderAuthButtons() {
 /* =====================
  *  모달 열기/닫기
  * ===================== */
-function openAuthModal() {
+function openAuthModal(defaultTab = "login") {
   const modal = document.getElementById("authModal");
   if (!modal) return;
   modal.classList.remove("hidden");
+  // 탭/콘텐츠 DOM 찾기
+  const loginTabBtn = document.querySelector('.auth-tab[data-tab="login"]');
+  const registerTabBtn = document.querySelector('.auth-tab[data-tab="register"]');
+  const loginTab = document.getElementById("loginTab");
+  const registerTab = document.getElementById("registerTab");
+
+  if (!loginTabBtn || !registerTabBtn || !loginTab || !registerTab) return;
+
+  // 기본 탭 설정
+  if (defaultTab === "register") {
+    loginTabBtn.classList.remove("active");
+    registerTabBtn.classList.add("active");
+    loginTab.classList.add("hidden");
+    registerTab.classList.remove("hidden");
+  } else {
+    // login
+    loginTabBtn.classList.add("active");
+    registerTabBtn.classList.remove("active");
+    loginTab.classList.remove("hidden");
+    registerTab.classList.add("hidden");
+  }
 }
 
 function closeAuthModal() {
@@ -272,19 +318,19 @@ async function handleRegisterSubmit(e) {
     phone,
 
     // 자바: photoUrl  → JSON: photo_url
-    photo_url: photoUrl || null,
+    photo_url,//: photoUrl || null,
 
     // 자바: sleepTime → JSON: sleep_time
-    sleep_time: sleepTime,     // String
+    sleep_time,//: sleepTime,     // String
     // 자바: workTypeId → JSON: work_type_id
-    work_type_id: workTypeId,  // Long or null
+    work_type_id,//: workTypeId,  // Long or null
     smoking,                   // MemberSmokingEnum (NON_SMOKER / SMOKER)
     drinking,                  // MemberDrinkingEnum (NONE / SOCIAL / OFTEN)
     mbti,                      // String or null
 
     // 자바: hobbyIds → JSON: hobby_ids
-    hobby_ids: hobbyIds,
-    preference_ids: preferenceIds,
+    hobby_ids,//: hobbyIds,
+    preference_ids,//: preferenceIds,
     pet_ids: petIds,
   };
 

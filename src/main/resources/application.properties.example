@@ -16,4 +16,10 @@ db.password=__CHANGE_ME__
 ###############################################
 # 🗺️ KAKAO MAP CONFIG
 ###############################################
-kakao.map.api.key=__CHANGE_ME__
+# 서버에서 REST API 호출용
+kakao.map.api.key=REST_API_키
+
+# JSP(JavaScript 지도)용
+kakao.js.key=JavaScript_키
+kakao.local.base-url=https://dapi.kakao.com
+kakao.ka.origin=roommate-service

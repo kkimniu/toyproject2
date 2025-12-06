@@ -2,12 +2,16 @@ package com.roommate.domain.auth.dto.request;
 
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.*;
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class SignUpRequest {
     @NotNull(message = "직업/라이프스타일을 선택해주세요")
     private Long workTypeId;

@@ -15,7 +15,7 @@
         ORDER BY hobby_name
     </select>
 
-    <!-- mapper/hobby/hobby.xml -->
+    <!-- mapper/hobby/Hobby.xml -->
     <select id="findByMemberId" parameterType="long" resultType="com.roommate.domain.member.entity.HobbyEntity">
         SELECT h.hobby_id,
         h.hobby_name,
