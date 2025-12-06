@@ -1,12 +1,16 @@
 package com.roommate.domain.auth.dto.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class LoginRequest {
     @NotBlank(message = "이메일을 입력해주세요")
     @Email(message = "잘못된 이메일 입니다")

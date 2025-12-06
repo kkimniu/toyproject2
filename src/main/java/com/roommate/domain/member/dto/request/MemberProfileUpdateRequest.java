@@ -2,11 +2,15 @@ package com.roommate.domain.member.dto.request;
 
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class MemberProfileUpdateRequest {
     private String name;
     private String phone;

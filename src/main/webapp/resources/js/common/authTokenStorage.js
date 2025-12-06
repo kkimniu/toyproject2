@@ -2,9 +2,9 @@
 // - 토큰 저장/조회/삭제를 한 곳에서 관리하기 위한 유틸리티
 // - 나중에 localStorage -> cookie로 바꾸고 싶어도 이 파일만 바꾸면 되도록 분리함
 
-const ACCESS_TOKEN_KEY = "accessToken";
-const REFRESH_TOKEN_KEY = "refreshToken";
-const TOKEN_TYPE_KEY = "tokenType";
+const ACCESS_TOKEN_KEY = "access_token";
+const REFRESH_TOKEN_KEY = "refresh_token";
+const TOKEN_TYPE_KEY = "token_type";
 
 // 로그인 성공 시 토큰을 저장
 export function saveTokens({ accessToken, refreshToken, tokenType }) {

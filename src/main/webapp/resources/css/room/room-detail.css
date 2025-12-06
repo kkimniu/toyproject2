@@ -1,0 +1,401 @@
+/* 전체 레이아웃 공통 */
+.room-detail-page {
+    max-width: 1100px;
+    margin: 40px auto 80px;
+    padding: 0 16px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* 상단 탑바 */
+.room-detail-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.btn-link {
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-size: 14px;
+    color: #4b5563;
+    cursor: pointer;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.room-detail-top-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* 메인 헤더 */
+.room-detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.room-detail-header-main {
+    flex: 1;
+}
+
+.room-detail-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.room-detail-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.room-detail-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.room-detail-header-price {
+    text-align: right;
+    min-width: 180px;
+}
+
+.room-price-main {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.room-price-sub {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* 레이아웃 (왼쪽/오른쪽) */
+.room-detail-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 24px;
+    align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+    .room-detail-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 이미지 갤러리 */
+.room-gallery {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+.room-gallery-main {
+    width: 100%;
+    height: 320px;
+    background: #f3f4f6;
+}
+
+.room-gallery-main-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.room-gallery-main-placeholder {
+    width: 100%;
+    height: 100%;
+    font-size: 14px;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.room-gallery-thumbs {
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px 10px;
+    overflow-x: auto;
+    background: #f9fafb;
+}
+
+.room-gallery-thumb {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    object-fit: cover;
+    cursor: pointer;
+    opacity: 0.6;
+    border: 2px solid transparent;
+    flex-shrink: 0;
+}
+
+.room-gallery-thumb.active,
+.room-gallery-thumb:hover {
+    opacity: 1;
+    border-color: #111827;
+}
+
+/* 요약 카드 */
+.room-summary-card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.room-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 900px) {
+    .room-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.room-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.room-summary-label {
+    font-size: 11px;
+    color: #9ca3af;
+}
+
+.room-summary-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.room-summary-sub {
+    margin-top: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.room-summary-sub-label {
+    color: #6b7280;
+    margin-right: 4px;
+}
+
+.room-summary-sub-value {
+    color: #111827;
+}
+
+/* 상태 배지 */
+.room-status-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.room-status-OPEN {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.room-status-RESERVED {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+.room-status-CLOSED,
+.room-status-HIDDEN {
+    background: #e5e7eb;
+    color: #4b5563;
+}
+
+/* 섹션 공통 */
+.room-detail-section {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    padding: 16px 18px 18px;
+    margin-bottom: 14px;
+}
+
+.room-detail-section-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.room-detail-content {
+    font-size: 14px;
+    color: #4b5563;
+    line-height: 1.7;
+    white-space: pre-wrap;
+}
+
+/* 칩(태그) */
+.room-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.room-chip {
+    font-size: 12px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+/* 오른쪽 사이드: 작성자 카드 */
+.room-detail-side {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.room-author-card {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 16px 18px;
+}
+
+.room-author-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.room-author-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: #e5e7eb;
+    flex-shrink: 0;
+}
+
+.room-author-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.room-author-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: #4b5563;
+    font-size: 18px;
+}
+
+.room-author-info {
+    flex: 1;
+}
+
+.room-author-name {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.room-author-sub {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.room-author-extra {
+    margin-top: 8px;
+    font-size: 12px;
+    color: #4b5563;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.room-author-stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 액션 버튼 섹션 */
+.room-detail-actions {
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.btn-outline-full,
+.btn-primary-full,
+.btn-danger-full {
+    width: 100%;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    padding: 9px 12px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-primary-full {
+    background: #111827;
+    border-color: #111827;
+    color: #ffffff;
+}
+
+.btn-danger-full {
+    background: #b91c1c;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+.btn-outline-full:hover {
+    background: #f9fafb;
+}
+
+.room-detail-actions-hint {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #9ca3af;
+    text-align: center;
+}

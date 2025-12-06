@@ -6,6 +6,7 @@ import com.roommate.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -58,11 +59,31 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.cors();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests()
-                .antMatchers("/api/auth/signup", "/api/auth/login","/api/auth/refresh","/api/members/form-codes").permitAll()
-                // ★ 테스트용 뷰 페이지 허용
-                .antMatchers("/auth/login-test", "/auth/me-test", "/auth/login","/room/main").permitAll()
-                .antMatchers("/", "/index", "/resources/**", "/room").permitAll()
+                // ====== 뷰(페이지) 쪽: 모두 허용 ======
+                .antMatchers("/", "/index").permitAll()
+                .antMatchers("/rooms/**").permitAll()      // 상세 페이지 (뷰)
+                .antMatchers("/resources/**", "/favicon.ico").permitAll()
+                // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
+                .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
+
+                // 3) 인증/회원가입/폼코드 등 공개 API
+                .antMatchers("/api/auth/signup", "/api/auth/login", "/api/auth/refresh", "/api/members/form-codes").permitAll()
+
+                // 4) 테스트/로그인 관련 뷰 페이지 - 공개
+                .antMatchers("/auth/login-test", "/auth/me-test", "/auth/login").permitAll()
+
+                // 5) 메인/지도/정적 리소스 - 공개
+                .antMatchers("/", "/room/map", "/index", "/resources/**").permitAll()
+
+                // 6) 방 작성/수정/삭제 API - 로그인 필요
+                .antMatchers(HttpMethod.POST, "/api/rooms/**").authenticated()
+                .antMatchers(HttpMethod.PUT,  "/api/rooms/**").authenticated()
+                .antMatchers(HttpMethod.DELETE,"/api/rooms/**").authenticated()
+
+                // 7) 관리자 API
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
+
+                // 8) 그 외 나머지 요청은 전부 인증 필요
                 .anyRequest().authenticated();
         http.formLogin().disable().httpBasic().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
