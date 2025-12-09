@@ -1,6 +1,6 @@
 // ES Module
-import { apiRequest } from "/resources/js/common/apiClient.js";
-import { requireLogin } from "/resources/js/common/authGuard.js";
+import { apiRequest } from "../common/apiClient.js";
+import { requireLogin } from "../common/authGuard.js";
 
 let map;
 let clusterer;
@@ -63,8 +63,8 @@ window.addEventListener("load", () => {
   if (!requireLogin()) {
     return;
   }
-
-  window.location.href = "/rooms/" + selectedRoomId;
+  const contextPath = window.contextPath || "";
+  window.location.href = `${contextPath}/rooms/${selectedRoomId}`;
 });
 
   // 찜하기 (나중에 /api/favorites 연결 예정)

@@ -221,8 +221,6 @@
     </div>
 </div>
 
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoJsKey}"></script>
-
 <script type="module" src="${pageContext.request.contextPath}/resources/js/common/apiClient.js"></script>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomDetail.js"></script>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>

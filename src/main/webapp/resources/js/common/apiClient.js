@@ -18,13 +18,20 @@ function sleep(ms) {
 export async function apiRequest(input, init = {}) {
   // 1) 기존 옵션 복사
   const options = { ...init };
+
+  const isFormData = options.body instanceof FormData;
+
   options.headers = {
     ...(init.headers || {}),
-    "Content-Type":
+  };
+
+  if(!isFormData) {
+    options.headers["Content-Type"] =
       init.headers && init.headers["Content-Type"]
         ? init.headers["Content-Type"]
-        : "application/json",
-  };
+        : "application/json";
+  }
+
 
   const accessToken = getAccessToken();
   if (accessToken) {
@@ -45,9 +52,15 @@ export async function apiRequest(input, init = {}) {
     // RefreshToken도 없으면 그냥 로그아웃 처리
     clearTokens();
     alert("로그인이 만료되었습니다. 다시 로그인 해주세요.");
+
+    if(typeof window.openAuthModal == "function") {
+        window.openAuthModal("login");
+    }
     // 필요하면 location.href = "/login"; 이런 거 추가
     return response;
   }
+
+
 
   // 2) Refresh 요청
   const refreshResponse = await fetch("/api/auth/refresh", {
@@ -56,7 +69,7 @@ export async function apiRequest(input, init = {}) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      refreshToken: refreshToken,
+      refresh_token: refreshToken,
     }),
   });
 
@@ -64,6 +77,9 @@ export async function apiRequest(input, init = {}) {
     // refresh 실패 → 토큰 삭제 후 로그인 페이지로 유도
     clearTokens();
     alert("세션이 만료되었습니다. 다시 로그인 해주세요.");
+    if (typeof window.openAuthModal === "function") {
+      window.openAuthModal("login");
+    }
     return response;
   }
 
@@ -71,16 +87,16 @@ export async function apiRequest(input, init = {}) {
 
   // 응답 필드 이름은 서버 snake_case 기준
   saveTokens({
-    accessToken: refreshData.accessToken,
-    refreshToken: refreshData.refreshToken,
-    tokenType: refreshData.tokenType,
+    accessToken: refreshData.access_token,
+    refreshToken: refreshData.refresh_token,
+    tokenType: refreshData.token_type,
   });
 
   // 🔁 새 AccessToken으로 원래 요청 다시 한번 시도
   const retryOptions = { ...options };
   retryOptions.headers = {
     ...(options.headers || {}),
-    Authorization: `${refreshData.tokenType} ${refreshData.accessToken}`,
+    Authorization: `${refreshData.token_type} ${refreshData.access_token}`,
   };
 
   const retryResponse = await fetch(input, retryOptions);

@@ -1,0 +1,84 @@
+/* /resources/css/common/header.css */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: 700;
+  text-decoration: none;
+  color: #111;
+}
+
+.gnb {
+  list-style: none;
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+}
+
+.gnb a {
+  text-decoration: none;
+  color: #222;
+  font-size: 14px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-icon-btn {
+  position: relative;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  padding: 1px 4px;
+  border-radius: 999px;
+  background-color: #111827;
+  color: #fff;
+  font-size: 10px;
+  text-align: center;
+}
+
+.header-text-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 6px;
+}
+
+.header-profile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.header-username {
+  text-decoration: none;
+  color: #111;
+}

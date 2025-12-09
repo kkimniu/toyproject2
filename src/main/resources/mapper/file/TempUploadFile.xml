@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.file.repository.TempUploadFileRepository">
+    <resultMap id="fileMap" type="com.roommate.domain.file.entity.TempUploadFileEntity">
+        <id property="tempFileId" column="temp_file_id"/>
+        <result property="originalName" column="original_name"/>
+        <result property="tempPath" column="temp_path"/>
+        <result property="used" column="used"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findById" resultMap="fileMap">
+        SELECT *
+        FROM temp_upload_files
+        WHERE temp_file_id = #{tempFileId}
+    </select>
+
+    <select id="findExpired" resultMap="fileMap">
+        SELECT *
+        FROM temp_upload_files
+        WHERE used = 0 AND created_at <![CDATA[ < ]]> #{threshold}
+    </select>
+
+    <insert id="save" useGeneratedKeys="true" keyProperty="tempFileId"
+            parameterType="com.roommate.domain.file.entity.TempUploadFileEntity">
+        INSERT INTO temp_upload_files ( original_name , temp_path , used )
+        VALUES ( #{originalName} , #{tempPath} , #{used} )
+    </insert>
+
+    <update id="updateUsed" parameterType="com.roommate.domain.file.entity.TempUploadFileEntity">
+        UPDATE temp_upload_files
+        <set>
+            used = #{used},
+        </set>
+        WHERE
+        temp_file_id = #{tempFileId}
+    </update>
+
+    <delete id="deleteById">
+        DELETE
+        FROM temp_upload_files
+        WHERE temp_file_id = #{tempFileId}
+    </delete>
+
+</mapper>

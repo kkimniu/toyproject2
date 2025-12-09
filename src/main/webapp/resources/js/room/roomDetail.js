@@ -1,6 +1,6 @@
 // /resources/js/room/roomDetail.js
-import { apiRequest } from "/resources/js/common/apiClient.js";
-import { requireLogin } from "/resources/js/common/authGuard.js";
+import { apiRequest } from "../common/apiClient.js";
+import { requireLogin } from "../common/authGuard.js";
 
 // 숫자 3자리 콤마
 function formatNumber(num) {

@@ -37,6 +37,20 @@ public enum ErrorCode {
     WORK_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "존재하지 않는 근무 유형입니다."),
     INVALID_WORK_TYPE(HttpStatus.BAD_REQUEST, "W002", "유효하지 않은 근무 유형 값입니다."),
 
+    // ===== FILE / 업로드 공통 =====
+    FILE_NOT_FOUND(HttpStatus.BAD_REQUEST, "F001", "업로드할 파일이 존재하지 않습니다."),
+    FILE_EMPTY(HttpStatus.BAD_REQUEST, "F002", "업로드 파일이 비어 있습니다."),
+    FILE_UPLOAD_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F003", "파일 업로드에 실패했습니다."),
+    FILE_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "F004", "파일 삭제에 실패했습니다."),
+    FILE_PATH_INVALID(HttpStatus.INTERNAL_SERVER_ERROR, "F005", "파일 저장 경로가 올바르지 않습니다."),
+    FILE_ALREADY_USED(HttpStatus.CONFLICT, "F006", "이미 사용 중인 파일입니다."),
+
+    // ===== IMAGE / 이미지 업로드 =====
+    INVALID_IMAGE_TYPE(HttpStatus.BAD_REQUEST, "IMG001", "이미지 파일만 업로드할 수 있습니다."),
+    IMAGE_SIZE_EXCEEDED(HttpStatus.BAD_REQUEST, "IMG002", "이미지 파일 용량이 허용 범위를 초과했습니다."),
+    IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "IMG003", "이미지를 찾을 수 없습니다."),
+    IMAGE_PROCESS_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "IMG004", "이미지 처리 중 오류가 발생했습니다."),
+
     // ===== ROOM / 방 관련 =====
     ROOM_NOT_FOUND(HttpStatus.NOT_FOUND, "R101", "존재하지 않는 방입니다."),
     ROOM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "R102", "해당 방에 대한 권한이 없습니다."),
@@ -86,7 +100,6 @@ public enum ErrorCode {
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "R001", "잘못된 요청입니다."),
     MISSING_REQUIRED_VALUE(HttpStatus.BAD_REQUEST, "R002", "필수 입력값이 누락되었습니다."),
     INVALID_ENUM_VALUE(HttpStatus.BAD_REQUEST, "R003", "유효하지 않은 값입니다."),
-    FILE_UPLOAD_FAILED(HttpStatus.BAD_REQUEST, "R004", "파일 업로드에 실패했습니다."),
 
     // ===== BUSINESS / 리소스 관련 =====
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "B001", "요청한 리소스를 찾을 수 없습니다."),

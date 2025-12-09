@@ -10,6 +10,7 @@ import com.roommate.domain.auth.dto.response.LoginResponse;
 import com.roommate.domain.auth.dto.response.SignUpResponse;
 import com.roommate.domain.auth.entity.TokenRefreshEntity;
 import com.roommate.domain.auth.repository.TokenRefreshRepository;
+import com.roommate.domain.file.service.TempUploadFileService;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
@@ -30,6 +31,8 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
+    private final TempUploadFileService tempUploadFileService;
 
     private final MemberRepository memberRepository;
     private final PasswordEncoder passwordEncoder;
@@ -85,46 +88,52 @@ public class AuthServiceImpl implements AuthService {
      * MemberEntity → SignUpResponse 변환
      */
     private SignUpResponse toSignUpResponse(MemberEntity memberEntity) {
-        SignUpResponse signUpResponse = new SignUpResponse();
-        signUpResponse.setMemberId(memberEntity.getMemberId());
-        signUpResponse.setWorkTypeId(memberEntity.getWorkTypeId());
-        signUpResponse.setEmail(memberEntity.getEmail());
-        signUpResponse.setName(memberEntity.getName());
-        signUpResponse.setPhone(memberEntity.getPhone());
-        signUpResponse.setPhotoUrl(memberEntity.getPhotoUrl());
-        signUpResponse.setSleepTime(memberEntity.getSleepTime());
-        signUpResponse.setSmoking(memberEntity.getSmoking());
-        signUpResponse.setDrinking(memberEntity.getDrinking());
-        signUpResponse.setMbti(memberEntity.getMbti());
-        return signUpResponse;
+        return new SignUpResponse(
+                memberEntity.getMemberId(),
+                memberEntity.getWorkTypeId(),
+                memberEntity.getEmail(),
+                memberEntity.getName(),
+                memberEntity.getPhone(),
+                memberEntity.getPhotoUrl(),
+                memberEntity.getSleepTime(),
+                memberEntity.getSmoking(),
+                memberEntity.getDrinking(),
+                memberEntity.getMbti());
     }
 
     /**
      * MemberEntity,jwt → toLoginUpResponse 변환
      */
     private LoginResponse toLoginResponse(MemberEntity memberEntity, String accessToken, String refreshToken) {
-        LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setMemberId(memberEntity.getMemberId());
-        loginResponse.setWorkTypeId(memberEntity.getWorkTypeId());
-        loginResponse.setEmail(memberEntity.getEmail());
-        loginResponse.setName(memberEntity.getName());
-        loginResponse.setPhone(memberEntity.getPhone());
-        loginResponse.setPhotoUrl(memberEntity.getPhotoUrl());
-        loginResponse.setSleepTime(memberEntity.getSleepTime());
-        loginResponse.setSmoking(memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER);
-        loginResponse.setDrinking(memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE);
-        loginResponse.setMbti(memberEntity.getMbti());
-        loginResponse.setMemberRoleEnum(memberEntity.getRole());
-        loginResponse.setAccessToken(accessToken);
-        loginResponse.setRefreshToken(refreshToken);
-        loginResponse.setTokenType("Bearer");
-        return loginResponse;
+        return new LoginResponse(
+                memberEntity.getMemberId(),
+                memberEntity.getWorkTypeId(),
+                memberEntity.getEmail(),
+                memberEntity.getName(),
+                memberEntity.getPhone(),
+                memberEntity.getPhotoUrl(),
+                memberEntity.getSleepTime(),
+                memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
+                memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
+                memberEntity.getMbti(),
+                memberEntity.getRole(),
+                accessToken,
+                refreshToken,
+                "Bearer"
+        );
     }
 
     @Override
     @Transactional
     public SignUpResponse signUp(SignUpRequest signUpRequest) {
+
         validateEmailDuplication(signUpRequest.getEmail());
+
+        if (signUpRequest.getProfileTempFileId() != null) {
+            String photoUrl = tempUploadFileService.useTempFile(signUpRequest.getProfileTempFileId());
+            signUpRequest.setPhotoUrl(photoUrl);
+        }
+
         MemberEntity memberEntity = createMemberFromSignUpRequest(signUpRequest);
         memberRepository.save(memberEntity);
         Long memberId = memberEntity.getMemberId();

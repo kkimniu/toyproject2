@@ -6,12 +6,10 @@ import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.FormCodesResponse;
 import com.roommate.domain.member.dto.response.MemberResponse;
 import com.roommate.domain.member.dto.response.WorkTypeResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface MemberService {
 
-	/**
-	 * 회원조회
-	 */
 	public MemberResponse memberInfo(Long memberId);
 
 	public MemberResponse updateMemberProfile(Long memberId, MemberProfileUpdateRequest request);
@@ -19,4 +17,6 @@ public interface MemberService {
 	void deleteMember(Long memberId);
 
 	public FormCodesResponse getFormCodes();
+
+	public MemberResponse updateMemberProfilePhoto(Long memberId, MultipartFile multipartFile);
 }

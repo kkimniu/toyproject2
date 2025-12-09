@@ -1,0 +1,234 @@
+/* ===== 공통 ===== */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  background-color: #f5f6f8;
+  color: #222;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===== 전체 레이아웃 ===== */
+.mypage-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 32px;
+}
+
+/* ===== 왼쪽 프로필 카드 ===== */
+.profile-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 80px;
+}
+
+/* 프로필 사진 감싸는 래퍼: 이미지 + 버튼 세로로 배치 */
+.profile-photo-wrapper {
+  margin: 0 auto 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 실제 동그란 프로필 이미지 */
+.profile-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ddd;
+}
+
+/* 메인 정보 */
+.profile-main-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.profile-main-info h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.profile-email,
+.profile-phone {
+  margin: 4px 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* 태그 */
+.profile-tags {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.profile-tags .tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3b5bdb;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 서브 섹션 */
+.profile-subsection {
+  margin-top: 20px;
+}
+
+.profile-subsection h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* 칩 리스트 */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  padding: 6px 12px;
+  background-color: #f1f3f5;
+  border-radius: 999px;
+  font-size: 12px;
+}
+
+.chip-empty {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* ===== 오른쪽 수정 폼 ===== */
+.mypage-right {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 28px 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.mypage-right h2 {
+  margin: 0 0 24px;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+/* ===== 폼 ===== */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.form-row label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.form-row input,
+.form-row select {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-row input:focus,
+.form-row select:focus {
+  border-color: #4dabf7;
+  box-shadow: 0 0 0 3px rgba(77, 171, 247, 0.15);
+}
+
+/* 체크박스 그룹 */
+.checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f1f3f5;
+  font-size: 13px;
+}
+
+.checkbox-item input {
+  cursor: pointer;
+}
+
+/* ===== 하단 액션 ===== */
+.form-actions {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.form-error {
+  color: #e03131;
+  font-size: 13px;
+}
+
+/* 저장 버튼 */
+.btn-primary {
+  height: 46px;
+  padding: 0 28px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #4c6ef5, #364fc7);
+  color: white;
+  font-size: 15px;
+  font-weight: 700;
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(76, 110, 245, 0.3);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* ===== 반응형 ===== */
+@media (max-width: 1024px) {
+  .mypage-container {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-card {
+    position: static;
+  }
+}

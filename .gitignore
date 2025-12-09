@@ -91,3 +91,6 @@ node_modules/
 *.swo
 *.bak
 *.orig
+# 업로드 이미지 / 파일은 Git에 올리지 않는다
+/uploads/
+/upload/

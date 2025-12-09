@@ -122,7 +122,9 @@
 </div><!-- /.page-container -->
 
 <!-- Kakao Map JS SDK -->
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoJsKey}&libraries=clusterer"></script>
+<script
+type="text/javascript"
+src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoJsKey}&libraries=clusterer"></script>
 
 <!-- 분리된 JS (ES Module) -->
 <script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomMap.js"></script>

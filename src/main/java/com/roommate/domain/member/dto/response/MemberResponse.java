@@ -5,12 +5,14 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-@Data
+@Getter
+@AllArgsConstructor
 public class MemberResponse {
     private Long memberId;
     private Long workTypeId;
