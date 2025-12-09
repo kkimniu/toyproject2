@@ -60,6 +60,15 @@
             <param-value>/WEB-INF/dispatcher-servlet.xml</param-value>
         </init-param>
         <load-on-startup>1</load-on-startup>
+
+        <multipart-config>
+            <!-- 업로드 가능한 최대 파일 크기 (byte 단위, 10MB 예시) -->
+            <max-file-size>10485760</max-file-size>
+            <!-- 한 요청에서 모든 파일 합친 크기 (20MB 예시) -->
+            <max-request-size>20971520</max-request-size>
+            <!-- 메모리에 보관할 임계값 (그 이상은 디스크로) -->
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
 	</servlet>
 
     <servlet-mapping>

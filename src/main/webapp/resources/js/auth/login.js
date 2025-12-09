@@ -9,7 +9,7 @@ import {
 } from "../common/authTokenStorage.js";
 import { apiRequest } from "../common/apiClient.js";
 
-  // ✅ 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
+  // 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
   async function syncAuthOnPageLoad() {
     const accessToken = getAccessToken();
     const refreshToken = getRefreshToken();
@@ -37,79 +37,15 @@ import { apiRequest } from "../common/apiClient.js";
   }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  // ✅ 1) 우선 accessToken 이 만료돼 있으면 여기서 refresh 시도
+  // 1) 우선 accessToken 이 만료돼 있으면 여기서 refresh 시도
   await syncAuthOnPageLoad();
-   // ✅ 2) 그 다음부터는 항상 "최신 accessToken 기준"으로 로그인 상태 판단
+   // 2) 그 다음부터는 항상 "최신 accessToken 기준"으로 로그인 상태 판단
   setupTabs();
   setupLoginForm();
   setupRegisterForm();
   loadFormCodes();
-
-  //헤더 버튼 로그인/로그아웃 상태 반영
-  setupHeaderAuthButtons();
-
-  // 전역에서 모달 열고 닫을 수 있게
-  window.openAuthModal = openAuthModal;
-  window.closeAuthModal = closeAuthModal;
+  setupRegisterPhotoUpload();
 });
-
-function setupHeaderAuthButtons() {
-  const loginBtn    = document.getElementById("btnOpenLogin");
-  const registerBtn = document.getElementById("btnOpenRegister");
-  const logoutBtn   = document.getElementById("btnLogout");
-
-  // 헤더가 없는 페이지면 그냥 리턴
-  if (!loginBtn || !logoutBtn) return;
-
-  const hasToken = !!getAccessToken();
-
-  if (hasToken) {
-    // ✅ 로그인 상태 → 로그아웃만 보이게
-    loginBtn.style.display = "none";
-    if (registerBtn) registerBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-  } else {
-    // ✅ 비로그인 상태 → 로그인 / 회원가입 표시
-    loginBtn.style.display = "inline-block";
-    if (registerBtn) registerBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-  }
-
-  // ▶ 로그인 버튼: 로그인 탭을 열면서 모달 띄우기
-  loginBtn.onclick = () => {
-    openAuthModal("login");
-  };
-
-  // ▶ 회원가입 버튼: 회원가입 탭을 열면서 모달 띄우기
-  if (registerBtn) {
-    registerBtn.onclick = () => {
-      openAuthModal("register");
-    };
-  }
-
-  // ▶ 로그아웃 버튼
-  logoutBtn.onclick = async () => {
-    try {
-      const accessToken = getAccessToken();
-      const tokenType = getTokenType() || "Bearer";
-
-      if (accessToken) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: {
-            Authorization: `${tokenType} ${accessToken}`,
-          },
-        });
-      }
-    } catch (err) {
-      console.error("logout error:", err);
-    } finally {
-      // 어쨌든 토큰은 지우고 새로고침
-      clearTokens();
-      location.reload();
-    }
-  };
-}
 
 
 /* =====================
@@ -147,6 +83,9 @@ function closeAuthModal() {
   if (!modal) return;
   modal.classList.add("hidden");
 }
+
+window.openAuthModal = openAuthModal;
+window.closeAuthModal = closeAuthModal;
 
 /* =====================
  *  탭 전환 (로그인 / 회원가입)
@@ -233,18 +172,11 @@ function setupLoginForm() {
         return;
       }
 
-      // saveTokens가 객체를 받는지 / 개별 인자를 받는지 모를 때 안전하게 처리
-      if (saveTokens.length >= 2) {
-        // (accessToken, refreshToken, tokenType) 방식
-        saveTokens(accessToken, refreshToken, tokenType || "Bearer");
-      } else {
-        // ({ accessToken, refreshToken, tokenType }) 방식
         saveTokens({
           accessToken,
           refreshToken,
           tokenType: tokenType || "Bearer",
         });
-      }
 
       closeAuthModal();
       // 로그인 후 원하는 곳으로 이동
@@ -257,6 +189,68 @@ function setupLoginForm() {
   });
 }
 
+/* =====================
+ *  회원가입 - 프로필 사진 파일 선택 + 미리보기
+ * ===================== */
+function setupRegisterPhotoUpload() {
+  const fileInput = document.getElementById("regPhotoFileInput");
+  const uploadBtn = document.getElementById("btnRegPhotoUpload");
+  const previewImg = document.getElementById("regProfilePhoto");
+  const tempIdInput = document.getElementById("regProfileTempFileId");
+
+  // 요소 중 하나라도 없으면 안전하게 종료
+  if (!fileInput || !uploadBtn || !previewImg) {
+    return;
+  }
+
+  // 버튼 클릭 → 숨겨진 file input 클릭
+  uploadBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  // 파일 선택 → 이미지 미리보기
+  fileInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 간단 이미지 타입 체크 (선택사항)
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 선택할 수 있습니다.");
+      fileInput.value = "";
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/files/temp/profile", {
+        method: "PUT",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        alert("프로필 이미지 업로드에 실패했습니다.");
+        return;
+      }
+
+      const data = await res.json();
+      // 백엔드 TempUploadFileResponse: temp_file_id, temp_url
+      const tempFileId = data.temp_file_id;
+      const tempUrl    = data.temp_url;
+
+      // 1) hidden input에 temp_file_id 저장 → 회원가입 submit 때 같이 보냄
+      tempIdInput.value = tempFileId;
+
+      // 2) 미리보기 이미지 변경
+      previewImg.src = tempUrl;
+
+    } catch (err) {
+      console.error("temp profile upload error:", err);
+      alert("이미지 업로드 중 오류가 발생했습니다.");
+    }
+  });
+}
 /* =====================
  *  회원가입 처리
  * ===================== */
@@ -281,16 +275,19 @@ async function handleRegisterSubmit(e) {
   const workTypeSelect = document.getElementById("regWorkType");
   const workTypeRaw = workTypeSelect.value;
   const mbti = document.getElementById("regMbti").value || null;
-  const photoUrl = document.getElementById("regPhoto").value.trim();
-  const registerError = document.getElementById("registerError");
 
+  // 🔹 숨겨진 tempFileId
+  const profileTempFileIdVal = document.getElementById("regProfileTempFileId").value;
+  const profileTempFileId = profileTempFileIdVal ? Number(profileTempFileIdVal) : null;
+
+  const registerError = document.getElementById("registerError");
   registerError.textContent = "";
 
   if (password !== confirm) {
     registerError.textContent = "비밀번호가 일치하지 않습니다.";
     return;
   }
-  // 🔥 workTypeId 필수 체크 (DTO @NotNull)
+  // workTypeId 필수 체크 (DTO @NotNull)
   if (!workTypeRaw) {
     registerError.textContent = "직업/라이프스타일을 선택해주세요.";
     return;
@@ -310,28 +307,31 @@ async function handleRegisterSubmit(e) {
     document.querySelectorAll(".pet-checkbox:checked")
   ).map((el) => Number(el.value));
 
-  // ⚠️ 여기부터는 백엔드 SignUpRequest 필드 이름(camelCase)에 맞춘다
+  // 여기부터는 백엔드 SignUpRequest 필드 이름(camelCase)에 맞춘다
   const payload = {
     email,
     password,
     name,
     phone,
 
-    // 자바: photoUrl  → JSON: photo_url
-    photo_url,//: photoUrl || null,
-
     // 자바: sleepTime → JSON: sleep_time
-    sleep_time,//: sleepTime,     // String
+    sleep_time : sleepTime,     // String
     // 자바: workTypeId → JSON: work_type_id
-    work_type_id,//: workTypeId,  // Long or null
+    work_type_id : workTypeId,  // Long or null
     smoking,                   // MemberSmokingEnum (NON_SMOKER / SMOKER)
     drinking,                  // MemberDrinkingEnum (NONE / SOCIAL / OFTEN)
     mbti,                      // String or null
 
     // 자바: hobbyIds → JSON: hobby_ids
-    hobby_ids,//: hobbyIds,
-    preference_ids,//: preferenceIds,
+    hobby_ids : hobbyIds,
+    preference_ids : preferenceIds,
     pet_ids: petIds,
+
+    // 🔹 임시 파일 ID 전달 (SignUpRequest.profileTempFileId)
+    profile_temp_file_id: profileTempFileId,
+
+    // 🔹 temp 파일을 쓰는 경우 photo_url은 null로
+    photo_url: profileTempFileId ? null : (photoUrl || null),
   };
 
   try {

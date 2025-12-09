@@ -3,9 +3,9 @@ package com.roommate.domain.member.service;
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
 import com.roommate.domain.auth.repository.TokenRefreshRepository;
-import com.roommate.domain.chat.repository.ChatMessageRepository;
 import com.roommate.domain.chat.repository.ChatRoomRepository;
 import com.roommate.domain.favorite.repository.FavoriteRepository;
+import com.roommate.domain.file.service.FileStorageService;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.*;
 import com.roommate.domain.member.entity.*;
@@ -16,12 +16,15 @@ import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
+
+    private final FileStorageService fileStorageService;
 
     private final MemberRepository memberRepository;
     private final WorkTypeRepository workTypeRepository;
@@ -40,63 +43,60 @@ public class MemberServiceImpl implements MemberService {
     private final TokenRefreshRepository tokenRefreshRepository;
 
     private WorkTypeResponse toWorkTypeResponse(WorkTypeEntity workTypeEntity) {
-        WorkTypeResponse workTypeResponse = new WorkTypeResponse();
-        workTypeResponse.setWorkTypeId(workTypeEntity.getWorkTypeId());
-        workTypeResponse.setWorkTypeName(workTypeEntity.getWorkTypeName());
-        return workTypeResponse;
+        return new WorkTypeResponse(workTypeEntity.getWorkTypeId(), workTypeEntity.getWorkTypeName());
     }
 
     private HobbyResponse toHobbyResponse(HobbyEntity hobbyEntity) {
-        HobbyResponse hobbyResponse = new HobbyResponse();
-        hobbyResponse.setHobbyId(hobbyEntity.getHobbyId());
-        hobbyResponse.setHobbyName(hobbyEntity.getHobbyName());
-        return hobbyResponse;
+        return new HobbyResponse(hobbyEntity.getHobbyId(), hobbyEntity.getHobbyName());
     }
 
     private PreferenceResponse toPreferenceResponse(PreferenceEntity preferenceEntity) {
-        PreferenceResponse preferenceResponse = new PreferenceResponse();
-        preferenceResponse.setPreferenceId(preferenceEntity.getPreferenceId());
-        preferenceResponse.setPreferenceName(preferenceEntity.getPreferenceName());
-        return preferenceResponse;
+        return new PreferenceResponse(preferenceEntity.getPreferenceId(), preferenceEntity.getPreferenceName());
     }
 
     private PetResponse toPetResponse(PetEntity petEntity) {
-        PetResponse petResponse = new PetResponse();
-        petResponse.setPetId(petEntity.getPetId());
-        petResponse.setPetName(petEntity.getPetName());
-        return petResponse;
+        return new PetResponse(petEntity.getPetId(), petEntity.getPetName());
     }
 
     private MemberResponse toMemberResponse(MemberEntity memberEntity, WorkTypeEntity workTypeEntity, List<HobbyEntity> hobbyEntities, List<PreferenceEntity> preferenceEntities, List<PetEntity> petEntities) {
-        MemberResponse memberResponse = new MemberResponse();
-        memberResponse.setMemberId(memberEntity.getMemberId());
-        memberResponse.setEmail(memberEntity.getEmail());
-        memberResponse.setName(memberEntity.getName());
-        memberResponse.setPhone(memberEntity.getPhone());
-        memberResponse.setPhotoUrl(memberEntity.getPhotoUrl());
-        if (workTypeEntity != null) {
-            memberResponse.setWorkTypeId(workTypeEntity.getWorkTypeId());
-            memberResponse.setWorkTypeName(workTypeEntity.getWorkTypeName());
+
+        if (workTypeEntity.getWorkTypeId() != null && workTypeEntity == null) {
+            throw new ApiException(ErrorCode.WORK_TYPE_NOT_FOUND);
         }
-        memberResponse.setSleepTime(memberEntity.getSleepTime());
-        memberResponse.setSmoking(memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER);
-        memberResponse.setDrinking(memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE);
-        memberResponse.setMbti(memberEntity.getMbti());
-        memberResponse.setMemberRoleEnum(memberEntity.getRole());
-        memberResponse.setHobbies(hobbyEntities.stream().map(this::toHobbyResponse).toList());
-        memberResponse.setPreferences(preferenceEntities.stream().map(this::toPreferenceResponse).toList());
-        memberResponse.setPets(petEntities.stream().map(this::toPetResponse).toList());
-        return memberResponse;
+
+        Long workTypeId = null;
+        String workTypeName = null;
+
+        if (workTypeEntity != null) {
+            workTypeId = workTypeEntity.getWorkTypeId();
+            workTypeName = workTypeEntity.getWorkTypeName();
+        }
+
+        return new MemberResponse(
+                memberEntity.getMemberId(),
+                workTypeId,
+                workTypeName,
+                memberEntity.getEmail(),
+                memberEntity.getName(),
+                memberEntity.getPhone(),
+                memberEntity.getPhotoUrl(),
+                memberEntity.getSleepTime(),
+                memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
+                memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
+                memberEntity.getMbti(),
+                memberEntity.getRole(),
+                hobbyEntities.stream().map(this::toHobbyResponse).toList(),
+                preferenceEntities.stream().map(this::toPreferenceResponse).toList(),
+                petEntities.stream().map(this::toPetResponse).toList());
     }
 
     @Override
     public FormCodesResponse getFormCodes() {
-        FormCodesResponse formCodesResponse = new FormCodesResponse();
-        formCodesResponse.setWorkTypes(workTypeRepository.findAll().stream().map(this::toWorkTypeResponse).toList());
-        formCodesResponse.setHobbies(hobbyRepository.findAll().stream().map(this::toHobbyResponse).toList());
-        formCodesResponse.setPreferences(preferenceRepository.findAll().stream().map(this::toPreferenceResponse).toList());
-        formCodesResponse.setPets(petRepository.findAll().stream().map(this::toPetResponse).toList());
-        return formCodesResponse;
+        List<WorkTypeResponse> workTypes = workTypeRepository.findAll().stream().map(this::toWorkTypeResponse).toList();
+        List<HobbyResponse> hobbies = hobbyRepository.findAll().stream().map(this::toHobbyResponse).toList();
+        List<PreferenceResponse> preferences = preferenceRepository.findAll().stream().map(this::toPreferenceResponse).toList();
+        List<PetResponse> pets = petRepository.findAll().stream().map(this::toPetResponse).toList();
+        return new FormCodesResponse(workTypes, hobbies, preferences, pets);
     }
 
     @Override
@@ -199,12 +199,12 @@ public class MemberServiceImpl implements MemberService {
 
     /**
      * 회원 탈퇴 처리
-     *
+     * <p>
      * 왜 이렇게 썼는지:
      * - 실제 members row를 삭제하지 않고 deleted 플래그로 관리(soft delete)해서
-     *   FK 제약, 채팅/방 이력, 통계 데이터를 보존하기 위함.
+     * FK 제약, 채팅/방 이력, 통계 데이터를 보존하기 위함.
      * - 연관 테이블은 도메인 정책에 맞게 정리하고,
-     *   채팅 메시지는 남기되 채팅방은 "탈퇴한 회원 기준으로만" 나가기 처리한다.
+     * 채팅 메시지는 남기되 채팅방은 "탈퇴한 회원 기준으로만" 나가기 처리한다.
      */
     @Override
     @Transactional
@@ -247,5 +247,37 @@ public class MemberServiceImpl implements MemberService {
 
         // 6) 최종적으로 members.deleted = 1 로 soft delete
         memberRepository.softDeleteMember(memberId);
+    }
+
+    @Override
+    @Transactional
+    public MemberResponse updateMemberProfilePhoto(Long memberId, MultipartFile multipartFile) {
+        MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (memberEntity.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+
+        String oldPhotoUrl = memberEntity.getPhotoUrl();
+
+        String newPhotoUrl = fileStorageService.storeProfileImg(memberId, multipartFile);
+
+        memberEntity.setPhotoUrl(newPhotoUrl);
+        memberRepository.updateMember(memberEntity);
+
+        fileStorageService.deleteByUrl(oldPhotoUrl);
+
+        WorkTypeEntity workTypeEntity = null;
+        if (memberEntity.getWorkTypeId() != null) {
+            workTypeEntity = workTypeRepository.findById(memberEntity.getWorkTypeId())
+                    .orElse(null);
+        }
+
+        List<HobbyEntity> hobbyEntities = hobbyRepository.findByMemberId(memberId);
+        List<PreferenceEntity> preferenceEntities = preferenceRepository.findByMemberId(memberId);
+        List<PetEntity> petEntities = petRepository.findByMemberId(memberId);
+
+        return toMemberResponse(memberEntity, workTypeEntity, hobbyEntities, preferenceEntities, petEntities);
     }
 }

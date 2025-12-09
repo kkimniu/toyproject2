@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -51,6 +52,12 @@ public class MemberRestController {
     public ResponseEntity<MemberResponse> updateMemberProfile(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody MemberProfileUpdateRequest MemberProfileUpdateRequest) {
         MemberResponse updated = memberService.updateMemberProfile(userDetails.getMemberId(), MemberProfileUpdateRequest);
         // 200 OK 로 반환해도 되지만, Location을 주고 싶으면 created 형태도 가능.
+        return ResponseEntity.ok(updated);
+    }
+
+    @PutMapping("/me/photo")
+    public ResponseEntity<MemberResponse> updateProfilePhoto(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestParam("file") MultipartFile multipartFile) {
+        MemberResponse updated = memberService.updateMemberProfilePhoto(userDetails.getMemberId(), multipartFile);
         return ResponseEntity.ok(updated);
     }
 

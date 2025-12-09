@@ -28,6 +28,16 @@
     <!-- 회원가입 탭 -->
     <div id="registerTab" class="auth-tab-content hidden">
       <form id="registerForm">
+
+        <div class="register-profile-photo-wrapper">
+          <img id="regProfilePhoto" src="" alt="프로필 사진" class="register-profile-photo">
+          <input type="file" id="regPhotoFileInput" accept="image/*" style="display: none;"/>
+          <input type="hidden" id="regProfileTempFileId" />
+          <button type="button" id="btnRegPhotoUpload" class="btn-regPhoto-upload">
+            사진 추가
+          </button>
+        </div>
+
         <!-- 1. 기본 정보: 이름 -->
         <div class="form-row">
           <div class="form-group">
@@ -103,22 +113,24 @@
         <div class="form-group">
           <label for="regMbti">MBTI</label>
           <select id="regMbti">
-            <option value="">선택 안 함</option>
-            <option value="INTJ">INTJ</option><option value="INTP">INTP</option>
-            <option value="INFJ">INFJ</option><option value="INFP">INFP</option>
-            <option value="ISTJ">ISTJ</option><option value="ISTP">ISTP</option>
-            <option value="ISFJ">ISFJ</option><option value="ISFP">ISFP</option>
-            <option value="ENTJ">ENTJ</option><option value="ENTP">ENTP</option>
-            <option value="ENFJ">ENFJ</option><option value="ENFP">ENFP</option>
-            <option value="ESTJ">ESTJ</option><option value="ESTP">ESTP</option>
-            <option value="ESFJ">ESFJ</option><option value="ESFP">ESFP</option>
+              <option value="">선택 안함</option>
+              <option value="INTJ">INTJ</option>
+              <option value="INTP">INTP</option>
+              <option value="INFJ">INFJ</option>
+              <option value="INFP">INFP</option>
+              <option value="ISTJ">ISTJ</option>
+              <option value="ISTP">ISTP</option>
+              <option value="ISFJ">ISFJ</option>
+              <option value="ISFP">ISFP</option>
+              <option value="ENTJ">ENTJ</option>
+              <option value="ENTP">ENTP</option>
+              <option value="ENFJ">ENFJ</option>
+              <option value="ENFP">ENFP</option>
+              <option value="ESTJ">ESTJ</option>
+              <option value="ESTP">ESTP</option>
+              <option value="ESFJ">ESFJ</option>
+              <option value="ESFP">ESFP</option>
           </select>
-        </div>
-
-        <!-- 10. 프로필 사진 URL -->
-        <div class="form-group">
-          <label for="regPhoto">프로필 사진 URL (선택)</label>
-          <input type="text" id="regPhoto" placeholder="https://example.com/photo.jpg">
         </div>
 
         <!-- 11. 취미 다중 선택 -->

@@ -65,13 +65,11 @@
 	
 	    <!-- ✅ 정적 리소스 허용(css나 js를 선언했을경우 이걸 안하면 디스패처에서 가로채서 인식을 못함)) -->
     <mvc:resources mapping="/resources/**" location="/resources/"></mvc:resources>
-    
+	<!--  업로드 파일 정적 리소스 매핑 추가 -->
+	<mvc:resources mapping="/upload/**" location="file:${file.upload.root-path}/" />
 	<!-- 사진 10메가로 올리기 위해서 -->
 	<bean id="multipartResolver"
 		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<property name="maxUploadSize">
-			<value>10485760</value>
-		</property>
 	</bean>
 	
 </beans>

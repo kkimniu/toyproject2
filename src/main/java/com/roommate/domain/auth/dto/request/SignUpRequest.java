@@ -40,4 +40,6 @@ public class SignUpRequest {
     private List<Long> hobbyIds;
     private List<Long> preferenceIds;
     private List<Long> petIds;
+
+    private Long profileTempFileId;
 }

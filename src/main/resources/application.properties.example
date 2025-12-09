@@ -23,3 +23,6 @@ kakao.map.api.key=REST_API_키
 kakao.js.key=JavaScript_키
 kakao.local.base-url=https://dapi.kakao.com
 kakao.ka.origin=roommate-service
+
+#사진 업로드
+file.upload.root-path=
