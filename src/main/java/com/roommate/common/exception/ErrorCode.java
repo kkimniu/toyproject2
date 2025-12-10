@@ -20,6 +20,11 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.UNAUTHORIZED, "A007", "리프레시 토큰이 존재하지 않습니다."),
     REFRESH_TOKEN_REUSED(HttpStatus.UNAUTHORIZED, "A008", "이미 사용된 리프레시 토큰입니다."),
 
+    // 비밀번호 검증 관련
+    INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "P001", "현재 비밀번호가 일치하지 않습니다."),
+    PASSWORD_CONFIRM_MISMATCH(HttpStatus.BAD_REQUEST, "P002", "새 비밀번호와 비밀번호 확인이 일치하지 않습니다."),
+    PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "P003", "이전 비밀번호와 동일한 비밀번호로 변경할 수 없습니다."),
+
     // ===== ADMIN / 관리자 관련 =====
     ADMIN_ONLY(HttpStatus.FORBIDDEN, "AD001", "관리자만 접근할 수 있습니다."),
     ADMIN_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "AD002", "관리 대상 회원이 존재하지 않습니다."),

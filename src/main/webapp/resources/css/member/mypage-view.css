@@ -1,0 +1,363 @@
+/* /resources/css/member/mypage-view.css */
+/* ===== 공통 레이아웃 ===== */
+
+.mypage-main {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ===== 프로필 요약 카드 ===== */
+
+.profile-summary-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+/* 위쪽: 사진 + 기본 정보 + 버튼 */
+.profile-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 프로필 사진 */
+.profile-summary-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-photo-lg {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+/* 사진 변경 버튼 */
+.btn-photo-upload {
+  margin-top: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.btn-photo-upload:hover {
+  background: #eef2ff;
+  border-color: #4f46e5;
+}
+
+/* 가운데 정보 영역 */
+.profile-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin: 0 0 4px;
+}
+
+.profile-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+/* 이메일/전화/가입일 */
+.profile-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.profile-contact-item::before {
+  content: "• ";
+}
+
+/* 오른쪽: 프로필 수정 버튼 */
+.profile-summary-actions {
+  display: flex;
+  align-items: flex-start;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-dark {
+  background: #111827;
+  color: #ffffff;
+}
+
+.btn-dark:hover {
+  background: #000000;
+}
+
+/* 아래쪽: 태그 & 상세 정보 */
+.profile-summary-bottom {
+  margin-top: 18px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+}
+
+/* 태그(라이프스타일) */
+.profile-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4ff;
+  color: #4f46e5;
+  font-size: 0.8rem;
+}
+
+/* 취미/생활선호/반려동물 블록 */
+.profile-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.profile-subsection {
+  flex: 1;
+  min-width: 180px;
+}
+
+.profile-subsection h3 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+/* chip 리스트 */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-list .chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  font-size: 0.8rem;
+}
+
+.chip-empty {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* ===== 탭 영역 ===== */
+
+.mypage-tabs {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mypage-tab {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.mypage-tab.active {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.mypage-tab-content {
+  margin-top: 16px;
+}
+
+/* ===== 계정 설정 섹션 (비밀번호 변경 카드 등) ===== */
+
+.mypage-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+.mypage-section--security h3 {
+  margin: 0 0 6px;
+}
+
+.mypage-section--security p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ===== 비밀번호 변경 모달 ===== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;            /* 기본 숨김 */
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  width: 420px;
+  max-width: 90%;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  padding: 20px 22px 18px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.modal-body .form-group {
+  margin-bottom: 12px;
+}
+
+.modal-body label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.modal-body input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+
+.modal-body input[type="password"]:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+.modal-body .form-text {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.modal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 재사용 버튼 스타일 */
+.btn-primary {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+.mypage-security__message {
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+
+.password-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;           /* JS에서 flex로 바꿈 */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.password-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  width: 360px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.password-modal .form-group {
+  margin-bottom: 12px;
+}
+
+.password-modal .form-control {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.password-modal-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.password-message {
+  min-height: 18px;
+  font-size: 13px;
+  margin-top: 4px;
+}

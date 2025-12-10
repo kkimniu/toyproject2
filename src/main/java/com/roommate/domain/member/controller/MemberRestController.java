@@ -1,9 +1,11 @@
 package com.roommate.domain.member.controller;
 
 import com.roommate.common.security.UserDetailsImpl;
+import com.roommate.domain.member.dto.request.MemberPasswordChangeRequest;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.FormCodesResponse;
 import com.roommate.domain.member.dto.response.MemberResponse;
+import com.roommate.domain.member.dto.response.PasswordChangeResponse;
 import com.roommate.domain.member.dto.response.WorkTypeResponse;
 import com.roommate.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -65,5 +67,11 @@ public class MemberRestController {
     public ResponseEntity<Void> deleteMe(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         memberService.deleteMember(userDetails.getMemberId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<PasswordChangeResponse> changeMyPassword(@AuthenticationPrincipal UserDetailsImpl userDetails, @RequestBody MemberPasswordChangeRequest memberPasswordChangeRequest) {
+        memberService.changeMyPassword(userDetails.getMemberId(), memberPasswordChangeRequest);
+        return ResponseEntity.ok(new PasswordChangeResponse("비밀번호가 성공적으로 변경되었습니다."));
     }
 }

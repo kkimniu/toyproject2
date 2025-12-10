@@ -25,4 +25,6 @@ public interface MemberRepository {
 
     void softDeleteMember(@Param("memberId") Long memberId);
 
+    void updatePassword(@Param("memberId") Long memberId, @Param("password") String encodedPassword);
+
 }

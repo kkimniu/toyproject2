@@ -2,6 +2,7 @@ package com.roommate.domain.member.service;
 
 import java.util.List;
 
+import com.roommate.domain.member.dto.request.MemberPasswordChangeRequest;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.FormCodesResponse;
 import com.roommate.domain.member.dto.response.MemberResponse;
@@ -19,4 +20,6 @@ public interface MemberService {
 	public FormCodesResponse getFormCodes();
 
 	public MemberResponse updateMemberProfilePhoto(Long memberId, MultipartFile multipartFile);
+
+	void changeMyPassword(Long memberId, MemberPasswordChangeRequest memberPasswordChangeRequest);
 }

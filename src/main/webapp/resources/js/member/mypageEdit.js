@@ -1,4 +1,4 @@
-// /resources/js/member/mypage.js
+// /resources/js/member/mypageEdit.js
 
 import { apiRequest } from "../common/apiClient.js";
 import { requireLogin } from "../common/authGuard.js";
