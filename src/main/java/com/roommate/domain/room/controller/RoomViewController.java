@@ -15,7 +15,7 @@ import com.roommate.domain.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("rooms")
+@RequestMapping("/rooms")
 @RequiredArgsConstructor
 public class RoomViewController {
 

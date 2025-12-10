@@ -94,10 +94,17 @@
         WHERE
             member_id = #{memberId}
     </update>
-    <!-- resources/mapper/member/Member.xml -->
     <update id="softDeleteMember" parameterType="long">
         UPDATE members
         SET deleted = 1
         WHERE member_id = #{memberId}
+    </update>
+    <!-- 비밀번호 변경 전용 업데이트 -->
+    <update id="updatePassword">
+        UPDATE members
+        SET password = #{password},
+        member_updated_at = CURRENT_TIMESTAMP
+        WHERE member_id = #{memberId}
+        AND deleted = 0
     </update>
 </mapper>

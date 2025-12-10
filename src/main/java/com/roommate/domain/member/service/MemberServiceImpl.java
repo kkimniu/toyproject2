@@ -6,12 +6,14 @@ import com.roommate.domain.auth.repository.TokenRefreshRepository;
 import com.roommate.domain.chat.repository.ChatRoomRepository;
 import com.roommate.domain.favorite.repository.FavoriteRepository;
 import com.roommate.domain.file.service.FileStorageService;
+import com.roommate.domain.member.dto.request.MemberPasswordChangeRequest;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.*;
 import com.roommate.domain.member.entity.*;
 import com.roommate.domain.member.repository.*;
 import com.roommate.domain.notification.repository.NotificationRepository;
 import com.roommate.domain.room.repository.RoomRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,8 @@ import java.util.List;
 public class MemberServiceImpl implements MemberService {
 
     private final FileStorageService fileStorageService;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final MemberRepository memberRepository;
     private final WorkTypeRepository workTypeRepository;
@@ -279,5 +283,34 @@ public class MemberServiceImpl implements MemberService {
         List<PetEntity> petEntities = petRepository.findByMemberId(memberId);
 
         return toMemberResponse(memberEntity, workTypeEntity, hobbyEntities, preferenceEntities, petEntities);
+    }
+
+    @Override
+    @Transactional
+    public void changeMyPassword(Long memberId, MemberPasswordChangeRequest memberPasswordChangeRequest) {
+        MemberEntity memberEntity = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if (memberEntity.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+
+        if (!memberPasswordChangeRequest.getNewPassword().equals(memberPasswordChangeRequest.getConfirmPassword())) {
+            throw new ApiException(ErrorCode.PASSWORD_CONFIRM_MISMATCH);
+        }
+
+        if (!passwordEncoder.matches(memberPasswordChangeRequest.getCurrentPassword(), memberEntity.getPassword())) {
+            throw new ApiException(ErrorCode.INVALID_CURRENT_PASSWORD);
+        }
+
+        if (passwordEncoder.matches(memberPasswordChangeRequest.getNewPassword(), memberEntity.getPassword())) {
+            throw new ApiException(ErrorCode.PASSWORD_SAME_AS_OLD);
+        }
+
+        String encodeNewPassword = passwordEncoder.encode(memberPasswordChangeRequest.getNewPassword());
+
+        memberRepository.updatePassword(memberId,encodeNewPassword);
+
+        tokenRefreshRepository.deleteByMemberId(memberId);
     }
 }
