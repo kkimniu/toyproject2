@@ -1,4 +1,5 @@
 // ES Module
+// /resources/js/room/roomMap.js
 import { apiRequest } from "../common/apiClient.js";
 import { requireLogin } from "../common/authGuard.js";
 
@@ -8,6 +9,14 @@ let selectedRoomId = null;
 let markers = [];
 let currentRooms = []; // /api/rooms/map 에서 받아온 방 목록
 let currentMemberId = null;
+
+function normalizeRoomId(roomIdRaw) {
+  if (roomIdRaw == null) return null;
+  const s = String(roomIdRaw).trim();
+  if (!s || s === "undefined" || s === "null") return null;
+  if (!/^\d+$/.test(s)) return null;
+  return s;
+}
 
 function formatNumber(num) {
   if (num === null || num === undefined) return "-";
@@ -38,12 +47,14 @@ window.addEventListener("load", async () => {
   currentMemberId = await fetchCurrentMemberId();
   // 초기 1회
   fetchRoomsForCurrentBounds();
-
+  let idleTimer = null;
   // 지도 이동/줌 이후
   kakao.maps.event.addListener(map, "idle", () => {
-    fetchRoomsForCurrentBounds();
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+      fetchRoomsForCurrentBounds();
+    }, 300);
   });
-
   // 오른쪽 카드 X 버튼
   document.getElementById("room-close-btn").addEventListener("click", () => {
     selectedRoomId = null;
@@ -78,33 +89,28 @@ window.addEventListener("load", async () => {
         const ok = requireLogin();
         if (!ok) return;
 
-        const currentlyFavorited = btnFavorite.classList.contains("active");
-        const nextFavorited = !currentlyFavorited;
+        if (btnFavorite.dataset.loading === "true") return;
+        btnFavorite.dataset.loading = "true";
+        btnFavorite.disabled = true;
+
 
         try {
-          if (nextFavorited) {
+            const currentlyFavorited = btnFavorite.classList.contains("active");
+            const nextFavorited = !currentlyFavorited;
             // 찜 추가
             const res = await apiRequest(`/api/favorites/${selectedRoomId}`, {
-              method: "POST",
+              method: nextFavorited ? "POST" : "DELETE",
             });
-            if (!res.ok) {
+            if (!res.ok  && !(res.status === 404 && !nextFavorited)) {
               throw new Error("favorite failed");
             }
-          } else {
-            // 찜 해제
-            const res = await apiRequest(`/api/favorites/${selectedRoomId}`, {
-              method: "DELETE",
-            });
-            // 404(이미 없음)는 그냥 무시
-            if (!res.ok && res.status !== 404) {
-              throw new Error("unfavorite failed");
-            }
-          }
-
           applyFavoriteButtonState(btnFavorite, nextFavorited);
         } catch (e) {
           console.error("[rooms-map] favorite toggle error:", e);
           alert("관심 설정 중 오류가 발생했습니다.");
+        } finally {
+           btnFavorite.dataset.loading = "false";
+           btnFavorite.disabled = false;
         }
       });
     }
@@ -179,14 +185,19 @@ async function fetchCurrentMemberId() {
 }
 
 function renderRoomMarkers(rooms) {
-  clusterer.clear();
+  if (markers.length > 0) clusterer.removeMarkers(markers);
   markers = [];
+  clusterer.clear();
 
   rooms.forEach((room) => {
-    if (!room.lat || !room.lng) return;
+    const lat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
+    const lng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
+    if (lat == null || lng == null) return;
 
-    const roomId = room.roomId ?? room.room_id;
-    const pos = new kakao.maps.LatLng(room.lat, room.lng);
+    const roomIdRaw = room.roomId ?? room.room_id;
+    const roomId = normalizeRoomId(roomIdRaw);
+    if (!roomId) return;
+    const pos = new kakao.maps.LatLng(lat, lng);
     const marker = new kakao.maps.Marker({ position: pos });
 
     kakao.maps.event.addListener(marker, "click", () => {
@@ -202,7 +213,8 @@ function renderRoomMarkers(rooms) {
 
 async function loadRoomDetail(roomId) {
   // ★ 안전장치: 잘못된 roomId일 경우 API 호출 막기
-  if (roomId == null || roomId === "undefined" || roomId === "") {
+  roomId = normalizeRoomId(roomId);
+  if (!roomId) {
     console.warn("[rooms-map] loadRoomDetail 호출 시 roomId 없음:", roomId);
     return;
   }
@@ -245,15 +257,19 @@ function renderRoomDetail(room) {
   const btnFavorite = document.getElementById("btn-favorite");
   const btnChat = document.getElementById("btn-chat");
 
-  const imageUrls = room.imageUrls ?? room.image_urls;
-  const imgEl = document.getElementById("room-image");
-  if (imageUrls && imageUrls.length > 0) {
-    imgEl.src = imageUrls[0];
-    imgEl.style.display = "block";
-  } else {
-    imgEl.style.display = "none";
-  }
+  const imageUrls = room.imageUrls ?? room.image_urls ?? [];
+  const validUrls = imageUrls.filter(Boolean);
 
+  const imgEl = document.getElementById("room-image");
+  if (imgEl) {
+    if (validUrls.length > 0) {
+      imgEl.src = validUrls[0];
+      imgEl.style.display = "block";
+    } else {
+      imgEl.src = "";
+      imgEl.style.display = "none";
+    }
+  }
   document.getElementById("room-title").innerText =
     room.title || "제목 없음";
   document.getElementById("room-address").innerText =
@@ -317,16 +333,11 @@ function renderRoomDetail(room) {
     statusTextEl.style.color = "#6b7280";
   }
 
-  // ✅ 태그(mock)
+  //  태그(mock)
   const chipContainer = document.getElementById("room-chips");
-  chipContainer.innerHTML = "";
-  const mockChips = ["깔끔함", "조용함", "직장인 선호"];
-  mockChips.forEach((text) => {
-    const span = document.createElement("span");
-    span.className = "chip";
-    span.innerText = text;
-    chipContainer.appendChild(span);
-  });
+    const ownerTags = room.ownerTags ?? room.owner_tags ?? [];
+
+    renderChips(chipContainer, ownerTags, { max: 4 });
 
   // 내가 올린 방이면 찜/문의 버튼 숨기기
   const ownerId = room.ownerId ?? room.owner_id;
@@ -350,32 +361,33 @@ function renderRoomDetail(room) {
 function renderNearbyRooms(selectedRoom) {
   const listEl = document.getElementById("nearby-list");
   listEl.innerHTML = "";
+  const sLat = selectedRoom.lat ?? selectedRoom.roomLat ?? selectedRoom.room_lat ?? selectedRoom.latitude;
+  const sLng = selectedRoom.lng ?? selectedRoom.roomLng ?? selectedRoom.room_lng ?? selectedRoom.longitude;
 
-  if (!selectedRoom || !selectedRoom.lat || !selectedRoom.lng || !currentRooms.length) {
+  if (!selectedRoom || sLat == null || sLng == null || !currentRooms.length) {
     const p = document.createElement("p");
     p.className = "room-nearby-empty";
     p.innerText = "근처 매물이 없습니다.";
     listEl.appendChild(p);
     return;
   }
-
-  const sLat = selectedRoom.lat;
-  const sLng = selectedRoom.lng;
-  const selectedId = selectedRoom.roomId ?? selectedRoom.room_id;
+  const selectedId = normalizeRoomId(selectedRoom.roomId ?? selectedRoom.room_id);
 
   // 간단 거리 계산 (위도/경도 차이로 근사)
   function distance(room) {
-    if (!room.lat || !room.lng) return Infinity;
-    const dx = sLat - room.lat;
-    const dy = sLng - room.lng;
+    const rLat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
+    const rLng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
+    if (rLat == null || rLng == null) return Infinity;
+    const dx = sLat - rLat;
+    const dy = sLng - rLng;
     return Math.sqrt(dx * dx + dy * dy);
   }
 
   // 현재 뷰포트 안 방들 중에서, 자기 자신을 제외하고 가까운 순으로 3개
   const candidates = currentRooms
     .filter((r) => {
-      const id = r.roomId ?? r.room_id;
-      return id !== selectedId;
+      const id = normalizeRoomId(r.roomId ?? r.room_id);
+      return id && id !== selectedId;
     })
     .map((r) => ({ room: r, dist: distance(r) }))
     .filter((x) => x.dist < Infinity)
@@ -404,19 +416,18 @@ function renderNearbyRooms(selectedRoom) {
       // 리스트 아이템 클릭 → 그 방 상세로 이동
       selectedRoomId = id;
       loadRoomDetail(id);
+    const rLat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
+    const rLng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
 
-      if (room.lat && room.lng && map) {
-        map.setCenter(new kakao.maps.LatLng(room.lat, room.lng));
+      if (rLat != null && rLng != null && map) {
+        map.setCenter(new kakao.maps.LatLng(rLat, rLng));
       }
     });
 
     const img = document.createElement("img");
     img.className = "room-nearby-thumb";
-    if (thumbnail) {
-      img.src = thumbnail;
-    } else {
-      img.alt = "room image";
-    }
+    img.src = thumbnail || "/resources/img/room/default-room.jpg";
+    img.alt = "room image";
 
     const meta = document.createElement("div");
     meta.className = "room-nearby-meta";
@@ -454,3 +465,32 @@ function applyFavoriteButtonState(btn, favorited) {
     btn.textContent = "♡ 찜하기";
   }
 }
+function renderChips(containerEl, tags, options = {}) {
+  const { max = 6, emptyText = null } = options;
+
+  if (!containerEl) return;
+
+  containerEl.innerHTML = "";
+
+  const safeTags = Array.isArray(tags) ? tags.filter(Boolean) : [];
+  const sliced = safeTags.slice(0, max);
+
+  if (sliced.length === 0) {
+    if (emptyText) {
+      const span = document.createElement("span");
+      span.className = "chip";
+      span.innerText = emptyText;
+      containerEl.appendChild(span);
+    }
+    return;
+  }
+
+  sliced.forEach((text) => {
+    const span = document.createElement("span");
+    //  CSS가 어디에 정의돼있든 최대한 깨지지 않게 두 클래스 같이 줌
+    span.className = "chip room-chip";
+    span.innerText = text;
+    containerEl.appendChild(span);
+  });
+}
+

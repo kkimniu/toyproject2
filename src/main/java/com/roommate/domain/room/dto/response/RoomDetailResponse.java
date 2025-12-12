@@ -19,6 +19,7 @@ public class RoomDetailResponse {
     private final String title;
     private final String content;
     private final Long roomTypeId;
+    private String roomTypeName;
     private final Double monthlyRent;
     private final Double deposit;
     private final Float areaM2;
@@ -41,12 +42,15 @@ public class RoomDetailResponse {
     private final String ownerName;
     private final String ownerPhotoUrl;
 
+    //작성자 태그
+    private final List<String> ownerTags;
+
     // 이미지 리스트
     private final List<String> imageUrls;
 
     //찜하기
-    boolean favorited;
-    
+    private final boolean favorited;
+
     //  Kakao 딥링크 (DB에 저장 X, 응답 시 계산)
     private final String kakaoMapUrl;
     private final String kakaoDirectionUrl;

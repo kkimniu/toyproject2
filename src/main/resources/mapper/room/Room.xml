@@ -115,6 +115,7 @@
         r.room_title    AS title,
         r.room_content  AS content,
         r.room_type_id  AS roomTypeId,
+        rt.room_type_name AS roomTypeName,
         r.monthly_rent  AS monthlyRent,
         r.deposit       AS deposit,
         r.area_m2       AS areaM2,
@@ -135,6 +136,7 @@
         m.photo_url     AS ownerPhotoUrl
         FROM rooms r
         JOIN members m ON r.member_id = m.member_id
+        LEFT JOIN room_types rt ON r.room_type_id = rt.room_type_id
         WHERE r.room_id = #{roomId}
         AND r.deleted = 0
     </select>

@@ -85,7 +85,7 @@
             <section class="room-summary-card">
                 <div class="room-summary-grid">
                     <div class="room-summary-item">
-                        <div class="room-summary-label">방 개수</div>
+                        <div class="room-summary-label">방 종류</div>
                         <div id="room-summary-room-count" class="room-summary-value">-</div>
                     </div>
                     <div class="room-summary-item">

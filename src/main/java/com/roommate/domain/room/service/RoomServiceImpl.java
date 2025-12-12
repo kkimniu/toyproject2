@@ -3,6 +3,7 @@ package com.roommate.domain.room.service;
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
 import com.roommate.domain.favorite.repository.FavoriteRepository;
+import com.roommate.domain.member.service.MemberService;
 import com.roommate.domain.room.dto.request.RoomCreateRequest;
 import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
 import com.roommate.domain.room.dto.request.RoomUpdateRequest;
@@ -24,12 +25,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class RoomServiceImpl implements RoomService {
+    private final MemberService memberService;
 
     private static final String KAKAO_MAP_BASE = "https://map.kakao.com/link";
 
@@ -37,7 +40,6 @@ public class RoomServiceImpl implements RoomService {
     private final RoomImageRepository roomImageRepository;
     private final KakaoMapService kakaoMapService;
     private final FavoriteRepository favoriteRepository;
-
     /**
      * 방 이미지 전체 교체
      * - 기존 이미지 모두 삭제
@@ -243,6 +245,8 @@ public class RoomServiceImpl implements RoomService {
         if (roomDetailEntity == null) {
             throw new ApiException(ErrorCode.ROOM_NOT_FOUND);
         }
+        Long ownerId = roomDetailEntity.getOwnerId();
+        List<String> ownerTags = memberService.getMemberTags(ownerId);
 
         // 이미지 리스트 추가
         List<String> imageUrls = roomImageRepository.findImageUrlsByRoomId(roomId);
@@ -273,6 +277,7 @@ public class RoomServiceImpl implements RoomService {
                 roomDetailEntity.getTitle(),
                 roomDetailEntity.getContent(),
                 roomDetailEntity.getRoomTypeId(),
+                roomDetailEntity.getRoomTypeName(),
                 roomDetailEntity.getMonthlyRent(),
                 roomDetailEntity.getDeposit(),
                 roomDetailEntity.getAreaM2(),
@@ -292,6 +297,7 @@ public class RoomServiceImpl implements RoomService {
                 roomDetailEntity.getOwnerId(),
                 roomDetailEntity.getOwnerNickname(),
                 roomDetailEntity.getOwnerPhotoUrl(),
+                ownerTags,
                 imageUrls,
                 favorited,
                 kakaoMapUrl,
@@ -322,4 +328,5 @@ public class RoomServiceImpl implements RoomService {
                         roomMapItemEntity.getStatus(),
                         roomMapItemEntity.getThumbnailUrl())).toList();
     }
+
 }

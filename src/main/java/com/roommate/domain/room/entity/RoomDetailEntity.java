@@ -15,6 +15,7 @@ public class RoomDetailEntity {
     private String title;
     private String content;
     private Long roomTypeId;
+    private String roomTypeName;
     private Double monthlyRent;
     private Double deposit;
     private Float areaM2;
