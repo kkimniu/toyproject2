@@ -22,4 +22,6 @@ public interface MemberService {
 	public MemberResponse updateMemberProfilePhoto(Long memberId, MultipartFile multipartFile);
 
 	void changeMyPassword(Long memberId, MemberPasswordChangeRequest memberPasswordChangeRequest);
+
+	public List<String> getMemberTags(Long memberId);
 }

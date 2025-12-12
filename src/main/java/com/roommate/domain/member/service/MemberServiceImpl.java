@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -309,8 +310,18 @@ public class MemberServiceImpl implements MemberService {
 
         String encodeNewPassword = passwordEncoder.encode(memberPasswordChangeRequest.getNewPassword());
 
-        memberRepository.updatePassword(memberId,encodeNewPassword);
+        memberRepository.updatePassword(memberId, encodeNewPassword);
 
         tokenRefreshRepository.deleteByMemberId(memberId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getMemberTags(Long memberId) {
+        List<String> tags = new ArrayList<>();
+        tags.addAll(hobbyRepository.findByMemberId(memberId).stream().map(HobbyEntity::getHobbyName).toList());
+        tags.addAll(petRepository.findByMemberId(memberId).stream().map(PetEntity::getPetName).toList());
+        tags.addAll(preferenceRepository.findByMemberId(memberId).stream().map(PreferenceEntity::getPreferenceName).toList());
+        return tags;
     }
 }

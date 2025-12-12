@@ -21,4 +21,5 @@ public interface RoomService {
     public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId);
 
     public List<RoomMapItemResponse> getRoomsForMap(double north, double south, double east, double west, int zoom);
+
 }
