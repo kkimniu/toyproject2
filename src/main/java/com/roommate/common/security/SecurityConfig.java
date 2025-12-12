@@ -68,8 +68,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
+                // 3) 찜 조회용 API- 허용
+                .antMatchers(HttpMethod.GET, "/api/favorites/**").permitAll()
 
-                // 3) 인증/회원가입/폼코드 등 공개 API
+                // 4) 인증/회원가입/폼코드 등 공개 API
                 .antMatchers(
                         "/api/auth/signup",
                         "/api/auth/login",
@@ -77,25 +79,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/members/form-codes",
                         "/api/files/**").permitAll()
 
-                // 4) 테스트/로그인 관련 뷰 페이지 - 공개
+                // 5) 테스트/로그인 관련 뷰 페이지 - 공개
                 .antMatchers("/auth/login-test", "/auth/me-test", "/auth/login").permitAll()
 
-                // 5) 메인/지도/정적 리소스 - 공개
+                // 6) 메인/지도/정적 리소스 - 공개
                 .antMatchers("/", "/room/map", "/index", "/resources/**").permitAll()
 
                 .antMatchers(HttpMethod.POST, "/api/members/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/members/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/members/**").authenticated()
 
-                // 6) 방 작성/수정/삭제 API - 로그인 필요
+                // 7) 방 작성/수정/삭제 API - 로그인 필요
                 .antMatchers(HttpMethod.POST, "/api/rooms/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/rooms/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/rooms/**").authenticated()
 
-                // 7) 관리자 API
+                // 8) 찜 추가/수정/삭제 API - 로그인 필요
+                .antMatchers(HttpMethod.POST, "/api/favorites/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/favorites/**").authenticated()
+
+                // 9) 관리자 API
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // 8) 그 외 나머지 요청은 전부 인증 필요
+                // 10) 그 외 나머지 요청은 전부 인증 필요
                 .anyRequest().authenticated();
         http.formLogin().disable().httpBasic().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

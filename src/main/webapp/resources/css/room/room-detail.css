@@ -399,3 +399,9 @@
     color: #9ca3af;
     text-align: center;
 }
+/* ★ 찜하기(상세 페이지) active 상태 빨간 스타일 */
+#btn-like.active {
+    background: #fef2f2;   /* 연한 빨강 배경 */
+    border-color: #fecaca; /* 연한 빨강 테두리 */
+    color: #dc2626;        /* 진한 빨강 텍스트 */
+}

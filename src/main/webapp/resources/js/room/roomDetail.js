@@ -77,6 +77,19 @@ async function fetchCurrentMemberId() {
   }
 }
 
+
+// 찜 버튼 상태 적용 유틸
+function applyFavoriteButtonState(btn, favorited) {
+  if (!btn) return;
+  if (favorited) {
+    btn.classList.add("active");
+    btn.textContent = "찜 완료";
+  } else {
+    btn.classList.remove("active");
+    btn.textContent = "찜하기";
+  }
+}
+
 window.addEventListener("DOMContentLoaded", async () => {
   const {  roomId } = getRoomMeta();
 
@@ -85,7 +98,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // 🔙 뒤로가기 버튼
+  // 뒤로가기 버튼
   const backBtn = document.getElementById("btn-back");
   if (backBtn) {
     backBtn.addEventListener("click", () => {
@@ -106,27 +119,49 @@ window.addEventListener("DOMContentLoaded", async () => {
   if (!room) return;
 
   // 작성자/로그인 여부에 따라 액션 버튼 노출
-  const ownerId = room.ownerId ?? room.owner_id ?? ownerIdFromMeta;
+  const ownerId = room.ownerId ?? room.owner_id ?? null;
   toggleActionButtons({ currentMemberId, ownerId });
 
   // ♡ 찜하기 버튼
   const likeBtn = document.getElementById("btn-like");
   if (likeBtn) {
-    likeBtn.addEventListener("click", () => {
-      requireLogin(async () => {
-        // TODO: 나중에 실제 찜 API 연동
-        // await apiRequest(`/api/favorites/${roomId}`, { method: "POST" });
+    // 1) 최초 상태 세팅: JSP에서 data-favorited="true|false" 내려줬다고 가정
+    const initialFavorited = !!(room.favorited ?? room.isFavorited);
+    applyFavoriteButtonState(likeBtn, initialFavorited);
 
-        // UI 토글
-        const isActive = likeBtn.classList.toggle("active");
-        likeBtn.textContent = isActive ? "찜 완료" : "찜하기";
+    // 2) 클릭 시 토글 + API 호출
+    likeBtn.addEventListener("click", async () => {
+      const ok = requireLogin();
+      if (!ok) return;
 
-        alert(
-          isActive
-            ? `roomId=${roomId} 방을 찜 목록에 추가 (API 연동 예정)`
-            : `roomId=${roomId} 방을 찜 목록에서 제거 (API 연동 예정)`
-        );
-      });
+      const currentlyFavorited = likeBtn.classList.contains("active");
+      const nextFavorited = !currentlyFavorited;
+
+      try {
+        if (nextFavorited) {
+          //  찜 추가
+          const res = await apiRequest(`/api/favorites/${roomId}`, {
+            method: "POST",
+          });
+          if (!res.ok) {
+            throw new Error("favorite failed");
+          }
+        } else {
+          //  찜 해제
+          const res = await apiRequest(`/api/favorites/${roomId}`, {
+            method: "DELETE",
+          });
+          // 404(이미 없음)는 그냥 무시해도 됨
+          if (!res.ok && res.status !== 404) {
+            throw new Error("unfavorite failed");
+          }
+        }
+
+        applyFavoriteButtonState(likeBtn, nextFavorited);
+      } catch (e) {
+        console.error("[room-detail] favorite toggle error:", e);
+        alert("관심 설정 중 오류가 발생했습니다.");
+      }
     });
   }
 
@@ -134,16 +169,16 @@ window.addEventListener("DOMContentLoaded", async () => {
   const chatBtn = document.getElementById("btn-start-chat");
   if (chatBtn) {
     chatBtn.addEventListener("click", () => {
-      requireLogin(async () => {
-        // TODO: 채팅방 생성 API 연동
-        // const res = await apiRequest("/api/chat/rooms", {
-        //   method: "POST",
-        //   body: JSON.stringify({ roomId }),
-        // });
+        const ok = requireLogin();
+        if (!ok) return;
+            // TODO: 채팅방 생성 API 연동
+            // const res = await apiRequest("/api/chat/rooms", {
+            //   method: "POST",
+            //   body: JSON.stringify({ roomId }),
+            // });
         alert(
           `roomId=${roomId} 방 작성자와 채팅을 시작하는 기능은 추후 WebSocket/채팅 API 연동 예정입니다.`
         );
-      });
     });
   }
 
@@ -306,13 +341,9 @@ function renderRoomDetail(room) {
 
   // --- 조회/관심수 (오른쪽 카드) ---
   const views = room.views ?? 0;
-  const interestCount = room.interestCount ?? room.interest_count ?? 0;
 
   const authorViewsEl = document.getElementById("author-views");
   if (authorViewsEl) authorViewsEl.innerText = views;
-
-  const authorInterestEl = document.getElementById("author-interest");
-  if (authorInterestEl) authorInterestEl.innerText = interestCount;
 
   // --- 작성자 정보 ---
   const authorName = room.ownerNickname ?? room.owner_nickname ?? "작성자";

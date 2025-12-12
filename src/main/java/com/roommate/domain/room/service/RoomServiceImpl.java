@@ -2,6 +2,7 @@ package com.roommate.domain.room.service;
 
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
+import com.roommate.domain.favorite.repository.FavoriteRepository;
 import com.roommate.domain.room.dto.request.RoomCreateRequest;
 import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
 import com.roommate.domain.room.dto.request.RoomUpdateRequest;
@@ -35,6 +36,7 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepository roomRepository;
     private final RoomImageRepository roomImageRepository;
     private final KakaoMapService kakaoMapService;
+    private final FavoriteRepository favoriteRepository;
 
     /**
      * 방 이미지 전체 교체
@@ -260,6 +262,12 @@ public class RoomServiceImpl implements RoomService {
             kakaoRoadviewUrl = KAKAO_MAP_BASE + "/roadview/" + lat + "," + lng;
         }
 
+        boolean favorited = false;
+        if (currentMemberId != null) {
+            int exists = favoriteRepository.existsByMemberIdAndRoomId(currentMemberId, roomId);
+            favorited = (exists > 0);
+        }
+
         return new RoomDetailResponse(
                 roomDetailEntity.getRoomId(),
                 roomDetailEntity.getTitle(),
@@ -285,6 +293,7 @@ public class RoomServiceImpl implements RoomService {
                 roomDetailEntity.getOwnerNickname(),
                 roomDetailEntity.getOwnerPhotoUrl(),
                 imageUrls,
+                favorited,
                 kakaoMapUrl,
                 kakaoDirectionUrl,
                 kakaoRoadviewUrl

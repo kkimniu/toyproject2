@@ -44,6 +44,9 @@ public class RoomDetailResponse {
     // 이미지 리스트
     private final List<String> imageUrls;
 
+    //찜하기
+    boolean favorited;
+    
     //  Kakao 딥링크 (DB에 저장 X, 응답 시 계산)
     private final String kakaoMapUrl;
     private final String kakaoDirectionUrl;

@@ -90,9 +90,6 @@
                         <div class="room-card-stat">
                             👁 <span id="room-views">0</span>
                         </div>
-                        <div class="room-card-stat">
-                            ♡ <span id="room-interest">0</span>
-                        </div>
                         <div class="room-card-stat" id="room-status-text"></div>
                     </div>
                     <div class="room-card-actions">
