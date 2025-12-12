@@ -25,10 +25,6 @@
         </button>
 
         <div class="room-detail-top-actions">
-            <!-- 공유 버튼은 나중에 JS로 연결 -->
-            <button type="button" class="icon-btn" title="공유하기">
-                🔗
-            </button>
             <!-- 신고 버튼도 나중에 JS 연결 -->
             <button type="button" class="icon-btn" title="신고하기">
                 🚩
@@ -154,9 +150,6 @@
                 <div class="room-author-extra">
                     <div class="room-author-stat">
                         👁 <span id="author-views">0</span> 회 열람
-                    </div>
-                    <div class="room-author-stat">
-                        ♡ <span id="author-interest">0</span> 명 관심
                     </div>
                     <div class="room-author-stat">
                         가입일 <span id="author-joined">-</span>

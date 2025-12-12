@@ -93,8 +93,16 @@
   </nav>
 
   <section class="mypage-tab-content" id="tab-favorites">
-    <!-- TODO: 관심 목록 내용 -->
-  </section>
+  <div class="mypage-section-header">
+    <h2 class="mypage-section-title">관심 방</h2>
+    <p class="mypage-section-subtitle">찜한 방들을 한눈에 볼 수 있어요.</p>
+  </div>
+
+  <div id="favoriteList" class="favorite-list">
+    <!-- JS에서 카드로 렌더링 -->
+    <p class="favorite-empty">아직 관심 등록한 방이 없습니다.</p>
+  </div>
+ </section>
 
   <section class="mypage-tab-content" id="tab-posts" style="display:none;">
     <!-- TODO: 내 게시글 내용 -->

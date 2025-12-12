@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     await loadMyProfile();
+    await loadMyFavorites();
   } catch (e) {
     console.error("mypage view init error:", e);
   }
@@ -117,6 +118,83 @@ function renderChips(container, items, labelKey) {
     chip.classList.add("chip");
     chip.textContent = item[labelKey];
     container.appendChild(chip);
+  });
+}
+/**
+ * 내가 찜한 방 목록 불러오기
+ * GET /api/favorites/me
+ */
+async function loadMyFavorites() {
+  const container = document.getElementById("favoriteList");
+  if (!container) return;
+
+  container.innerHTML = "<p>관심 목록을 불러오는 중입니다...</p>";
+
+  try {
+    const res = await apiRequest("/api/favorites/me", { method: "GET" });
+    if (!res.ok) {
+      container.innerHTML = "<p>관심 목록을 불러오지 못했습니다.</p>";
+      return;
+    }
+
+    const list = await res.json();
+    renderFavoriteList(list);
+  } catch (e) {
+    console.error("loadMyFavorites error:", e);
+    container.innerHTML = "<p>관심 목록을 불러오지 못했습니다.</p>";
+  }
+}
+
+function renderFavoriteList(list) {
+  const container = document.getElementById("favoriteList");
+  if (!container) return;
+
+  if (!Array.isArray(list) || list.length === 0) {
+    container.innerHTML = `<p class="favorite-empty">아직 관심 등록한 방이 없습니다.</p>`;
+    return;
+  }
+
+  container.innerHTML = "";
+
+  list.forEach((room) => {
+    const roomId = room.roomId ?? room.room_id;
+    const title = room.roomTitle ?? room.room_title ?? "제목 없음";
+    const deposit = room.deposit;
+    const monthlyRent = room.monthlyRent ?? room.monthly_rent;
+    const thumbnail = room.thumbnailUrl ?? room.thumbnail_url;
+    const depositMan = deposit != null ? Math.round(deposit / 10000) : null;
+    const monthlyMan = monthlyRent != null ? Math.round(monthlyRent / 10000) : null;
+    const depositText = depositMan != null ? `${depositMan.toLocaleString()}만` : "-";
+    const monthlyText = monthlyMan != null ? `${monthlyMan.toLocaleString()}만` : "-";
+
+    const status = room.status;
+    let statusLabel = "";
+    if (status === "OPEN") statusLabel = "모집중";
+    else if (status === "RESERVED") statusLabel = "예약중";
+    else if (status === "CLOSED") statusLabel = "마감";
+    else if (status) statusLabel = status;
+
+    const card = document.createElement("div");
+    card.className = "favorite-card";
+
+    card.innerHTML = `
+      <div class="favorite-thumb">
+        <img src="${thumbnail || '/resources/img/no-image.png'}" alt="thumbnail">
+      </div>
+      <div class="favorite-info">
+        <h3 class="favorite-title">${title}</h3>
+        <p class="favorite-meta">
+          보증금 ${depositText} | 월세 ${monthlyText}
+        </p>
+        <span class="favorite-status">${statusLabel}</span>
+      </div>
+    `;
+
+    card.addEventListener("click", () => {
+      window.location.href = "/rooms/" + roomId;
+    });
+
+    container.appendChild(card);
   });
 }
 

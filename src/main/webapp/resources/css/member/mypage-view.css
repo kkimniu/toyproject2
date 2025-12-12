@@ -361,3 +361,41 @@
   font-size: 13px;
   margin-top: 4px;
 }
+.favorite-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.favorite-card {
+  display: flex;
+  gap: 16px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transition: transform .1s;
+}
+
+favorite-card:hover {
+  transform: translateY(-3px);
+}
+
+.favorite-thumb img {
+  width: 120px;
+  height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.favorite-info .favorite-title {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.favorite-empty {
+  padding: 20px;
+  text-align: center;
+  color: #aaa;
+}

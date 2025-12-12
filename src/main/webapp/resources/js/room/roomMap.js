@@ -7,6 +7,7 @@ let clusterer;
 let selectedRoomId = null;
 let markers = [];
 let currentRooms = []; // /api/rooms/map 에서 받아온 방 목록
+let currentMemberId = null;
 
 function formatNumber(num) {
   if (num === null || num === undefined) return "-";
@@ -19,7 +20,7 @@ function cutText(text, maxLen) {
   return text.substring(0, maxLen) + "…";
 }
 
-window.addEventListener("load", () => {
+window.addEventListener("load", async () => {
   const container = document.getElementById("map");
   const options = {
     center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울
@@ -34,6 +35,7 @@ window.addEventListener("load", () => {
     minLevel: 7,
   });
 
+  currentMemberId = await fetchCurrentMemberId();
   // 초기 1회
   fetchRoomsForCurrentBounds();
 
@@ -67,29 +69,62 @@ window.addEventListener("load", () => {
   window.location.href = `${contextPath}/rooms/${selectedRoomId}`;
 });
 
-  // 찜하기 (나중에 /api/favorites 연결 예정)
-  document
-    .getElementById("btn-favorite")
-    .addEventListener("click", async () => {
-      if (!selectedRoomId) return;
-      alert(
-        "찜하기 기능은 나중에 API 연동으로 구현할 예정입니다. (roomId=" +
-          selectedRoomId +
-          ")"
-      );
-      // 예: await apiRequest(`/api/favorites/${selectedRoomId}`, { method: "POST" });
-    });
+    const btnFavorite = document.getElementById("btn-favorite");
+    if (btnFavorite) {
+      btnFavorite.addEventListener("click", async () => {
+        if (!selectedRoomId) return;
 
+        // 로그인 여부 체크
+        const ok = requireLogin();
+        if (!ok) return;
+
+        const currentlyFavorited = btnFavorite.classList.contains("active");
+        const nextFavorited = !currentlyFavorited;
+
+        try {
+          if (nextFavorited) {
+            // 찜 추가
+            const res = await apiRequest(`/api/favorites/${selectedRoomId}`, {
+              method: "POST",
+            });
+            if (!res.ok) {
+              throw new Error("favorite failed");
+            }
+          } else {
+            // 찜 해제
+            const res = await apiRequest(`/api/favorites/${selectedRoomId}`, {
+              method: "DELETE",
+            });
+            // 404(이미 없음)는 그냥 무시
+            if (!res.ok && res.status !== 404) {
+              throw new Error("unfavorite failed");
+            }
+          }
+
+          applyFavoriteButtonState(btnFavorite, nextFavorited);
+        } catch (e) {
+          console.error("[rooms-map] favorite toggle error:", e);
+          alert("관심 설정 중 오류가 발생했습니다.");
+        }
+      });
+    }
   // 문의하기 (나중에 채팅방 생성 API 연동)
-  document.getElementById("btn-chat").addEventListener("click", async () => {
-    if (!selectedRoomId) return;
-    alert(
-      "문의하기(채팅)는 추후 WebSocket/채팅 API 연동 예정입니다. (roomId=" +
-        selectedRoomId +
-        ")"
-    );
-    // 예: await apiRequest("/api/chat/rooms", { method: "POST", body: JSON.stringify({ roomId: selectedRoomId, partnerId: ... }) });
-  });
+    const btnChat = document.getElementById("btn-chat");
+    if (btnChat) {
+      btnChat.addEventListener("click", async () => {
+        if (!selectedRoomId) return;
+
+        const ok = requireLogin();
+        if (!ok) return;
+
+        alert(
+          "문의하기(채팅)는 추후 WebSocket/채팅 API 연동 예정입니다. (roomId=" +
+            selectedRoomId +
+            ")"
+        );
+        // TODO: 나중에 채팅방 생성 API 연동
+      });
+    }
 });
 
 // ====== apiRequest 기반 비즈니스 로직 ======
@@ -120,6 +155,26 @@ async function fetchRoomsForCurrentBounds() {
     renderRoomMarkers(data);
   } catch (e) {
     console.error("지도용 방 목록 조회 중 오류:", e);
+  }
+}
+// 현재 로그인한 사용자 ID 조회 (비로그인 시 null)
+async function fetchCurrentMemberId() {
+  try {
+    const res = await apiRequest("/api/members/me", { method: "GET" });
+
+    if (!res.ok) {
+      // 401이면 비로그인
+      console.debug("[rooms-map] not logged in (status=", res.status, ")");
+      return null;
+    }
+
+    const data = await res.json();
+    const memberId = data.memberId ?? data.member_id ?? null;
+    console.debug("[rooms-map] currentMemberId =", memberId);
+    return memberId;
+  } catch (e) {
+    console.error("[rooms-map] fetchCurrentMemberId error:", e);
+    return null;
   }
 }
 
@@ -186,6 +241,10 @@ function renderRoomDetail(room) {
   document.getElementById("room-detail-body").style.display = "block";
   document.getElementById("room-detail-footer").style.display = "block";
 
+  // 찜 버튼 초기 상태 세팅
+  const btnFavorite = document.getElementById("btn-favorite");
+  const btnChat = document.getElementById("btn-chat");
+
   const imageUrls = room.imageUrls ?? room.image_urls;
   const imgEl = document.getElementById("room-image");
   if (imageUrls && imageUrls.length > 0) {
@@ -200,7 +259,7 @@ function renderRoomDetail(room) {
   document.getElementById("room-address").innerText =
     room.address || "";
 
-  // ✅ 월세 / 보증금 (여기 전부 수정됨)
+  //  월세 / 보증금 (여기 전부 수정됨)
   const monthlyRent = room.monthlyRent ?? room.monthly_rent;
   const deposit = room.deposit;
 
@@ -214,7 +273,7 @@ function renderRoomDetail(room) {
 
   document.getElementById("room-price").innerText = monthlyText;
 
-  // ✅ 입주일 / 최대 인원 / 층·면적
+  //  입주일 / 최대 인원 / 층·면적
   const availableFrom = room.availableFrom ?? room.available_from;
   const maxRoommates = room.maxRoommates ?? room.max_roommates;
   const floor = room.floor;
@@ -231,21 +290,17 @@ function renderRoomDetail(room) {
       area != null ? area + "㎡" : "?㎡"
     }`;
 
-  // ✅ 설명
+  // 설명
   const content = room.content;
   document.getElementById("room-content").innerText =
     cutText(content || "", 120);
 
-  // ✅ 조회수 / 찜수 / 상태
+  //  조회수 / 상태
   const views = room.views;
-  const interestCount = room.interestCount ?? room.interest_count;
   const status = room.status;
 
   document.getElementById("room-views").innerText =
     views != null ? views : 0;
-
-  document.getElementById("room-interest").innerText =
-    interestCount != null ? interestCount : 0;
 
   const statusTextEl = document.getElementById("room-status-text");
   if (status === "OPEN") {
@@ -272,6 +327,24 @@ function renderRoomDetail(room) {
     span.innerText = text;
     chipContainer.appendChild(span);
   });
+
+  // 내가 올린 방이면 찜/문의 버튼 숨기기
+  const ownerId = room.ownerId ?? room.owner_id;
+
+  if (ownerId && currentMemberId && String(ownerId) === String(currentMemberId)) {
+    // 내 방인 경우 → 찜/문의 숨김
+    if (btnFavorite) btnFavorite.style.display = "none";
+    if (btnChat) btnChat.style.display = "none";
+  } else {
+    if (btnFavorite) {
+      btnFavorite.style.display = "inline-flex";
+      const initialFavorited = !!(room.favorited ?? room.isFavorited);
+      applyFavoriteButtonState(btnFavorite, initialFavorited);
+    }
+    if (btnChat) {
+      btnChat.style.display = "inline-flex";
+    }
+  }
 }
 
 function renderNearbyRooms(selectedRoom) {
@@ -369,4 +442,15 @@ function renderNearbyRooms(selectedRoom) {
     item.appendChild(meta);
     listEl.appendChild(item);
   });
+}
+
+function applyFavoriteButtonState(btn, favorited) {
+  if (!btn) return;
+  if (favorited) {
+    btn.classList.add("active");
+    btn.textContent = "찜 완료";
+  } else {
+    btn.classList.remove("active");
+    btn.textContent = "♡ 찜하기";
+  }
 }
