@@ -82,3 +82,16 @@
   text-decoration: none;
   color: #111;
 }
+.header-primary-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:10px 14px;
+  border-radius:10px;
+  font-weight:700;
+  background:#0b0f1a;
+  color:#fff;
+  text-decoration:none;
+  margin-right:10px;
+}
+.header-primary-btn:hover{ opacity:.9; }

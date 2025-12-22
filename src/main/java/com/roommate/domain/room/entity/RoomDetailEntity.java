@@ -34,6 +34,6 @@ public class RoomDetailEntity {
     private LocalDateTime roomUpdatedAt;
     // 작성자
     private Long ownerId;
-    private String ownerNickname;
+    private String ownerName;
     private String ownerPhotoUrl;
 }

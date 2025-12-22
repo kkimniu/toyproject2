@@ -3,6 +3,7 @@ package com.roommate.domain.room.service;
 import com.roommate.domain.room.dto.request.RoomCreateRequest;
 import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
 import com.roommate.domain.room.dto.request.RoomUpdateRequest;
+import com.roommate.domain.room.dto.response.MyRoomListItemResponse;
 import com.roommate.domain.room.dto.response.RoomDetailResponse;
 import com.roommate.domain.room.dto.response.RoomMapItemResponse;
 
@@ -22,4 +23,5 @@ public interface RoomService {
 
     public List<RoomMapItemResponse> getRoomsForMap(double north, double south, double east, double west, int zoom);
 
+    public List<MyRoomListItemResponse> getMyRooms(Long memberId);
 }

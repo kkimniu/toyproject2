@@ -44,7 +44,7 @@
       <div class="profile-summary-actions">
         <button type="button"
                 class="btn btn-dark"
-                onclick="location.href='${contextPath}/members/mypage/edit'">
+                onclick="location.href='${pageContext.request.contextPath}/members/mypage/edit'">
           프로필 수정
         </button>
       </div>
@@ -105,7 +105,18 @@
  </section>
 
   <section class="mypage-tab-content" id="tab-posts" style="display:none;">
-    <!-- TODO: 내 게시글 내용 -->
+      <div class="mypage-posts-head">
+        <h3 class="mypage-posts-title">내 게시글</h3>
+
+        <a class="btn-post-create"
+           href="${pageContext.request.contextPath}/rooms/roomCreate">
+          + 새 게시글 작성
+        </a>
+      </div>
+
+      <div id="myRoomList" class="my-room-list">
+        <p class="favorite-empty">내가 등록한 방이 없습니다.</p>
+      </div>
   </section>
 
   <section class="mypage-tab-content" id="tab-activities" style="display:none;">

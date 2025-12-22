@@ -4,6 +4,7 @@ import com.roommate.common.security.UserDetailsImpl;
 import com.roommate.domain.room.dto.request.RoomCreateRequest;
 import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
 import com.roommate.domain.room.dto.request.RoomUpdateRequest;
+import com.roommate.domain.room.dto.response.MyRoomListItemResponse;
 import com.roommate.domain.room.dto.response.RoomDetailResponse;
 import com.roommate.domain.room.dto.response.RoomMapItemResponse;
 import com.roommate.domain.room.service.RoomService;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -35,9 +37,16 @@ public class RoomRestController {
 
     // 방 등록
     @PostMapping
-    public Long createRoom(@RequestBody RoomCreateRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public Long createRoom(@Valid @RequestBody RoomCreateRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long memberId = userDetails.getMemberId();
         return roomService.createRoom(request, memberId);
+    }
+
+    // 방 조회 (작성자)
+    @GetMapping("/me")
+    public List<MyRoomListItemResponse> getMyRooms(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long memberId = userDetails.getMemberId();
+        return roomService.getMyRooms(memberId);
     }
 
     // 방 수정 (작성자만)

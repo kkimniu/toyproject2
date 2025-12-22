@@ -11,4 +11,8 @@ public interface FileStorageService {
     String storeTempImage(String category, MultipartFile multipartFile);
 
     void deleteByUrl(String url);
+
+    String moveTempProfileToProfile(Long memberId, String tempUrl);
+
+    String moveTempRoomToRoom(Long roomId, String tempUrl);
 }

@@ -108,6 +108,28 @@
         AND r.lng BETWEEN #{west} AND #{east}
     </select>
 
+    <select id="findMyRooms" resultType="com.roommate.domain.room.dto.response.MyRoomListItemResponse">
+        SELECT
+        r.room_id        AS roomId,
+        r.room_title     AS title,
+        r.address        AS address,
+        r.monthly_rent   AS monthlyRent,
+        r.deposit        AS deposit,
+        r.status         AS status,
+        (
+        SELECT ri.image_url
+        FROM room_image ri
+        WHERE ri.room_id = r.room_id
+        ORDER BY ri.sort_order ASC, ri.image_id ASC
+        LIMIT 1
+        ) AS thumbnailUrl,
+        r.room_created_at AS roomCreatedAt
+        FROM rooms r
+        WHERE r.member_id = #{memberId}
+        AND r.deleted = 0
+        ORDER BY r.room_created_at DESC
+    </select>
+
     <!-- 상세 조회: 조인으로 한 번에 -->
     <select id="findDetailById" resultType="com.roommate.domain.room.entity.RoomDetailEntity">
         SELECT
@@ -132,7 +154,7 @@
         r.status        AS status,
         r.room_created_at AS roomCreatedAt,
         m.member_id     AS ownerId,
-        m.name          AS ownerNickname,
+        m.name          AS ownerName,
         m.photo_url     AS ownerPhotoUrl
         FROM rooms r
         JOIN members m ON r.member_id = m.member_id

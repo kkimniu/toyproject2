@@ -388,7 +388,7 @@ function renderRoomDetail(room) {
   const authorViewsEl = document.getElementById("author-views");
   if (authorViewsEl) authorViewsEl.innerText = views;
 
-  const authorName = room.ownerNickname ?? room.owner_nickname ?? "작성자";
+  const authorName = room.ownerName ?? room.owner_name ?? "작성자";
   const authorPhoto = room.ownerPhotoUrl ?? room.owner_photo_url ?? "";
   const authorPhotoEl = document.getElementById("author-photo");
   if (authorPhotoEl) authorPhotoEl.src = authorPhoto || "/resources/img/default-user.png";

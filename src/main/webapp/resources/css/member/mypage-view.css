@@ -361,41 +361,224 @@
   font-size: 13px;
   margin-top: 4px;
 }
-.favorite-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+/* ===== 관심 방 카드(내 게시글 카드 톤으로) ===== */
+.favorite-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
 }
 
-.favorite-card {
-  display: flex;
-  gap: 16px;
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  transition: transform .1s;
+.favorite-card{
+  position:relative;
+  display:flex;
+  gap:18px;
+  padding:18px;
+  border:1px solid #eee;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
+  cursor:pointer;
 }
 
-favorite-card:hover {
-  transform: translateY(-3px);
+.favorite-thumb{
+  width:140px;
+  height:100px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#f3f4f6;
+  flex:0 0 140px;
 }
 
-.favorite-thumb img {
-  width: 120px;
-  height: 90px;
-  border-radius: 8px;
-  object-fit: cover;
+.favorite-body{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
 }
 
-.favorite-info .favorite-title {
-  font-size: 16px;
-  font-weight: 700;
+.favorite-title{
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 
-.favorite-empty {
-  padding: 20px;
-  text-align: center;
-  color: #aaa;
+.favorite-price{
+  margin:0;
+  font-size:15px;
+  font-weight:800;
+  color:#111827;
+}
+
+.favorite-status{
+  display:inline-flex;
+  align-items:center;
+  width:fit-content;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  background:#0b0f1a;
+  color:#fff;
+}
+.favorite-status.RESERVED{ background:#0f766e; }
+.favorite-status.CLOSED{ background:#6b7280; }
+.favorite-status.HIDDEN{ background:#ef4444; }
+
+/* 모바일 */
+@media (max-width: 720px){
+  .favorite-card{ flex-direction:column; }
+  .favorite-thumb{ width:100%; height:180px; flex:auto; }
+}
+
+/* ===== 내 게시글 헤더(레퍼런스처럼 오른쪽 버튼) ===== */
+.mypage-posts-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin: 16px 0 14px;
+}
+.mypage-posts-title{
+  margin:0;
+  font-size:22px;
+  font-weight:800;
+}
+
+.btn-post-create{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 18px;
+  border-radius:14px;
+  background:#0b0f1a;
+  color:#fff;
+  text-decoration:none;
+  font-weight:800;
+  border: none;
+}
+.btn-post-create:hover{ opacity:.92; }
+
+/* ===== 내 게시글 카드(레퍼런스 형태) ===== */
+.my-room-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.my-post-card{
+  position:relative;
+  display:flex;
+  gap:18px;
+  padding:18px;
+  border:1px solid #eee;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
+}
+
+.my-post-thumb{
+  width:140px;
+  height:100px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#f3f4f6;
+  flex:0 0 140px;
+}
+
+.my-post-body{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.my-post-title{
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.my-post-sub{
+  margin:0;
+  font-size:14px;
+  color:#6b7280;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.my-post-price{
+  margin:0;
+  font-size:15px;
+  font-weight:800;
+}
+
+/* 카드 오른쪽 위 상태 배지 */
+.my-post-status{
+  position:absolute;
+  top:16px;
+  right:16px;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  color:#fff;
+}
+
+/* 상태별 컬러 */
+.my-post-status.OPEN     { background:#111827; } /* 검정 */
+.my-post-status.RESERVED { background:#0f766e; } /* 청록/초록 */
+.my-post-status.CLOSED   { background:#6b7280; } /* 회색 */
+.my-post-status.HIDDEN   { background:#ef4444; } /* 빨강(비공개 강조) */
+
+/* 카드 오른쪽 아래 버튼들 */
+.my-post-actions{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.my-post-btn{
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+.my-post-btn:hover{ background:#f9fafb; }
+
+.my-post-btn-danger{
+  border:none;
+  background:none;
+  color:#ef4444;
+  font-weight:900;
+  cursor:pointer;
+}
+.my-post-btn-danger:hover{ opacity:.85; }
+
+/* 작성일 */
+.my-post-date{
+  margin-top:10px;
+  font-size:13px;
+  color:#9ca3af;
+}
+
+/* (선택) 모바일 대응 */
+@media (max-width: 720px){
+  .my-post-card{ flex-direction:column; }
+  .my-post-thumb{ width:100%; height:180px; flex:auto; }
+  .my-post-actions{ position:static; justify-content:flex-end; margin-top:10px; }
+  .my-post-status{ top:14px; right:14px; }
 }

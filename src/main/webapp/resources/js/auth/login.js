@@ -4,37 +4,147 @@ import {
   saveTokens,
   clearTokens,
   getAccessToken,
-  getTokenType,
   getRefreshToken,
 } from "../common/authTokenStorage.js";
 import { apiRequest } from "../common/apiClient.js";
 
-  // 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
-  async function syncAuthOnPageLoad() {
-    const accessToken = getAccessToken();
-    const refreshToken = getRefreshToken();
+// ===== signup photo draft (사진만 복구) =====
+const SIGNUP_KEY_KEY = "signupDraftKey";
+const SIGNUP_DRAFT_VERSION = "v1";
+const SIGNUP_PHOTO_TTL_MS = 24 * 60 * 60 * 1000;
+// 네 실제 DOM id들 (여기만 맞추면 나머지 안 건드려도 됨)
+const DOM = {
+  signupKeyInputId: "regSignupKey",
+  tempFileIdInputId: "regProfileTempFileId",
+  previewImgId: "regProfilePhoto",
+};
+function signupPhotoKey(signupKey) {
+  return `draft:auth:signupPhoto:${signupKey}:${SIGNUP_DRAFT_VERSION}`;
+}
 
-    // 둘 다 없으면 → 진짜 비로그인
-    if (!accessToken && !refreshToken) {
-      return;
-    }
+function getOrCreateSignupKey() {
+  let key = localStorage.getItem(SIGNUP_KEY_KEY);
+  if (!key) {
+    key = crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    localStorage.setItem(SIGNUP_KEY_KEY, key);
+  }
+  return key;
+}
 
-    try {
-      // /api/members/me 를 apiRequest 로 호출
-      //  - accessToken 유효하면 그대로 200
-      //  - accessToken 만료면 401 → apiClient.js 가 /api/auth/refresh 호출 후 재요청
-      const res = await apiRequest("/api/members/me", { method: "GET" });
+function saveSignupPhotoDraft({ signupKey, tempFileId, tempUrl }) {
+  if (!signupKey || !tempFileId || !tempUrl) return;
+  const payload = {
+    signupKey,
+    tempFileId,
+    tempUrl,
+    savedAt: Date.now(),
+    ttlMs: SIGNUP_PHOTO_TTL_MS,
+    path: location.pathname,
+    v: SIGNUP_DRAFT_VERSION,
+  };
+  localStorage.setItem(signupPhotoKey(signupKey), JSON.stringify(payload));
+}
 
-      if (!res.ok) {
-        // refresh 도 실패한 상황 → 토큰 다 지우고 완전 비로그인 처리
-        clearTokens();
-      }
-    } catch (err) {
-      console.error("syncAuthOnPageLoad error:", err);
-      // 에러가 나도 꼬인 토큰은 정리
+function loadSignupPhotoDraft(signupKey) {
+  try {
+    if (!signupKey) return null;
+    const raw = localStorage.getItem(signupPhotoKey(signupKey));
+    if (!raw) return null;
+
+    const data = JSON.parse(raw);
+    if (!data?.signupKey || !data?.tempFileId || !data?.tempUrl) return null;
+
+    if (data.signupKey !== signupKey) return null;
+    if (data.v !== SIGNUP_DRAFT_VERSION) return null;
+    if (data.path && data.path !== location.pathname) return null;
+
+    const ttl = Number(data.ttlMs ?? 0);
+    const savedAt = Number(data.savedAt ?? 0);
+    if (!ttl || !savedAt) return null;
+    if (Date.now() - savedAt > ttl) return null;
+
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function clearSignupPhotoDraft(signupKey) {
+  if (!signupKey) return;
+  localStorage.removeItem(signupPhotoKey(signupKey));
+}
+
+function clearSignupDraftAll() {
+  const signupKey = localStorage.getItem(SIGNUP_KEY_KEY);
+  if (signupKey) clearSignupPhotoDraft(signupKey);
+  localStorage.removeItem(SIGNUP_KEY_KEY);
+}
+
+// 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
+async function syncAuthOnPageLoad() {
+  const accessToken = getAccessToken();
+  const refreshToken = getRefreshToken();
+
+  // 둘 다 없으면 → 진짜 비로그인
+  if (!accessToken && !refreshToken) {
+    return;
+  }
+
+  try {
+    // /api/members/me 를 apiRequest 로 호출
+    //  - accessToken 유효하면 그대로 200
+    //  - accessToken 만료면 401 → apiClient.js 가 /api/auth/refresh 호출 후 재요청
+    const res = await apiRequest("/api/members/me", { method: "GET" });
+
+    if (!res.ok) {
+      // refresh 도 실패한 상황 → 토큰 다 지우고 완전 비로그인 처리
       clearTokens();
     }
+  } catch (err) {
+    console.error("syncAuthOnPageLoad error:", err);
+    // 에러가 나도 꼬인 토큰은 정리
+    clearTokens();
   }
+}
+
+async function initSignupDraftPhotoUI() {
+  // signup_key는 "항상 유지" (회원가입 폼 열 때마다 동일)
+  const signupKey = getOrCreateSignupKey();
+  const signupKeyInput = document.getElementById(DOM.signupKeyInputId);
+  if (signupKeyInput) signupKeyInput.value = signupKey;
+
+  // 사진 드래프트가 있으면 "물어보고" 복구
+  const draft = loadSignupPhotoDraft(signupKey);
+  if (!draft) return;
+
+  const ok = confirm("이전에 업로드한 프로필 사진이 남아있습니다.\n불러오시겠습니까?");
+  if (!ok) {
+    try {
+      await fetch(`/api/files/temp/profile-signup?temp_file_id=${encodeURIComponent(draft.tempFileId)}&signup_key=${encodeURIComponent(draft.signupKey)}`, {
+        method: "DELETE",
+      });
+    } catch (e) {
+      console.error("temp delete failed:", e);
+    }
+    clearSignupPhotoDraft(signupKey);
+
+    const tempIdInput = document.getElementById(DOM.tempFileIdInputId);
+    if (tempIdInput) tempIdInput.value = "";
+
+    const preview = document.getElementById(DOM.previewImgId);
+    if (preview) preview.src = "";
+
+    return;
+  }
+  // 3) hidden tempFileId 복구
+  const tempIdInput = document.getElementById(DOM.tempFileIdInputId);
+  if (tempIdInput) tempIdInput.value = String(draft.tempFileId);
+
+  // 4) 미리보기 복구
+  const preview = document.getElementById(DOM.previewImgId);
+  if (preview) preview.src = draft.tempUrl;
+
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
   // 1) 우선 accessToken 이 만료돼 있으면 여기서 refresh 시도
@@ -44,8 +154,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupLoginForm();
   setupRegisterForm();
   loadFormCodes();
+  // 업로드 기능은 항상 붙여두고,
+  // draft 복구(confirm)는 register 탭 열릴 때만 실행
   setupRegisterPhotoUpload();
 });
+
 
 
 /* =====================
@@ -69,6 +182,7 @@ function openAuthModal(defaultTab = "login") {
     registerTabBtn.classList.add("active");
     loginTab.classList.add("hidden");
     registerTab.classList.remove("hidden");
+    initSignupDraftPhotoUI();
   } else {
     // login
     loginTabBtn.classList.add("active");
@@ -109,6 +223,7 @@ function setupTabs() {
       } else {
         loginTab.classList.add("hidden");
         registerTab.classList.remove("hidden");
+        initSignupDraftPhotoUI();
       }
     });
   });
@@ -127,13 +242,13 @@ function setupLoginForm() {
 
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    loginError.textContent = "";
+    if (loginError) loginError.textContent = "";
 
-    const email = loginEmail.value.trim();
-    const password = loginPassword.value;
+    const email = loginEmail?.value?.trim() ?? "";
+    const password = loginPassword?.value ?? "";
 
     if (!email || !password) {
-      loginError.textContent = "이메일과 비밀번호를 입력해주세요.";
+      if (loginError) loginError.textContent = "이메일과 비밀번호를 입력해주세요.";
       return;
     }
 
@@ -172,15 +287,9 @@ function setupLoginForm() {
         return;
       }
 
-        saveTokens({
-          accessToken,
-          refreshToken,
-          tokenType: tokenType || "Bearer",
-        });
+        saveTokens({accessToken,refreshToken,tokenType: tokenType || "Bearer",});
 
       closeAuthModal();
-      // 로그인 후 원하는 곳으로 이동
-      // location.href = "/main";
       location.reload();
     } catch (err) {
       console.error("Login error:", err);
@@ -197,11 +306,10 @@ function setupRegisterPhotoUpload() {
   const uploadBtn = document.getElementById("btnRegPhotoUpload");
   const previewImg = document.getElementById("regProfilePhoto");
   const tempIdInput = document.getElementById("regProfileTempFileId");
+  const signupKeyInput = document.getElementById("regSignupKey");
 
   // 요소 중 하나라도 없으면 안전하게 종료
-  if (!fileInput || !uploadBtn || !previewImg) {
-    return;
-  }
+  if (!fileInput || !uploadBtn || !previewImg || !tempIdInput || !signupKeyInput) return;
 
   // 버튼 클릭 → 숨겨진 file input 클릭
   uploadBtn.addEventListener("click", () => {
@@ -220,11 +328,18 @@ function setupRegisterPhotoUpload() {
       return;
     }
 
+    const signupKey = signupKeyInput.value || getOrCreateSignupKey();
+    signupKeyInput.value = signupKey;
+    if (!signupKey) {
+      console.error("[SignupUpload] signupKey missing. Upload aborted.");
+      return;
+    }
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("signup_key", signupKey);
 
     try {
-      const res = await fetch("/api/files/temp/profile", {
+      const res = await fetch(`/api/files/temp/profile-signup`, {
         method: "PUT",
         body: formData,
       });
@@ -236,8 +351,8 @@ function setupRegisterPhotoUpload() {
 
       const data = await res.json();
       // 백엔드 TempUploadFileResponse: temp_file_id, temp_url
-      const tempFileId = data.temp_file_id;
-      const tempUrl    = data.temp_url;
+      const tempFileId = data.temp_file_id ?? data.tempFileId;
+      const tempUrl    = data.temp_url ?? data.tempPath ?? data.temp_path;
 
       // 1) hidden input에 temp_file_id 저장 → 회원가입 submit 때 같이 보냄
       tempIdInput.value = tempFileId;
@@ -245,9 +360,13 @@ function setupRegisterPhotoUpload() {
       // 2) 미리보기 이미지 변경
       previewImg.src = tempUrl;
 
+      // 3) 사진만 draft 저장 (정석)
+      saveSignupPhotoDraft({ signupKey, tempFileId, tempUrl });
     } catch (err) {
       console.error("temp profile upload error:", err);
       alert("이미지 업로드 중 오류가 발생했습니다.");
+    } finally {
+      fileInput.value = "";
     }
   });
 }
@@ -264,48 +383,47 @@ function setupRegisterForm() {
 async function handleRegisterSubmit(e) {
   e.preventDefault();
 
-  const name = document.getElementById("regName").value.trim();
-  const email = document.getElementById("regEmail").value.trim();
-  const phone = document.getElementById("regPhone").value.trim();
-  const password = document.getElementById("regPassword").value;
-  const confirm = document.getElementById("regConfirm").value;
-  const smoking = document.getElementById("regSmoking").value;       // NON_SMOKER | SMOKER
-  const drinking = document.getElementById("regDrinking").value;     // NONE | SOCIAL | OFTEN
-  const sleepTime = document.getElementById("regSleepTime").value || null;
-  const workTypeSelect = document.getElementById("regWorkType");
-  const workTypeRaw = workTypeSelect.value;
-  const mbti = document.getElementById("regMbti").value || null;
+  const name = document.getElementById("regName")?.value?.trim() ?? "";
+  const email = document.getElementById("regEmail")?.value?.trim() ?? "";
+  const phone = document.getElementById("regPhone")?.value?.trim() ?? "";
+  const password = document.getElementById("regPassword")?.value ?? "";
+  const confirmPw = document.getElementById("regConfirm")?.value ?? "";
+  const smoking = document.getElementById("regSmoking")?.value ?? "NON_SMOKER";
+  const drinking = document.getElementById("regDrinking")?.value ?? "NONE";
+  const sleepTime = document.getElementById("regSleepTime")?.value || null;
+  const workTypeRaw = document.getElementById("regWorkType")?.value ?? "";
+  const mbti = document.getElementById("regMbti")?.value || null;
 
   // 🔹 숨겨진 tempFileId
-  const profileTempFileIdVal = document.getElementById("regProfileTempFileId").value;
+  const profileTempFileIdVal = document.getElementById(DOM.tempFileIdInputId)?.value ?? "";
   const profileTempFileId = profileTempFileIdVal ? Number(profileTempFileIdVal) : null;
 
-  const registerError = document.getElementById("registerError");
-  registerError.textContent = "";
+  const signupKey = document.getElementById("regSignupKey")?.value || null;
 
-  if (password !== confirm) {
-    registerError.textContent = "비밀번호가 일치하지 않습니다.";
+  const registerError = document.getElementById("registerError");
+  if (registerError) registerError.textContent = "";
+
+  if (password !== confirmPw) {
+    if (registerError) {
+      registerError.textContent = "비밀번호가 일치하지 않습니다.";
+    }
     return;
   }
   // workTypeId 필수 체크 (DTO @NotNull)
   if (!workTypeRaw) {
+    if (registerError) {
     registerError.textContent = "직업/라이프스타일을 선택해주세요.";
+    }
     return;
   }
   const workTypeId = Number(workTypeRaw);
 
   // 체크된 취미/선호/반려동물 ID 수집
-  const hobbyIds = Array.from(
-    document.querySelectorAll(".hobby-checkbox:checked")
-  ).map((el) => Number(el.value));
+  const hobbyIds = Array.from(document.querySelectorAll(".hobby-checkbox:checked")).map((el) => Number(el.value));
 
-  const preferenceIds = Array.from(
-    document.querySelectorAll(".preference-checkbox:checked")
-  ).map((el) => Number(el.value));
+  const preferenceIds = Array.from(document.querySelectorAll(".preference-checkbox:checked")).map((el) => Number(el.value));
 
-  const petIds = Array.from(
-    document.querySelectorAll(".pet-checkbox:checked")
-  ).map((el) => Number(el.value));
+  const petIds = Array.from(document.querySelectorAll(".pet-checkbox:checked")).map((el) => Number(el.value));
 
   // 여기부터는 백엔드 SignUpRequest 필드 이름(camelCase)에 맞춘다
   const payload = {
@@ -329,9 +447,9 @@ async function handleRegisterSubmit(e) {
 
     // 🔹 임시 파일 ID 전달 (SignUpRequest.profileTempFileId)
     profile_temp_file_id: profileTempFileId,
+    signup_key: signupKey,
 
-    // 🔹 temp 파일을 쓰는 경우 photo_url은 null로
-    photo_url: profileTempFileId ? null : (photoUrl || null),
+    photo_url: null,
   };
 
   try {
@@ -349,12 +467,13 @@ async function handleRegisterSubmit(e) {
           message = errBody.message;
         }
       } catch (_) {}
-      registerError.textContent = message;
+      if (registerError) registerError.textContent = message;
       return;
     }
 
     alert("회원가입이 완료되었습니다. 로그인 해주세요.");
 
+    clearSignupDraftAll();
     // 탭을 로그인 쪽으로 이동
     const loginTabBtn = document.querySelector('.auth-tab[data-tab="login"]');
     if (loginTabBtn) loginTabBtn.click();

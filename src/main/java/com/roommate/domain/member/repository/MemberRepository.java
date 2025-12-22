@@ -27,4 +27,7 @@ public interface MemberRepository {
 
     void updatePassword(@Param("memberId") Long memberId, @Param("password") String encodedPassword);
 
+    void updatePhotoUrl(@Param("memberId") Long memberId, @Param("photoUrl") String photoUrl);
+
+
 }

@@ -1,15 +1,12 @@
 <%@ page contentType="text/html; charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <title>룸 상세 | 룸메이트</title>
 
-    <!-- 공통 스타일 (이미 사용 중이면 유지) -->
-    <link rel="stylesheet" href="<c:url value='/resources/css/login.css'/>">
     <!-- 상세 페이지 전용 스타일 -->
-    <link rel="stylesheet" href="<c:url value='/resources/css/room/room-detail.css'/>">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/room/room-detail.css"/>
 </head>
 <body>
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
@@ -213,8 +210,6 @@
         </aside>
     </div>
 </div>
-
-<script type="module" src="${pageContext.request.contextPath}/resources/js/common/apiClient.js"></script>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomDetail.js"></script>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 

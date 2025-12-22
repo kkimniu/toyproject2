@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Builder
 public class TempUploadFileEntity {
     private Long tempFileId;
+    private Long memberId;
+    private String signupKey;
     private String originalName;
     private String tempPath;
     private Integer used;
