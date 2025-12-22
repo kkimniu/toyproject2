@@ -33,6 +33,7 @@
           <img id="regProfilePhoto" src="" alt="프로필 사진" class="register-profile-photo">
           <input type="file" id="regPhotoFileInput" accept="image/*" style="display: none;"/>
           <input type="hidden" id="regProfileTempFileId" />
+          <input type="hidden" id="regSignupKey" />
           <button type="button" id="btnRegPhotoUpload" class="btn-regPhoto-upload">
             사진 추가
           </button>

@@ -129,14 +129,15 @@ public class AuthServiceImpl implements AuthService {
 
         validateEmailDuplication(signUpRequest.getEmail());
 
-        if (signUpRequest.getProfileTempFileId() != null) {
-            String photoUrl = tempUploadFileService.useTempFile(signUpRequest.getProfileTempFileId());
-            signUpRequest.setPhotoUrl(photoUrl);
-        }
-
         MemberEntity memberEntity = createMemberFromSignUpRequest(signUpRequest);
         memberRepository.save(memberEntity);
         Long memberId = memberEntity.getMemberId();
+
+        if (signUpRequest.getProfileTempFileId() != null && signUpRequest.getSignupKey() != null) {
+            String finalPhotoUrl = tempUploadFileService.useTempFileForSignup(signUpRequest.getProfileTempFileId(),signUpRequest.getSignupKey(),memberId);
+            memberRepository.updatePhotoUrl(memberId, finalPhotoUrl);
+        }
+
 
         if (signUpRequest.getHobbyIds() != null && !signUpRequest.getHobbyIds().isEmpty()) {
             memberHobbyRepository.insertMemberHobbies(memberId, signUpRequest.getHobbyIds());

@@ -7,13 +7,13 @@ import com.roommate.domain.member.service.MemberService;
 import com.roommate.domain.room.dto.request.RoomCreateRequest;
 import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
 import com.roommate.domain.room.dto.request.RoomUpdateRequest;
+import com.roommate.domain.room.dto.response.MyRoomListItemResponse;
 import com.roommate.domain.room.dto.response.RoomDetailResponse;
 import com.roommate.domain.room.dto.response.RoomMapItemResponse;
 import com.roommate.domain.room.entity.RoomDetailEntity;
 import com.roommate.domain.room.entity.RoomEntity;
 import com.roommate.domain.room.entity.RoomMapItemEntity;
 import com.roommate.domain.room.entity.RoomStatusEnum;
-import com.roommate.domain.room.repository.RoomImageRepository;
 import com.roommate.domain.room.repository.RoomRepository;
 import com.roommate.external.kakao.dto.KakaoGeoPoint;
 import com.roommate.external.kakao.service.KakaoMapService;
@@ -25,7 +25,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.UriUtils;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -37,34 +36,10 @@ public class RoomServiceImpl implements RoomService {
     private static final String KAKAO_MAP_BASE = "https://map.kakao.com/link";
 
     private final RoomRepository roomRepository;
-    private final RoomImageRepository roomImageRepository;
     private final KakaoMapService kakaoMapService;
     private final FavoriteRepository favoriteRepository;
-    /**
-     * 방 이미지 전체 교체
-     * - 기존 이미지 모두 삭제
-     * - 새 URL 리스트를 순서대로 insert
-     * <p>
-     * 왜 이렇게 했는지:
-     * - "이미지 교체"는 단순 SQL 한 번이 아니라
-     * delete + 반복 insert가 필요한 비즈니스 로직이라
-     * Repository가 아니라 Service에서 책임지도록 함.
-     * - @Transactional 안에서 동작하므로 중간에 오류 나면 전체 롤백 가능.
-     */
-    private void replaceRoomImages(Long roomId, List<String> imageUrls) {
-        // 1) 기존 이미지 전체 삭제
-        roomImageRepository.deleteByRoomId(roomId);
+    private final RoomImageService roomImageService;
 
-        // 2) 새 이미지가 없으면 그대로 종료
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            return;
-        }
-
-        // 3) 새 이미지 순서대로 저장 (0부터 sort_order 부여)
-        for (int i = 0; i < imageUrls.size(); i++) {
-            roomImageRepository.insertRoomImage(roomId, imageUrls.get(i), i);
-        }
-    }
 
     /**
      * 공통: 방 조회 + 소유자(memberId) 검증
@@ -95,12 +70,8 @@ public class RoomServiceImpl implements RoomService {
      * - createRoom 내부 if/else 로직을 메서드로 캡슐화해서
      * "좌표 보완" 이라는 의도가 더 잘 보이게 함.
      */
-    private KakaoGeoPoint resolveGeoPoint(Double lat, Double lng, String address) {
-        if (lat != null && lng != null) {
-            return new KakaoGeoPoint(lat, lng);
-        }
-
-        if (address == null) {
+    private KakaoGeoPoint resolveGeoPoint(String address) {
+        if (address == null || address.isBlank()) {
             throw new ApiException(ErrorCode.INVALID_ROOM_LOCATION);
         }
 
@@ -147,6 +118,7 @@ public class RoomServiceImpl implements RoomService {
      * - 필드가 추가/변경되더라도 한 곳만 수정하면 됨.
      */
     private void applyUpdate(RoomEntity roomEntity, RoomUpdateRequest request) {
+        KakaoGeoPoint point = resolveGeoPoint(request.getAddress());
         roomEntity.setRoomTitle(request.getTitle());
         roomEntity.setRoomContent(request.getContent());
         roomEntity.setRoomTypeId(request.getRoomTypeId());
@@ -157,8 +129,8 @@ public class RoomServiceImpl implements RoomService {
         roomEntity.setAddress(request.getAddress());
         roomEntity.setLegalDong(request.getLegalDong());
         roomEntity.setLandNumber(request.getLandNumber());
-        roomEntity.setLat(request.getLat());
-        roomEntity.setLng(request.getLng());
+        roomEntity.setLat(point.getLat());
+        roomEntity.setLng(point.getLng());
         roomEntity.setAvailableFrom(request.getAvailableFrom());
         roomEntity.setMaxRoommates(request.getMaxRoommates());
     }
@@ -180,25 +152,13 @@ public class RoomServiceImpl implements RoomService {
     @Override
     @Transactional
     public Long createRoom(RoomCreateRequest roomCreateRequest, Long memberId) {
-        // 🔍 1차 검증: 클라이언트에서 들어온 값 상태 확인
-        log.info("[RoomService] createRoom address raw = {}", roomCreateRequest.getAddress());
-        log.info("[RoomService] createRoom lat = {}, lng = {}", roomCreateRequest.getLat(), roomCreateRequest.getLng());
 
-        // 1) 좌표 결정 (프론트에서 주면 그대로, 없고 address 있으면 Kakao로 보완)
-        KakaoGeoPoint point = resolveGeoPoint(
-                roomCreateRequest.getLat(),
-                roomCreateRequest.getLng(),
-                roomCreateRequest.getAddress()
-        );
-
-        // 2) DTO -> Entity 변환
-        // 왜: DTO -> Entity 변환을 Service에서 수행해서 Controller는 얇게 유지
+        KakaoGeoPoint point = resolveGeoPoint(roomCreateRequest.getAddress());
         RoomEntity roomEntity = toRoomEntity(roomCreateRequest, memberId, point);
 
         roomRepository.insertRoom(roomEntity);
 
-        // 이미지 저장 (있다면)
-        replaceRoomImages(roomEntity.getRoomId(), roomCreateRequest.getImageUrls());
+        roomImageService.attachTempImagesToRoom(roomEntity.getRoomId(), memberId, roomCreateRequest.getTempFileIds());
 
         return roomEntity.getRoomId();
     }
@@ -224,7 +184,7 @@ public class RoomServiceImpl implements RoomService {
         roomRepository.updateRoom(roomEntity);
 
         // 이미지 전체 교체 정책
-        replaceRoomImages(roomId, roomUpdateRequest.getImageUrls());
+        roomImageService.attachTempImagesToRoom(roomId, memberId, roomUpdateRequest.getTempFileIds());
     }
 
     @Override
@@ -249,7 +209,7 @@ public class RoomServiceImpl implements RoomService {
         List<String> ownerTags = memberService.getMemberTags(ownerId);
 
         // 이미지 리스트 추가
-        List<String> imageUrls = roomImageRepository.findImageUrlsByRoomId(roomId);
+        List<String> imageUrls = roomImageService.findImageUrlsByRoomId(roomId);
 
         String kakaoMapUrl = null;
         String kakaoDirectionUrl = null;
@@ -295,7 +255,7 @@ public class RoomServiceImpl implements RoomService {
                 roomDetailEntity.getRoomCreatedAt(),
                 roomDetailEntity.getRoomUpdatedAt(),
                 roomDetailEntity.getOwnerId(),
-                roomDetailEntity.getOwnerNickname(),
+                roomDetailEntity.getOwnerName(),
                 roomDetailEntity.getOwnerPhotoUrl(),
                 ownerTags,
                 imageUrls,
@@ -329,4 +289,9 @@ public class RoomServiceImpl implements RoomService {
                         roomMapItemEntity.getThumbnailUrl())).toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyRoomListItemResponse> getMyRooms(Long memberId) {
+        return roomRepository.findMyRooms(memberId);
+    }
 }

@@ -9,6 +9,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 @Service
 @RequiredArgsConstructor
@@ -94,5 +98,68 @@ public class LocalFileStorageService implements FileStorageService {
                 System.out.println("프로필 이미지 삭제 실패: " + file.getAbsolutePath());
             }
         }
+    }
+
+    @Override
+    public String moveTempProfileToProfile(Long memberId, String tempUrl) {
+        return moveTempToPermanent("temp/profile", "profile", "member-" + memberId, tempUrl);
+    }
+
+    @Override
+    public String moveTempRoomToRoom(Long roomId, String tempUrl) {
+        return moveTempToPermanent("temp/room", "room", "room-" + roomId, tempUrl);
+    }
+
+    private String moveTempToPermanent(String expectedTempDir, String targetDir, String prefix, String tempUrl) {
+        if (tempUrl == null || !tempUrl.startsWith("/upload/")) {
+            throw new ApiException(ErrorCode.FILE_PATH_INVALID);
+        }
+
+        String relative = tempUrl.substring("/upload/".length()); // ex) temp/profile/xxx.png
+        if (!relative.startsWith(expectedTempDir + "/")) {
+            // profile temp를 room으로 옮기려는 시도 등 방지
+            throw new ApiException(ErrorCode.FILE_PATH_INVALID);
+        }
+
+        File srcFile = new File(uploadRootPath, relative);
+        if (!srcFile.exists() || !srcFile.isFile()) {
+            throw new ApiException(ErrorCode.FILE_NOT_FOUND);
+        }
+
+        // target dir 준비
+        File destDir = new File(uploadRootPath, targetDir);
+        if (!destDir.exists() && !destDir.mkdirs()) {
+            throw new ApiException(ErrorCode.FILE_PATH_INVALID);
+        }
+
+        // 확장자 유지
+        String srcName = srcFile.getName();
+        String ext = "";
+        int dot = srcName.lastIndexOf(".");
+        if (dot >= 0) ext = srcName.substring(dot);
+
+        String destName = prefix + "-" + System.currentTimeMillis() + ext;
+        File destFile = new File(destDir, destName);
+
+        Path src = srcFile.toPath();
+        Path dest = destFile.toPath();
+
+        // copy + delete
+        try {
+            try {
+                Files.move(src, dest, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ex) {
+                Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
+                boolean deleted = srcFile.delete();
+                if (!deleted) {
+                    // 복사는 됐는데 원본 삭제 실패하면 temp에 남을 수 있음(나중에 정리 필요)
+                    System.out.println("[WARN] temp 파일 삭제 실패: " + srcFile.getAbsolutePath());
+                }
+            }
+        } catch (IOException e) {
+            throw new ApiException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+
+        return "/upload/" + targetDir + "/" + destName;
     }
 }

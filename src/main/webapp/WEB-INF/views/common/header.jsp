@@ -19,6 +19,15 @@
 
   <!-- 오른쪽: 검색 / 알림 / 로그인/프로필 -->
   <div class="header-right">
+
+   <!-- ✅ 방 등록 버튼 (로그인일 때만 노출 권장) -->
+   <a href="${pageContext.request.contextPath}/rooms/roomCreate"
+      id="btnHeaderRoomCreate"
+      class="header-primary-btn"
+      style="display:none;">
+     + 방 등록
+   </a>
+
     <!-- 검색 아이콘 -->
     <button type="button" class="header-icon-btn" id="btnHeaderSearch">
       🔍

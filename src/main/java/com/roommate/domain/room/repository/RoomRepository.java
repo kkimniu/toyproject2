@@ -1,5 +1,6 @@
 package com.roommate.domain.room.repository;
 
+import com.roommate.domain.room.dto.response.MyRoomListItemResponse;
 import com.roommate.domain.room.entity.RoomDetailEntity;
 import com.roommate.domain.room.entity.RoomEntity;
 import com.roommate.domain.room.entity.RoomMapItemEntity;
@@ -29,4 +30,7 @@ public interface RoomRepository {
 
     // 상세 조회용 (조인된 결과를 response DTO로 바로 받을 수도 있음)
     RoomDetailEntity findDetailById(@Param("roomId") Long roomId);
+
+    //방 등록 조회
+    List<MyRoomListItemResponse> findMyRooms(@Param("memberId") Long memberId);
 }

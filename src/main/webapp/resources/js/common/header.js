@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnLogout     = document.getElementById("btnLogout");
   const btnOpenLogin  = document.getElementById("btnOpenLogin");
   const btnOpenRegister = document.getElementById("btnOpenRegister");
+  const btnHeaderRoomCreate = document.getElementById("btnHeaderRoomCreate");
 
   // 로그인/회원가입 버튼 클릭 → 모달 열기
   if (btnOpenLogin) {
@@ -27,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const token = getAccessToken();
   if (!token) {
     // 비로그인
+    if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
     authButtons && (authButtons.style.display = "flex");
     profileArea && (profileArea.style.display = "none");
     return;
@@ -48,11 +50,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     authButtons && (authButtons.style.display = "none");
     profileArea && (profileArea.style.display = "flex");
+    if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "inline-flex";
   } catch (e) {
     // 토큰 이상 → 비로그인 처리
     clearTokens();
     authButtons && (authButtons.style.display = "flex");
     profileArea && (profileArea.style.display = "none");
+    if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
   }
 
   if (btnLogout) {

@@ -14,6 +14,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await loadMyProfile();
     await loadMyFavorites();
+    await loadMyRooms();
+    bindMyRoomActions();
   } catch (e) {
     console.error("mypage view init error:", e);
   }
@@ -158,40 +160,36 @@ function renderFavoriteList(list) {
 
   list.forEach((room) => {
     const roomId = room.roomId ?? room.room_id;
-    const title = room.roomTitle ?? room.room_title ?? "제목 없음";
+    const title = room.title ?? room.roomTitle ?? room.room_title ?? "제목 없음";
+    const address = room.address ?? "";
     const deposit = room.deposit;
     const monthlyRent = room.monthlyRent ?? room.monthly_rent;
-    const thumbnail = room.thumbnailUrl ?? room.thumbnail_url;
-    const depositMan = deposit != null ? Math.round(deposit / 10000) : null;
-    const monthlyMan = monthlyRent != null ? Math.round(monthlyRent / 10000) : null;
-    const depositText = depositMan != null ? `${depositMan.toLocaleString()}만` : "-";
-    const monthlyText = monthlyMan != null ? `${monthlyMan.toLocaleString()}만` : "-";
+    const status = room.status ?? "OPEN";
+    const thumb = room.thumbnailUrl ?? room.thumbnail_url ?? "/resources/img/no-image.png";
 
-    const status = room.status;
-    let statusLabel = "";
-    if (status === "OPEN") statusLabel = "모집중";
-    else if (status === "RESERVED") statusLabel = "예약중";
-    else if (status === "CLOSED") statusLabel = "마감";
-    else if (status) statusLabel = status;
+    const statusText =
+      status === "OPEN" ? "모집중" :
+      status === "RESERVED" ? "예약중" :
+      status === "CLOSED" ? "마감" :
+      status === "HIDDEN" ? "비공개" : status;
 
-    const card = document.createElement("div");
-    card.className = "favorite-card";
+    const card = document.createElement("article");
+    card.className = "my-post-card favorite-card"; // ✅ 내 게시글 카드 스타일 그대로 재사용
+    card.dataset.roomId = roomId;
 
     card.innerHTML = `
-      <div class="favorite-thumb">
-        <img src="${thumbnail || '/resources/img/no-image.png'}" alt="thumbnail">
+      <img class="my-post-thumb" src="${thumb}" alt="thumbnail" />
+      <div class="my-post-body">
+        <h4 class="my-post-title">${title}</h4>
+        <p class="my-post-sub">${address}</p>
+        <p class="my-post-price">보증금 ${formatMoney(deposit)} / 월세 ${formatMoney(monthlyRent)}</p>
       </div>
-      <div class="favorite-info">
-        <h3 class="favorite-title">${title}</h3>
-        <p class="favorite-meta">
-          보증금 ${depositText} | 월세 ${monthlyText}
-        </p>
-        <span class="favorite-status">${statusLabel}</span>
-      </div>
+
+      <div class="my-post-status ${status}">${statusText}</div>
     `;
 
     card.addEventListener("click", () => {
-      window.location.href = "/rooms/" + roomId;
+      window.location.href = `/rooms/${roomId}`;
     });
 
     container.appendChild(card);
@@ -415,4 +413,261 @@ async function handlePasswordChange() {
       alert("서버 오류가 발생했습니다.");
     }
   }
+}
+
+/** ===== 내 게시글 로드 ===== */
+async function loadMyRooms() {
+  const wrap = document.getElementById("myRoomList");
+  if (!wrap) return;
+
+  try {
+    const res = await apiRequest("/api/rooms/me", { method: "GET" });
+    if (!res.ok) throw new Error("my rooms load fail: " + res.status);
+
+    const rooms = await res.json();
+
+    // 비어있으면 빈 상태 유지
+    if (!Array.isArray(rooms) || rooms.length === 0) {
+      wrap.innerHTML = `<p class="favorite-empty">내가 등록한 방이 없습니다.</p>`;
+      return;
+    }
+    wrap.innerHTML = rooms.map(renderMyRoomCard).join("");
+  } catch (e) {
+    console.error("[mypage] loadMyRooms error:", e);
+    wrap.innerHTML = `<p class="favorite-empty">내 게시글을 불러오지 못했습니다.</p>`;
+  }
+}
+
+function renderMyRoomCard(room) {
+  const roomId = room.roomId ?? room.room_id;
+  const title = room.title ?? "-";
+  const address = room.address ?? "-";
+  const status = room.status ?? "OPEN";
+  const thumb = room.thumbnailUrl ?? room.thumbnail_url ?? "/resources/img/room/default-room.jpg";
+
+  const monthlyRent = room.monthlyRent ?? room.monthly_rent;
+  const deposit = room.deposit;
+
+  const priceText =
+    (monthlyRent != null && deposit != null)
+      ? `월 ${formatMoney(monthlyRent)} / 보증금 ${formatMoney(deposit)}`
+      : "가격 정보 없음";
+
+  const createdAt = room.roomCreatedAt ?? room.room_created_at;
+  const toggleLabel = (status === "OPEN") ? "모집 마감" : "모집 재개";
+  const hiddenLabel = (status === "HIDDEN") ? "공개" : "비공개";
+  return `
+    <article class="my-post-card" data-room-id="${roomId}">
+      <img class="my-post-thumb" src="${thumb}" alt="방 이미지">
+
+      <div class="my-post-body">
+        <h4 class="my-post-title">${escapeHtml(title)}</h4>
+        <p class="my-post-sub">${escapeHtml(address)}</p>
+        <p class="my-post-price">${escapeHtml(priceText)}</p>
+        <div class="my-post-date">${createdAt ? formatDate(createdAt) : ""}</div>
+      </div>
+
+      <div class="my-post-status ${status}">${statusText(status)}</div>
+
+      <div class="my-post-actions">
+        <button class="my-post-btn" data-action="edit" data-id="${roomId}">수정</button>
+        <button class="my-post-btn" data-action="toggle" data-id="${roomId}">
+          ${toggleLabel}
+        </button>
+        <button class="my-post-btn" data-action="toggle-hidden" data-id="${roomId}">
+          ${hiddenLabel}
+        </button>
+        <button class="my-post-btn-danger" data-action="delete" data-id="${roomId}">삭제</button>
+      </div>
+    </article>
+  `;
+}
+
+/** ===== 이벤트 위임(삭제/수정/상태변경) ===== */
+function bindMyRoomActions() {
+  const wrap = document.getElementById("myRoomList");
+  if (!wrap) return;
+
+  wrap.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+        if (btn) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const action = btn.dataset.action;
+        const roomId = btn.dataset.id;
+        if (!roomId) return;
+
+        if (action === "delete") {
+          const ok = confirm("게시글을 삭제하면 더 이상 노출되지 않습니다.\n정말 삭제하시겠습니까?");
+          if (!ok) return;
+
+          try {
+            btn.disabled = true;
+            const res = await apiRequest(`/api/rooms/${roomId}`, { method: "DELETE" });
+            if (!res.ok) throw new Error("delete fail: " + res.status);
+
+            // 화면에서 제거
+            const card = btn.closest(".my-post-card");
+            card?.remove();
+
+            // 다 지워졌으면 empty 표시
+            if (wrap.querySelectorAll(".my-post-card").length === 0) {
+              wrap.innerHTML = `<p class="favorite-empty">내가 등록한 방이 없습니다.</p>`;
+            }
+          } catch (err) {
+            console.error(err);
+            alert("삭제 중 오류가 발생했습니다.");
+          } finally {
+            btn.disabled = false;
+          }
+          return;
+        }
+
+        if (action === "edit") {
+          location.href = `/rooms/${roomId}/edit`;
+          return;
+        }
+
+        if (action === "toggle") {
+          const card = btn.closest(".my-post-card");
+          const statusEl = card?.querySelector(".my-post-status");
+          if (!statusEl) return;
+
+          const currentStatus =
+            statusEl.classList.contains("OPEN") ? "OPEN" :
+            statusEl.classList.contains("RESERVED") ? "RESERVED" :
+            statusEl.classList.contains("CLOSED") ? "CLOSED" :
+            "HIDDEN";
+          if (currentStatus === "RESERVED" || currentStatus === "HIDDEN") {
+            alert("현재 상태에서는 변경할 수 없습니다.");
+            return;
+          }
+          const nextStatus = currentStatus === "OPEN" ? "CLOSED" : "OPEN";
+
+          try {
+            btn.disabled = true;
+            const res = await apiRequest(`/api/rooms/${roomId}/status`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: nextStatus }),
+            });
+            if (!res.ok) throw new Error("status update fail: " + res.status);
+
+            statusEl.className = `my-post-status ${nextStatus}`;
+            statusEl.textContent = statusText(nextStatus);
+            btn.textContent = nextStatus === "OPEN" ? "모집 마감" : "모집 재개";
+          } catch (err) {
+            console.error(err);
+            alert("상태 변경 중 오류가 발생했습니다.");
+          } finally {
+            btn.disabled = false;
+          }
+          return;
+        }
+        if (action === "toggle-hidden") {
+          const card = btn.closest(".my-post-card");
+          const statusEl = card?.querySelector(".my-post-status");
+          if (!statusEl) return;
+
+          const currentStatus =
+            statusEl.classList.contains("OPEN") ? "OPEN" :
+            statusEl.classList.contains("RESERVED") ? "RESERVED" :
+            statusEl.classList.contains("CLOSED") ? "CLOSED" :
+            "HIDDEN";
+
+          // HIDDEN 토글은 "HIDDEN <-> OPEN" 으로 단순화 (정책)
+          const nextStatus = (currentStatus === "HIDDEN") ? "OPEN" : "HIDDEN";
+
+          try {
+            btn.disabled = true;
+            const res = await apiRequest(`/api/rooms/${roomId}/status`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: nextStatus }),
+            });
+            if (!res.ok) throw new Error("hidden status update fail: " + res.status);
+
+            // 배지 갱신
+            statusEl.className = `my-post-status ${nextStatus}`;
+            statusEl.textContent = statusText(nextStatus);
+
+            // 버튼 라벨 갱신
+            btn.textContent = (nextStatus === "HIDDEN") ? "공개" : "비공개";
+
+            // 모집마감 버튼도 HIDDEN일 때는 비활성/문구 변경(선택)
+            const toggleBtn = card.querySelector('button[data-action="toggle"]');
+            if (toggleBtn) {
+              if (nextStatus === "HIDDEN") {
+                toggleBtn.disabled = true;
+                toggleBtn.textContent = "비공개 중";
+              } else {
+                toggleBtn.disabled = false;
+                // 공개로 돌아오면 기본은 OPEN이라고 했으니:
+                toggleBtn.textContent = "모집 마감";
+              }
+            }
+          } catch (err) {
+            console.error(err);
+            alert("비공개 상태 변경 중 오류가 발생했습니다.");
+          } finally {
+            btn.disabled = false;
+          }
+          return;
+        }
+        return;
+      }
+    const card = e.target.closest(".my-post-card");
+    if (!card) return;
+
+    const roomId = card.dataset.roomId;
+    if (!roomId) return;
+
+    window.location.href = `/rooms/${roomId}`;
+  });
+}
+
+/** ===== 유틸 ===== */
+function formatMoney(v) {
+  const n = Number(v);
+  if (Number.isNaN(n)) return "-";
+  return n.toLocaleString("ko-KR");
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function statusText(status) {
+  switch (status) {
+    case "OPEN": return "모집중";
+    case "RESERVED": return "예약중";
+    case "CLOSED": return "마감";
+    case "HIDDEN": return "비공개";
+    default: return "비공개";
+  }
+}
+
+function normalizeImageUrl(url) {
+  if (!url) return "/resources/img/room-default.png"; // 너네 기본 이미지 하나 만들어두면 좋음
+
+  // http/https면 그대로
+  if (url.startsWith("http://") || url.startsWith("https://")) return url;
+
+  // "/uploads/..." 같은 절대경로면 그대로
+  if (url.startsWith("/")) return url;
+
+  // "uploads/..." 같은 상대경로면 앞에 / 붙이기
+  return "/" + url;
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }

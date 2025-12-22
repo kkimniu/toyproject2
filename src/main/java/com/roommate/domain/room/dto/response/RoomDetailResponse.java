@@ -19,7 +19,7 @@ public class RoomDetailResponse {
     private final String title;
     private final String content;
     private final Long roomTypeId;
-    private String roomTypeName;
+    private final String roomTypeName;
     private final Double monthlyRent;
     private final Double deposit;
     private final Float areaM2;
