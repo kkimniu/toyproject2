@@ -13,6 +13,8 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -161,5 +163,22 @@ public class LocalFileStorageService implements FileStorageService {
         }
 
         return "/upload/" + targetDir + "/" + destName;
+    }
+
+    @Override
+    public List<String> listRoomImageUrls() {
+        File dir = new File(uploadRootPath, "room");
+        if (!dir.exists() || !dir.isDirectory()) return List.of();
+
+        File[] files = dir.listFiles();
+        if (files == null) return List.of();
+
+        List<String> urls = new ArrayList<>();
+        for (File f : files) {
+            if (f.isFile()) {
+                urls.add("/upload/room/" + f.getName());
+            }
+        }
+        return urls;
     }
 }

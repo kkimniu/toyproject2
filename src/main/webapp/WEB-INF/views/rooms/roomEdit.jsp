@@ -3,8 +3,9 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8"/>
-  <title>방 등록 | 룸메이트</title>
+  <title>방 수정 | 룸메이트</title>
   <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/room/room-form.css"/>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/room/room-edit.css"/>
 </head>
 <body>
 <jsp:include page="/WEB-INF/views/common/header.jsp"/>
@@ -14,10 +15,11 @@
     <button type="button" id="btn-back" class="btn-link">← 마이페이지로</button>
   </div>
 
-  <h1 class="page-title">방 등록하기</h1>
-  <p class="page-subtitle">룸메이트를 찾기 위한 방 정보를 등록해주세요</p>
+  <h1 class="page-title">방 수정하기</h1>
+  <p class="page-subtitle">룸메이트를 찾기 위한 방 정보를 입력해주세요</p>
 
-  <form id="roomCreateForm" class="form" novalidate>
+  <form id="roomEditForm" class="form" novalidate>
+    <input type="hidden" id="roomId" value="${roomId}" />
     <section class="card">
       <div class="card-head">
         <h2 class="card-title">기본 정보</h2>
@@ -122,13 +124,13 @@
 
     <div class="bottom-actions">
       <button type="button" id="btnCancel" class="btn btn-ghost">취소</button>
-      <button type="submit" class="btn btn-primary">방 등록하기</button>
+      <button type="submit" class="btn btn-primary">방 수정하기</button>
     </div>
   </form>
 </main>
 
 <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
-<script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomCreate.js"></script>
+<script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomEdit.js"></script>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 </body>
 </html>

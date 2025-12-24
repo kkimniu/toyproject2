@@ -24,4 +24,8 @@ public interface RoomImageRepository {
      */
     List<String> findImageUrlsByRoomId(@Param("roomId") Long roomId);
 
+    /**
+     * 모든 이미지 조회
+     */
+    List<String> findAllImageUrls();
 }

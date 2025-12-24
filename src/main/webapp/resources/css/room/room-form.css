@@ -1,5 +1,5 @@
-/* /resources/css/room/room-create.css */
-.room-create-main{
+/* /resources/css/room/room-form.css */
+.room-form-main{
   max-width: 1060px;
   margin: 28px auto 60px;
   padding: 0 16px;
@@ -258,6 +258,17 @@
 }
 .btn-primary:hover{
   filter: brightness(1.05);
+}
+.btn-link{
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 700;
+  color: #111827;
+}
+.btn-link:hover{
+  opacity: .85;
 }
 
 @media (max-width: 900px){

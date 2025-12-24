@@ -183,8 +183,7 @@ public class RoomServiceImpl implements RoomService {
 
         roomRepository.updateRoom(roomEntity);
 
-        // 이미지 전체 교체 정책
-        roomImageService.attachTempImagesToRoom(roomId, memberId, roomUpdateRequest.getTempFileIds());
+        roomImageService.updateRoomImages(roomId, memberId, roomUpdateRequest.getImageUrls(), roomUpdateRequest.getTempFileIds());
     }
 
     @Override

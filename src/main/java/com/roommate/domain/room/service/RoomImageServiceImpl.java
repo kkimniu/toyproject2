@@ -13,7 +13,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RoomImageServiceImpl implements RoomImageService{
+public class RoomImageServiceImpl implements RoomImageService {
     private final RoomImageRepository roomImageRepository;
     private final TempUploadFileService tempUploadFileService;
 
@@ -29,7 +29,7 @@ public class RoomImageServiceImpl implements RoomImageService{
 
         for (Long tempFileId : tempFileIds) {
             // 왜: 남의 temp 파일 도용 방지 + used=1 확정
-            String url = tempUploadFileService.useTempFileForRoom(tempFileId, memberId,roomId);
+            String url = tempUploadFileService.useTempFileForRoom(tempFileId, memberId, roomId);
             imageUrls.add(url);
         }
 
@@ -57,5 +57,27 @@ public class RoomImageServiceImpl implements RoomImageService{
     @Transactional(readOnly = true)
     public List<String> findImageUrlsByRoomId(Long roomId) {
         return roomImageRepository.findImageUrlsByRoomId(roomId);
+    }
+
+    @Override
+    @Transactional
+    public void updateRoomImages(Long roomId, Long memberId, List<String> keepImageUrls, List<Long> tempFileIds) {
+        List<String> finalUrls = new ArrayList<>();
+
+        // 1) 유지할 기존 이미지
+        if (keepImageUrls != null && !keepImageUrls.isEmpty()) {
+            finalUrls.addAll(keepImageUrls);
+        }
+
+        // 2) 새 temp 이미지 확정
+        if (tempFileIds != null && !tempFileIds.isEmpty()) {
+            for (Long tempFileId : tempFileIds) {
+                String url = tempUploadFileService.useTempFileForRoom(tempFileId, memberId, roomId);
+                finalUrls.add(url);
+            }
+        }
+
+        // 3) 최종 목록으로 교체(삭제/추가 모두 반영)
+        replaceRoomImages(roomId, finalUrls);
     }
 }
