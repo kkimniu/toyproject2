@@ -47,7 +47,7 @@ public class RoomViewController {
     }
 
     /**
-     * 방 상세 페이지 (추후 구현용)
+     * 방 상세 페이지
      */
     @GetMapping("/{roomId}")
     public String roomDetailView(@PathVariable Long roomId, Model model) {
@@ -63,5 +63,12 @@ public class RoomViewController {
     @GetMapping("/roomCreate")
     public String roomCreateView(){
         return "rooms/roomCreate";
+    }
+
+    @GetMapping("/{roomId}/edit")
+    public String roomEditView(@PathVariable Long roomId, Model model) {
+        model.addAttribute("roomId", roomId);
+        model.addAttribute("kakaoJsKey", kakaoJsKey);
+        return "rooms/roomEdit";
     }
 }

@@ -9,6 +9,7 @@ public interface RoomImageService {
      */
     void attachTempImagesToRoom(Long roomId, Long memberId, List<Long> tempFileIds);
 
+    void updateRoomImages(Long roomId, Long memberId, List<String> keepImageUrls, List<Long> tempFileIds);
     /**
      * 방 수정 시: 기존 이미지를 전체 교체한다.
      * (지금 정책 그대로 유지)

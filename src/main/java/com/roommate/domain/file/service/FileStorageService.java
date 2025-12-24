@@ -2,6 +2,8 @@ package com.roommate.domain.file.service;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 public interface FileStorageService {
 
     String storeProfileImg(Long memberId, MultipartFile multipartFile);
@@ -15,4 +17,6 @@ public interface FileStorageService {
     String moveTempProfileToProfile(Long memberId, String tempUrl);
 
     String moveTempRoomToRoom(Long roomId, String tempUrl);
+
+    List<String> listRoomImageUrls();
 }

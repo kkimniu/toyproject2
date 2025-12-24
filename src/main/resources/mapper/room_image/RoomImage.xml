@@ -48,4 +48,10 @@
         ORDER BY sort_order ASC, image_id ASC
     </select>
 
+    <select id="findAllImageUrls" resultType="string">
+        SELECT image_url
+        FROM room_image
+        WHERE deleted = 0
+    </select>
+
 </mapper>

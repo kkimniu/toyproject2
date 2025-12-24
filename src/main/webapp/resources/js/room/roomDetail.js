@@ -191,8 +191,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   const backBtn = document.getElementById("btn-back");
   if (backBtn) {
     backBtn.addEventListener("click", () => {
-      if (history.length > 1) history.back();
-      else location.href = "/rooms/map";
+      location.href = "/rooms/map";
     });
   }
 
@@ -210,6 +209,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   applyActionVisibility(currentRoom);
 
   bindActionsOnce(roomId);
+  bindDetailActions();
 });
 
 function bindActionsOnce(roomId) {
@@ -273,6 +273,77 @@ function bindActionsOnce(roomId) {
       const ownerId = currentRoom?.ownerId ?? currentRoom?.owner_id ?? null;
       if (!ownerId) return;
       alert(`작성자 프로필 페이지로 이동 예정 (memberId=${ownerId})`);
+    });
+  }
+  // 게시글 수정 (owner 전용)
+  const editBtn = document.getElementById("btn-detail-edit");
+  if (editBtn) {
+    editBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const ok = requireLogin();
+      if (!ok) return;
+
+      // owner만 보이게 되어있지만, 혹시 몰라 한번 더 방어
+      if (!isOwnerOfRoom(currentRoom)) {
+        alert("작성자만 수정할 수 있습니다.");
+        return;
+      }
+
+      location.href = `/rooms/${roomId}/edit`;
+    });
+  }
+  // 게시글 삭제 (owner 전용)
+  const deleteBtn = document.getElementById("btn-detail-delete");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const ok = requireLogin();
+      if (!ok) return;
+
+      if (!isOwnerOfRoom(currentRoom)) {
+        alert("작성자만 삭제할 수 있습니다.");
+        return;
+      }
+
+      const confirmed = confirm("게시글을 삭제하면 더 이상 노출되지 않습니다.\n정말 삭제하시겠습니까?");
+      if (!confirmed) return;
+
+      if (deleteBtn.dataset.loading === "true") return;
+      deleteBtn.dataset.loading = "true";
+      deleteBtn.disabled = true;
+
+      try {
+        const res = await apiRequest(`/api/rooms/${roomId}`, { method: "DELETE" });
+
+        if (res.status === 401) {
+          alert("로그인이 필요합니다.");
+          location.href = "/members/login";
+          return;
+        }
+        if (res.status === 403) {
+          alert("작성자만 삭제할 수 있습니다.");
+          location.href = "/members/mypage";
+          return;
+        }
+        if (!res.ok) {
+          alert("삭제에 실패했습니다.");
+          return;
+        }
+
+        alert("삭제되었습니다.");
+        // 삭제 후 이동 정책은 팀 기준에 맞춰 선택
+        location.href = "/members/mypage"; // 또는 "/rooms/map"
+      } catch (err) {
+        console.error(err);
+        alert("삭제 중 오류가 발생했습니다.");
+      } finally {
+        deleteBtn.dataset.loading = "false";
+        deleteBtn.disabled = false;
+      }
     });
   }
 }
@@ -412,4 +483,106 @@ function renderRoomDetail(room) {
   const ownerTags = room.ownerTags ?? room.owner_tags ?? [];
   renderChips(chipContainer, ownerTags, { max: 8, emptyText: "선호 태그 없음" });
   applyActionVisibility(room);
+}
+
+function bindDetailActions() {
+  const toggleBtn = document.getElementById("btn-detail-toggle-status");
+  if (!toggleBtn) return;
+
+  toggleBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const ok = requireLogin();
+    if (!ok) return;
+
+    const { roomId } = getRoomMeta();
+    if (!roomId) {
+      alert("roomId를 찾을 수 없습니다.");
+      return;
+    }
+
+    if (!isOwnerOfRoom(currentRoom)) {
+      alert("작성자만 마감/재개할 수 있습니다.");
+      return;
+    }
+
+    const pill = document.getElementById("room-status-pill");
+    if (!pill) {
+      alert("상태 표시 요소를 찾지 못했습니다.");
+      return;
+    }
+
+    const currentStatus =
+      pill.classList.contains("room-status-OPEN") ? "OPEN" :
+      pill.classList.contains("room-status-RESERVED") ? "RESERVED" :
+      pill.classList.contains("room-status-CLOSED") ? "CLOSED" :
+      pill.classList.contains("room-status-HIDDEN") ? "HIDDEN" :
+      "OPEN"; // 기본값
+
+    if (currentStatus === "RESERVED" || currentStatus === "HIDDEN") {
+      alert("현재 상태에서는 변경할 수 없습니다.");
+      return;
+    }
+
+    const nextStatus = currentStatus === "OPEN" ? "CLOSED" : "OPEN";
+    const confirmMsg = nextStatus === "CLOSED" ? "모집을 마감할까요?" : "모집을 재개할까요?";
+    if (!confirm(confirmMsg)) return;
+
+    if (toggleBtn.dataset.loading === "true") return;
+    toggleBtn.dataset.loading = "true";
+    toggleBtn.disabled = true;
+
+    try {
+      const res = await apiRequest(`/api/rooms/${roomId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: nextStatus }),
+      });
+
+      if (res.status === 401) {
+        alert("로그인이 필요합니다.");
+        location.href = "/members/login";
+        return;
+      }
+      if (res.status === 403) {
+        alert("작성자만 변경할 수 있습니다.");
+        return;
+      }
+      if (!res.ok) {
+        const msg = await res.text().catch(() => "");
+        alert("상태 변경 실패" + (msg ? `: ${msg}` : ""));
+        return;
+      }
+
+      pill.classList.remove(
+        "room-status-OPEN",
+        "room-status-RESERVED",
+        "room-status-CLOSED",
+        "room-status-HIDDEN"
+      );
+      pill.classList.add(`room-status-${nextStatus}`);
+      pill.textContent = statusText(nextStatus);
+
+      toggleBtn.textContent = nextStatus === "OPEN" ? "모집 마감" : "모집 재개";
+
+      if (currentRoom) currentRoom.status = nextStatus;
+    } catch (err) {
+      console.error(err);
+      alert("상태 변경 중 오류가 발생했습니다.");
+    } finally {
+      toggleBtn.dataset.loading = "false";
+      toggleBtn.disabled = false;
+    }
+  });
+}
+
+function statusText(status) {
+  switch (status) {
+    case "OPEN": return "모집중";
+    case "RESERVED": return "예약중";
+    case "CLOSED": return "마감";
+    case "HIDDEN": return "비공개";
+    default: return status;
+  }
 }

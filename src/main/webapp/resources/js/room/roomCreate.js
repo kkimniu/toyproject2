@@ -3,6 +3,7 @@
 import { apiRequest } from "../common/apiClient.js";
 import { requireLogin } from "../common/authGuard.js";
 import { makeUserScope, makeDraftKey, saveDraft, loadDraft, clearDraft } from "../common/draftStore.js";
+import { v, n, i } from "../common/formUtils.js";
 
 let selectedFiles = [];
 
@@ -18,19 +19,6 @@ const IMG_PAGE = `${PAGE}:images`;
 
 const TEXT_KEY = makeDraftKey({ app: APP, page: TEXT_PAGE, userScope: USER_SCOPE, version: VERSION });
 const IMG_KEY  = makeDraftKey({ app: APP, page: IMG_PAGE, userScope: USER_SCOPE, version: VERSION });
-
-// ===== utils =====
-function v(id) {
-  return (document.getElementById(id)?.value ?? "").trim();
-}
-function n(id) {
-  const x = v(id);
-  return x === "" ? null : Number(x);
-}
-function i(id) {
-  const x = v(id);
-  return x === "" ? null : parseInt(x, 10);
-}
 
 function validate(payload) {
   if (!payload.title) return "제목은 필수입니다.";
