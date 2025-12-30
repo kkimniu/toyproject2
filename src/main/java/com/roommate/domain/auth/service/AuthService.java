@@ -1,6 +1,7 @@
 package com.roommate.domain.auth.service;
 
 
+import com.roommate.domain.auth.dto.AuthTokenResult;
 import com.roommate.domain.auth.dto.request.LoginRequest;
 import com.roommate.domain.auth.dto.request.RefreshTokenRequest;
 import com.roommate.domain.auth.dto.request.SignUpRequest;
@@ -22,7 +23,7 @@ public interface AuthService {
     /**
      * 비밀번호와 이메일 로그인 메서드
      */
-    LoginResponse login(LoginRequest loginRequest);
+    AuthTokenResult login(LoginRequest loginRequest);
 
     /**
      * 비밀 번호 검증
@@ -32,7 +33,7 @@ public interface AuthService {
     /**
      * Access Token 재발급
      */
-    LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest);
+    LoginResponse refreshToken(String refreshToken);
 
     /**
      * 로그아웃

@@ -3,6 +3,7 @@ package com.roommate.common.jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,129 +15,177 @@ import javax.annotation.PostConstruct;
 import javax.crypto.SecretKey;
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 @Slf4j(topic = "JwtUtil")
 public class JwtUtil {
-	
+
     // HTTP 요청 헤더에서 JWT를 담는 데 사용될 키
     public static final String AUTHORIZATION_HEADER = "Authorization";
     // JWT 토큰 값 앞에 붙는 접두사 (Bearer 스킴)
     public static final String BEARER_PREFIX = "Bearer ";
 
+    private static final String CLAIM_ROLE = "role";
+    private static final String CLAIM_TYP = "typ";
+    private static final String CLAIM_JTI = "jti";
+
+    private static final String TYP_ACCESS = "access";
+    private static final String TYP_REFRESH = "refresh";
+
 
     @Value("${jwt.secret.key}")
-    private String secretKey; // application.properties에서 주입받은 비밀 키
+    private String secretKeyBase64; // application.properties에서 주입받은 비밀 키
 
+    @Getter
     @Value("${jwt.access.expiration.time}")
     private long accessExpirationTime;
 
+    @Getter
     @Value("${jwt.refresh.expiration.time}")
     private long refreshExpirationTime;
 
-    private Key key; // JWT 서명에 사용할 키 객체
+    private SecretKey key; // JWT 서명에 사용할 키 객체
 
     // @PostConstruct: 의존성 주입이 완료된 후 실행되는 초기화 메서드
     //이 메서드가 없으면 key가 null이라 서명/검증 시 NullPointerException.
     @PostConstruct
     public void init() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKeyBase64);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String createAccessToken(Long memberId, MemberRoleEnum roleEnum) {
+        return buildToken(memberId, roleEnum, accessExpirationTime, TYP_ACCESS);
+    }
+
+    public String createRefreshToken(Long memberId, MemberRoleEnum roleEnum) {
+        return buildToken(memberId, roleEnum, refreshExpirationTime, TYP_REFRESH);
     }
 
     /**
      * 사용자 고유번호를 받아 JWT를 생성하는 메서드
      */
-    public String buildToken(Long userId, MemberRoleEnum role,long expirationMillis) {
+    private String buildToken(Long memberId, MemberRoleEnum role, long expirationMillis, String typ) {
         Date now = new Date();
         Date expirationDate = new Date(now.getTime() + expirationMillis);
 
         return Jwts.builder()
-                .setSubject(userId.toString()) // 토큰의 주체(사용자 이름) 설정
-                .claim("role",role.getAuthority())
-                .setIssuedAt(now) // 토큰 발급 시간 설정
-                .setExpiration(expirationDate) // 토큰 만료 시간 설정
-                .signWith(key, SignatureAlgorithm.HS256) // 사용할 암호화 알고리즘과 키로 서명
+                .subject(String.valueOf(memberId)) // 토큰의 주체(사용자 이름) 설정
+                .issuedAt(now) // 토큰 발급 시간 설정
+                .expiration(expirationDate) // 토큰 만료 시간 설정
+                .claim(CLAIM_ROLE, role.getAuthority())
+                .claim(CLAIM_TYP, typ)
+                .claim(CLAIM_JTI, UUID.randomUUID().toString())
+                .signWith(key) // 사용할 암호화 알고리즘과 키로 서명 , 0.12.x에서는 key만 넘기면 alg는 자동 결정됨(HS256
                 .compact(); // JWT 문자열로 압축
     }
 
-    public String createAccessToken(Long userId, MemberRoleEnum roleEnum) {
-        return buildToken(userId,roleEnum, accessExpirationTime);
-    }
+    // =========================
+    // Header -> Token 추출
+    // =========================
 
-    public String createRefreshToken(Long userId, MemberRoleEnum roleEnum) {
-        return buildToken(userId,roleEnum, refreshExpirationTime);
-    }
-
-    /**
-     * HTTP 요청에서 'Bearer ' 접두사를 제거하고 순수한 토큰 문자열을 반환하는 메서드
-     *
-     * @param bearerToken 'Bearer '로 시작하는 토큰 문자열
-     * @return 순수한 JWT 문자열
-     */
-    public String substringToken(String bearerToken) {
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
-            return bearerToken.substring(7);
+    public String resolveBearerToken(String authorizationHeaderValue) {
+        if (!StringUtils.hasText(authorizationHeaderValue) || !authorizationHeaderValue.startsWith(BEARER_PREFIX)) {
+            throw new JwtException("INVALID_AUTH_HEADER");
         }
-        throw new NullPointerException("토큰이 유효하지 않습니다.");
+        return authorizationHeaderValue.substring(BEARER_PREFIX.length());
+    }
+
+    // =========================
+    // 검증(예외 기반) + 파싱
+    // =========================
+
+    /**
+     * Access 토큰 검증(서명/만료 + typ=access 강제)
+     * 실패 시 JwtException 계열 예외 발생
+     */
+    public Claims validateAndParseAccessClaims(String token) {
+        Claims claims = parseClaims(token);
+        validateTyp(claims, TYP_ACCESS);
+        return claims;
     }
 
     /**
-     * 주어진 토큰의 유효성을 검증하는 메서드
-     * @param token 검증할 JWT 문자열
-     * @return 토큰이 유효하면 true, 아니면 false
+     * Refresh 토큰 검증(서명/만료 + typ=refresh 강제)
+     * 실패 시 JwtException 계열 예외 발생
      */
-    public boolean validateToken(String token) {
+    public Claims validateAndParseRefreshClaims(String token) {
+        Claims claims = parseClaims(token);
+        validateTyp(claims, TYP_REFRESH);
+        return claims;
+    }
+
+    /**
+     * 공통 파싱(여기서 서명/만료 검증이 함께 수행됨)
+     */
+    public Claims parseClaims(String token) {
         try {
-            // Jwts.parser()를 사용해 JwtParserBuilder를 얻고,
-            // verifyWith()로 서명 검증에 사용할 키를 설정한 후,
-            // build()로 JwtParser를 생성합니다.
-            // 그 다음 parseSignedClaims()로 토큰을 파싱하여 검증합니다.
-            Jwts.parser()
-                    .verifyWith((SecretKey) key) // key가 SecretKey 타입이어야 합니다.
+            return Jwts.parser()
+                    .verifyWith(key)
                     .build()
-                    .parseSignedClaims(token);
-            return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.warn("유효하지 않은 JWT 서명입니다.", e);
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            // 서명/형식 문제는 WARN이 보통(공격/오입력)
+            log.warn("INVALID_JWT_SIGNATURE_OR_FORMAT", e);
+            throw new JwtException("INVALID_JWT", e);
         } catch (ExpiredJwtException e) {
-            log.debug("만료된 JWT 토큰입니다.");
+            // 만료는 흔한 케이스라 DEBUG/INFO 정책을 팀에 맞춰 선택
+            log.debug("EXPIRED_JWT");
+            throw e; // 컨트롤러/필터에서 만료 응답(401) 분기하기 좋게 그대로 던짐
         } catch (UnsupportedJwtException e) {
-            log.warn("지원되지 않는 JWT 토큰입니다.", e);
+            log.warn("UNSUPPORTED_JWT", e);
+            throw new JwtException("UNSUPPORTED_JWT", e);
         } catch (IllegalArgumentException e) {
-            log.warn("JWT 클레임 문자열이 비어있습니다.", e);
+            log.warn("EMPTY_JWT", e);
+            throw new JwtException("EMPTY_JWT", e);
         }
-        return false;
     }
 
-    /**
-     * 유효한 토큰에서 사용자 정보를 추출하는 메서드 (0.12.5 버전용)
-     * @param token 유효성이 검증된 JWT 문자열
-     * @return 토큰에 담긴 사용자 정보(Claims) 객체
-     */
-    public Claims getUserInfoFromToken(String token) {
-        // validateToken()을 통과한 토큰이므로, 예외 처리 없이 바로 파싱합니다.
-        // getPayload() 대신 getBody()를 사용했던 이전 버전과 달리, 0.12.x 에서는 getPayload()를 사용합니다.
-        return Jwts.parser()
-                .verifyWith((SecretKey) key)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
-    /**
-     * Refresh Token 전용 검증 메서드
-     * - 현재는 validateToken 과 동일하게 동작하지만,
-     *   추후 Refresh 전용 정책이 생길 경우 이 메서드에서 확장한다.
-     */
-    public boolean validateRefreshToken(String token) {
-        return validateToken(token);
+    private void validateTyp(Claims claims, String expectedTyp) {
+        String typ = claims.get(CLAIM_TYP, String.class);
+
+        if (!expectedTyp.equals(typ)) {
+            throw new JwtException("INVALID_TOKEN_TYPE");
+        }
     }
 
-    /**
-     * Refresh Token 에서 memberId(subject)를 추출한다.
-     */
-    public Long getMemberIdFromRefreshToken(String token){
-        Claims claims = getUserInfoFromToken(token);
-        return Long.parseLong(claims.getSubject());
+    // =========================
+    // Claims 접근 헬퍼
+    // =========================
+
+    public Long getMemberId(Claims claims) {
+        return Long.valueOf(claims.getSubject());
+    }
+
+    public String getRole(Claims claims) {
+        return claims.get(CLAIM_ROLE, String.class);
+    }
+
+    public String getJti(Claims claims) {
+        return claims.get(CLAIM_JTI, String.class);
+    }
+
+    // =========================
+    //  boolean 검증이 필요한 곳을 위한 래퍼
+    // =========================
+
+    public boolean isValidAccessToken(String token) {
+        try {
+            validateAndParseAccessClaims(token);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    public boolean isValidRefreshToken(String token) {
+        try {
+            validateAndParseRefreshClaims(token);
+            return true;
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 }

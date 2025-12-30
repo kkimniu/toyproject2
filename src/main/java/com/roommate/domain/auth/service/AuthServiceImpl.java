@@ -3,8 +3,8 @@ package com.roommate.domain.auth.service;
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
 import com.roommate.common.jwt.JwtUtil;
+import com.roommate.domain.auth.dto.AuthTokenResult;
 import com.roommate.domain.auth.dto.request.LoginRequest;
-import com.roommate.domain.auth.dto.request.RefreshTokenRequest;
 import com.roommate.domain.auth.dto.request.SignUpRequest;
 import com.roommate.domain.auth.dto.response.LoginResponse;
 import com.roommate.domain.auth.dto.response.SignUpResponse;
@@ -25,8 +25,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -104,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
     /**
      * MemberEntity,jwt → toLoginUpResponse 변환
      */
-    private LoginResponse toLoginResponse(MemberEntity memberEntity, String accessToken, String refreshToken) {
+    private LoginResponse toLoginResponse(MemberEntity memberEntity, String accessToken) {
         return new LoginResponse(
                 memberEntity.getMemberId(),
                 memberEntity.getWorkTypeId(),
@@ -118,7 +116,6 @@ public class AuthServiceImpl implements AuthService {
                 memberEntity.getMbti(),
                 memberEntity.getRole(),
                 accessToken,
-                refreshToken,
                 "Bearer"
         );
     }
@@ -134,7 +131,7 @@ public class AuthServiceImpl implements AuthService {
         Long memberId = memberEntity.getMemberId();
 
         if (signUpRequest.getProfileTempFileId() != null && signUpRequest.getSignupKey() != null) {
-            String finalPhotoUrl = tempUploadFileService.useTempFileForSignup(signUpRequest.getProfileTempFileId(),signUpRequest.getSignupKey(),memberId);
+            String finalPhotoUrl = tempUploadFileService.useTempFileForSignup(signUpRequest.getProfileTempFileId(), signUpRequest.getSignupKey(), memberId);
             memberRepository.updatePhotoUrl(memberId, finalPhotoUrl);
         }
 
@@ -151,12 +148,12 @@ public class AuthServiceImpl implements AuthService {
             memberPetRepository.insertMemberPets(memberId, signUpRequest.getPetIds());
         }
 
-        SignUpResponse response = toSignUpResponse(memberEntity);
-        return response;
+        return toSignUpResponse(memberEntity);
     }
 
     @Override
-    public LoginResponse login(LoginRequest loginRequest) {
+    @Transactional
+    public AuthTokenResult login(LoginRequest loginRequest) {
         MemberEntity memberEntity = memberRepository.findByEmail(loginRequest.getEmail()).orElseThrow(() -> new ApiException(ErrorCode.INVALID_EMAIL_FORMAT));
 
         if (memberEntity.getDeleted() == 1) {
@@ -167,46 +164,51 @@ public class AuthServiceImpl implements AuthService {
         }
 
         validatePassword(loginRequest.getPassword(), memberEntity.getPassword());
-        String accessToken = jwtUtil.createAccessToken(memberEntity.getMemberId(), memberEntity.getRole());
-        String refreshToken = jwtUtil.createRefreshToken(memberEntity.getMemberId(), memberEntity.getRole());
-        saveOrUpdateRefreshToken(memberEntity, refreshToken);
+        Long memberId = memberEntity.getMemberId();
 
-        LoginResponse loginResponse = toLoginResponse(memberEntity, accessToken, refreshToken);
-        return loginResponse;
+        String accessToken = jwtUtil.createAccessToken(memberId, memberEntity.getRole());
+        String refreshToken = jwtUtil.createRefreshToken(memberId, memberEntity.getRole());
+
+        long refreshTtlMs = jwtUtil.getRefreshExpirationTime();
+        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(refreshTtlMs / 1000);
+
+        saveOrUpdateRefreshToken(memberId, refreshToken, expiresAt);
+
+        LoginResponse loginResponse = toLoginResponse(memberEntity, accessToken);
+        long refreshMaxAgeSeconds = refreshTtlMs / 1000;
+        return new AuthTokenResult(loginResponse, refreshToken, refreshMaxAgeSeconds);
     }
 
     /**
      * Refresh Token 저장/갱신
      * - 회원당 1개의 Refresh Token만 유지한다.
      * - 토큰 원문은 DB에 저장하지 않고, 해시값만 저장한다.
-     * - 만료 시간은 JWT의 exp 클레임을 그대로 사용한다.
+     * - 만료 시간은 refresh TTL 설정값 기준으로 계산한다.
      */
-    private void saveOrUpdateRefreshToken(MemberEntity memberEntity, String refreshToken) {
-        Long memberId = memberEntity.getMemberId();
-        TokenRefreshEntity tokenRefreshEntity = tokenRefreshRepository.findByMemberId(memberId).orElse(null);
-        String encodedRefreshToken = passwordEncoder.encode(refreshToken);
-        //토큰 만료시간 꺼내기
-        Claims claims = jwtUtil.getUserInfoFromToken(refreshToken);
-        Date expirationData = claims.getExpiration();
-        LocalDateTime expiresAt = expirationData.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    private void saveOrUpdateRefreshToken(Long memberId, String refreshToken, LocalDateTime expiresAt) {
+        TokenRefreshEntity existing = tokenRefreshRepository.findByMemberId(memberId).orElse(null);
 
-        if (tokenRefreshEntity == null) {
-            tokenRefreshEntity = new TokenRefreshEntity();
-            tokenRefreshEntity.setMemberId(memberId);
-            tokenRefreshEntity.setRefreshTokenHash(encodedRefreshToken);
-            tokenRefreshEntity.setExpiresAt(expiresAt);
-            tokenRefreshRepository.save(tokenRefreshEntity);
-        } else {
-            tokenRefreshEntity.setRefreshTokenHash(encodedRefreshToken);
-            tokenRefreshEntity.setExpiresAt(expiresAt);
-            tokenRefreshRepository.updateTokenRefresh(tokenRefreshEntity);
+        String encodedRefreshToken = passwordEncoder.encode(refreshToken);
+
+        if (existing == null) {
+            TokenRefreshEntity entity = new TokenRefreshEntity();
+            entity.setMemberId(memberId);
+            entity.setRefreshTokenHash(encodedRefreshToken);
+            entity.setExpiresAt(expiresAt);
+            tokenRefreshRepository.save(entity);
+            return;
         }
+
+        existing.setRefreshTokenHash(encodedRefreshToken);
+        existing.setExpiresAt(expiresAt);
+        tokenRefreshRepository.updateTokenRefresh(existing);
     }
 
     @Override
-    public LoginResponse refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.getRefreshToken();
-
+    public LoginResponse refreshToken(String refreshToken) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new ApiException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        }
         /**
          * 1) Refresh Token 기본 유효성 검증
          *    - 서명(Signature) 검증
@@ -216,36 +218,31 @@ public class AuthServiceImpl implements AuthService {
          *    Refresh Token은 Access Token 재발급을 위한 중요한 자격 증명 수단이므로
          *    기본적인 유효성 검사 실패 시 즉시 요청을 차단한다.
          */
-        if (!jwtUtil.validateRefreshToken(refreshToken)) {
+        Claims claims;
+        try {
+            claims = jwtUtil.validateAndParseRefreshClaims(refreshToken);
+        } catch (Exception e) {
+            // jwtUtil 내부 예외 타입에 맞춰 좁혀도 됨
             throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-        /**
-         * 2) Refresh Token 내부의 subject(memberId) 추출
-         *    - 정상적으로 서명된 Refresh Token이면 claim에서 memberId를 추출할 수 있다.
-         *    - 토큰 위조 방지를 위해 DB 조회 전에 반드시 JWT에서 추출한 ID 값을 기준으로 처리한다.
-         */
-        Long memberId = jwtUtil.getMemberIdFromRefreshToken(refreshToken);
+        Long memberId = jwtUtil.getMemberId(claims);
+
         MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+
         if (memberEntity.getDeleted() == 1) {
             throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
         }
-        /**
-         * 3) DB에 저장된 Refresh Token 검증
-         *    - 서버는 Refresh Token 원본을 저장하지 않고 Bcrypt 해시값만 저장한다.
-         *    - 따라서 전달된 refreshToken과 DB에 저장된 해시를 matches()로 비교해야 한다.
-         *
-         *    검증 항목:
-         *    1) 해당 회원의 refresh token 레코드 존재 여부
-         *    2) 전달받은 refresh token과 DB 저장된 해시 비교
-         *    3) Refresh Token 실제 만료 시간(DB 저장값) 확인
-         */
+        // 3) DB 해시 검증 + DB 만료시간 검증
         TokenRefreshEntity tokenRefreshEntity = tokenRefreshRepository.findByMemberId(memberId).orElseThrow(() -> new ApiException(ErrorCode.INVALID_REFRESH_TOKEN));
+
         if (!passwordEncoder.matches(refreshToken, tokenRefreshEntity.getRefreshTokenHash())) {
             throw new ApiException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
+
         if (tokenRefreshEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new ApiException(ErrorCode.EXPIRED_REFRESH_TOKEN);
         }
+
         /**
          * 4) 모든 검증이 완료되었으면 새로운 Access Token 발급
          *    - Refresh Token은 그대로 유지한다(토큰 로테이션 적용 시 이 부분 변경 가능)
@@ -254,7 +251,7 @@ public class AuthServiceImpl implements AuthService {
         String newAccessToken = jwtUtil.createAccessToken(memberId, memberEntity.getRole());
 
         // 기존 LoginResponse 포맷 재사용하여 전달 (Refresh Token은 그대로 반환)
-        return toLoginResponse(memberEntity, newAccessToken, refreshToken);
+        return toLoginResponse(memberEntity, newAccessToken);
     }
 
     @Override

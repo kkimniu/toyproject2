@@ -95,6 +95,35 @@ public class MemberServiceImpl implements MemberService {
                 petEntities.stream().map(this::toPetResponse).toList());
     }
 
+    private MemberPublicResponse toMemberPublicResponse(MemberEntity memberEntity, WorkTypeEntity workTypeEntity, List<HobbyEntity> hobbyEntities, List<PreferenceEntity> preferenceEntities, List<PetEntity> petEntities) {
+
+        if (workTypeEntity.getWorkTypeId() != null && workTypeEntity == null) {
+            throw new ApiException(ErrorCode.WORK_TYPE_NOT_FOUND);
+        }
+
+        Long workTypeId = null;
+        String workTypeName = null;
+
+        if (workTypeEntity != null) {
+            workTypeId = workTypeEntity.getWorkTypeId();
+            workTypeName = workTypeEntity.getWorkTypeName();
+        }
+
+        return new MemberPublicResponse(
+                memberEntity.getMemberId(),
+                workTypeId,
+                workTypeName,
+                memberEntity.getName(),
+                memberEntity.getPhotoUrl(),
+                memberEntity.getSleepTime(),
+                memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
+                memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
+                memberEntity.getMbti(),
+                hobbyEntities.stream().map(this::toHobbyResponse).toList(),
+                preferenceEntities.stream().map(this::toPreferenceResponse).toList(),
+                petEntities.stream().map(this::toPetResponse).toList());
+    }
+
     @Override
     public FormCodesResponse getFormCodes() {
         List<WorkTypeResponse> workTypes = workTypeRepository.findAll().stream().map(this::toWorkTypeResponse).toList();
@@ -105,6 +134,7 @@ public class MemberServiceImpl implements MemberService {
     }
 
     @Override
+    @Transactional
     public MemberResponse memberInfo(Long memberId) {
         MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
         if (memberEntity.getDeleted() == 1) {
@@ -122,6 +152,24 @@ public class MemberServiceImpl implements MemberService {
         List<PetEntity> petEntities = petRepository.findByMemberId(memberId);
         MemberResponse memberResponse = toMemberResponse(memberEntity, workTypeEntity, hobbyEntities, preferenceEntities, petEntities);
         return memberResponse;
+    }
+
+    @Override
+    @Transactional
+    public MemberPublicResponse memberPublicInfo(Long memberId) {
+        MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+        if (memberEntity.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+        WorkTypeEntity workTypeEntity = null;
+        if (memberEntity.getWorkTypeId() != null) {
+            workTypeEntity = workTypeRepository.findById(memberEntity.getWorkTypeId()).orElse(null); // 없다고 해서 에러로 처리하진 않음
+        }
+        List<HobbyEntity> hobbyEntities = hobbyRepository.findByMemberId(memberId);
+        List<PreferenceEntity> preferenceEntities = preferenceRepository.findByMemberId(memberId);
+        List<PetEntity> petEntities = petRepository.findByMemberId(memberId);
+        MemberPublicResponse memberPublicResponse = toMemberPublicResponse(memberEntity, workTypeEntity, hobbyEntities, preferenceEntities, petEntities);
+        return memberPublicResponse;
     }
 
     @Override
