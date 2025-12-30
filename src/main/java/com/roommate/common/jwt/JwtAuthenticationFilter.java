@@ -7,6 +7,7 @@ import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,39 +38,62 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        //Http 헤더에서 'Authorization' 가져옴
-        String bearerToken = request.getHeader(JwtUtil.AUTHORIZATION_HEADER);
-        if (bearerToken != null && bearerToken.startsWith(JwtUtil.BEARER_PREFIX)) {
-            try {
-                String token = jwtUtil.substringToken(bearerToken);
-                if (jwtUtil.validateToken(token)) {
-                    Claims userInfo = jwtUtil.getUserInfoFromToken(token);
-                    Long userId = Long.parseLong(userInfo.getSubject());
-                    setAuthentication(userId);
-                }
-            } catch (ExpiredJwtException e) {
-                log.warn("JWT 만료됨");
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            } catch (Exception e) {
-                log.warn("JWT 처리 오류: " + e.getMessage());
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return;
-            }
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            filterChain.doFilter(request, response);
+            return;
         }
-        filterChain.doFilter(request, response);
+
+        String authorizationHeader = request.getHeader(JwtUtil.AUTHORIZATION_HEADER);
+
+        if (authorizationHeader == null) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        try {
+            // 1) Bearer 파싱 (형식 오류면 예외)
+            String token = jwtUtil.resolveBearerToken(authorizationHeader);
+
+            // 2) Access 토큰 검증 + Claims 파싱 (서명/만료/typ=access 강제)
+            Claims claims = jwtUtil.validateAndParseAccessClaims(token);
+
+            // 3) memberId 추출
+            Long memberId = jwtUtil.getMemberId(claims);
+
+            // 4) SecurityContext 등록
+            setAuthentication(memberId);
+
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException e) {
+            log.debug("EXPIRED_JWT: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            // 필요하면 여기서 에러 바디(JSON)도 내려도 됨
+            return;
+
+        } catch (JwtException e) {
+            // 서명 위조/형식 오류/typ 불일치 등
+            log.warn("INVALID_JWT: {}", e.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+
+        } catch (Exception e) {
+            // 예상 못한 장애
+            log.error("JWT_FILTER_ERROR", e);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
     }
 
     /**
      * JWT가 유효하면 스프링  시큐리티에 등록하는 메서드
      */
-    private void setAuthentication(Long userId) {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        MemberEntity memberEntity = memberRepository.findById(userId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+    private void setAuthentication(Long memberId) {
+
+        MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
         UserDetailsImpl principal = new UserDetailsImpl(memberEntity);
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     /**
