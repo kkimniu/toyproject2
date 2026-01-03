@@ -272,7 +272,7 @@ function bindActionsOnce(roomId) {
     viewProfileBtn.addEventListener("click", () => {
       const ownerId = currentRoom?.ownerId ?? currentRoom?.owner_id ?? null;
       if (!ownerId) return;
-      alert(`작성자 프로필 페이지로 이동 예정 (memberId=${ownerId})`);
+      location.href = `/members/${ownerId}`;
     });
   }
   // 게시글 수정 (owner 전용)

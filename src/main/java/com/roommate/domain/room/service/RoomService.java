@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface RoomService {
 
+    public List<MyRoomListItemResponse> getRoomsByMember(Long memberId);
+
     public Long createRoom(RoomCreateRequest roomCreateRequest, Long memberId);
 
     public void updateRoom(Long roomId, RoomUpdateRequest roomUpdateRequest, Long memberId);

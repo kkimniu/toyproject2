@@ -36,7 +36,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     const res = await apiRequest("/api/members/me", { method: "GET" });
-    if (!res.ok) throw new Error();
+    if (res.status === 401 || res.status === 403) {
+      throw new Error("AUTH");
+    }
+    // 그 외 에러(500 등)는 로그아웃까지는 하지 말자
+    if (!res.ok) {
+      console.warn("me api failed:", res.status);
+     // 토큰을 지우진 않되, 화면은 비로그인처럼 보여주는게 더 안전
+     authButtons && (authButtons.style.display = "flex");
+     profileArea && (profileArea.style.display = "none");
+     if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
+     return;
+    }
 
     const data = await res.json();
     const name = data.name || "";
@@ -52,18 +63,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     profileArea && (profileArea.style.display = "flex");
     if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "inline-flex";
   } catch (e) {
-    // 토큰 이상 → 비로그인 처리
-    clearTokens();
-    authButtons && (authButtons.style.display = "flex");
-    profileArea && (profileArea.style.display = "none");
-    if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
+    if (e.message === "AUTH") {
+        // 토큰 이상 → 비로그인 처리
+        clearTokens();
+        authButtons && (authButtons.style.display = "flex");
+        profileArea && (profileArea.style.display = "none");
+        if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
+    }else {
+        console.warn("header init error:", e);
+    }
   }
 
   if (btnLogout) {
     btnLogout.addEventListener("click", async () => {
       const ok = confirm("로그아웃 하시겠습니까?");
       if (!ok) return;
-
       try {
         await apiRequest("/api/auth/logout", { method: "POST" });
       } catch (e) {

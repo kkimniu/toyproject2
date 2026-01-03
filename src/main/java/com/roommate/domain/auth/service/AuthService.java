@@ -33,7 +33,7 @@ public interface AuthService {
     /**
      * Access Token 재발급
      */
-    LoginResponse refreshToken(String refreshToken);
+    AuthTokenResult refreshToken(String refreshToken);
 
     /**
      * 로그아웃
