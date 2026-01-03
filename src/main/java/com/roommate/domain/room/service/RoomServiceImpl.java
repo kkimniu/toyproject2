@@ -293,4 +293,10 @@ public class RoomServiceImpl implements RoomService {
     public List<MyRoomListItemResponse> getMyRooms(Long memberId) {
         return roomRepository.findMyRooms(memberId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<MyRoomListItemResponse> getRoomsByMember(Long memberId) {
+        return roomRepository.findMyRooms(memberId);
+    }
 }

@@ -4,7 +4,6 @@ import {
   saveTokens,
   clearTokens,
   getAccessToken,
-  getRefreshToken,
 } from "../common/authTokenStorage.js";
 import { apiRequest } from "../common/apiClient.js";
 
@@ -83,21 +82,12 @@ function clearSignupDraftAll() {
 // 페이지 진입 시 accessToken 만료되어 있으면 refreshToken으로 자동 재발급 시도
 async function syncAuthOnPageLoad() {
   const accessToken = getAccessToken();
-  const refreshToken = getRefreshToken();
 
-  // 둘 다 없으면 → 진짜 비로그인
-  if (!accessToken && !refreshToken) {
-    return;
-  }
+  if (!accessToken) return;
 
   try {
-    // /api/members/me 를 apiRequest 로 호출
-    //  - accessToken 유효하면 그대로 200
-    //  - accessToken 만료면 401 → apiClient.js 가 /api/auth/refresh 호출 후 재요청
     const res = await apiRequest("/api/members/me", { method: "GET" });
-
     if (!res.ok) {
-      // refresh 도 실패한 상황 → 토큰 다 지우고 완전 비로그인 처리
       clearTokens();
     }
   } catch (err) {
@@ -258,6 +248,7 @@ function setupLoginForm() {
 
       const res = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
@@ -275,19 +266,16 @@ function setupLoginForm() {
       }
 
       const data = await res.json();
-      const {
-        access_token: accessToken,
-        refresh_token: refreshToken,
-        token_type: tokenType,
-      } = data;
+      const accessToken = data.access_token;
+      const tokenType = data.token_type || "Bearer";
 
-      if (!accessToken || !refreshToken) {
+      if (!accessToken) {
         loginError.textContent = "서버에서 토큰 정보를 받지 못했습니다.";
         console.error("Login response:", data);
         return;
       }
 
-        saveTokens({accessToken,refreshToken,tokenType: tokenType || "Bearer",});
+      saveTokens({ accessToken, tokenType });
 
       closeAuthModal();
       location.reload();

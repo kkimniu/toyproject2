@@ -62,9 +62,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // ====== 뷰(페이지) 쪽: 모두 허용 ======
                 .antMatchers("/", "/index").permitAll()
                 .antMatchers("/rooms/**").permitAll()      // 상세 페이지 (뷰)
-                .antMatchers("/members/**").permitAll()      // 마이페이지 (뷰)
                 .antMatchers("/resources/**", "/favicon.ico").permitAll()
                 .antMatchers("/upload/**").permitAll()
+                .antMatchers("/members/**").permitAll()      // 마이페이지 (뷰)
 
                 // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
@@ -81,10 +81,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 5) 테스트/로그인 관련 뷰 페이지 - 공개
                 .antMatchers("/auth/login-test", "/auth/me-test", "/auth/login").permitAll()
-
-                // 6) 메인/지도/정적 리소스 - 공개
-                .antMatchers("/", "/room/map", "/index", "/resources/**").permitAll()
-
+                // ====== 회원 전용(authenticated) ======
+                .antMatchers(HttpMethod.GET, "/api/members/**").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/members/**").authenticated()
                 .antMatchers(HttpMethod.PUT, "/api/members/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/members/**").authenticated()

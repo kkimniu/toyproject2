@@ -3,10 +3,7 @@ package com.roommate.domain.member.controller;
 import com.roommate.common.security.UserDetailsImpl;
 import com.roommate.domain.member.dto.request.MemberPasswordChangeRequest;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
-import com.roommate.domain.member.dto.response.FormCodesResponse;
-import com.roommate.domain.member.dto.response.MemberResponse;
-import com.roommate.domain.member.dto.response.PasswordChangeResponse;
-import com.roommate.domain.member.dto.response.WorkTypeResponse;
+import com.roommate.domain.member.dto.response.*;
 import com.roommate.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +34,11 @@ public class MemberRestController {
         MemberResponse memberResponse = memberService.memberInfo(userDetails.getMemberId());
         return ResponseEntity.ok(memberResponse);
     }
-
+    @GetMapping("/{memberId}")
+    public ResponseEntity<MemberPublicResponse> getMemberPublicInfo(@PathVariable Long memberId) {
+        MemberPublicResponse memberPublicResponse = memberService.memberPublicInfo(memberId);
+        return ResponseEntity.ok(memberPublicResponse);
+    }
     /**
      * 회원가입 / 프로필 수정 화면에서 사용하는
      * 공통 코드(직업, 취미, 생활 선호, 반려동물)를 한 번에 조회합니다.

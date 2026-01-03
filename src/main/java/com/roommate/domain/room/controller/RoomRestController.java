@@ -34,6 +34,11 @@ public class RoomRestController {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
         return roomService.getRoomDetail(roomId, memberId);
     }
+    // 방 조회 (특정 작성자)
+    @GetMapping("/member/{memberId}")
+    public List<MyRoomListItemResponse> getRoomsByMember(@PathVariable Long memberId) {
+        return roomService.getRoomsByMember(memberId);
+    }
 
     // 방 등록
     @PostMapping

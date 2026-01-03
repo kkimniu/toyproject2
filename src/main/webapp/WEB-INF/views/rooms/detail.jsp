@@ -66,10 +66,7 @@
             <!-- 이미지 갤러리 -->
             <section class="room-gallery">
                 <div class="room-gallery-main">
-                    <img id="room-main-image"
-                         src="/resources/img/room/default-room.jpg"
-                         alt="방 대표 이미지"
-                         class="room-gallery-main-image">
+                    <img id="room-main-image" src="/resources/img/room/default-room.jpg" alt="방 대표 이미지" class="room-gallery-main-image">
                 </div>
                 <!-- 썸네일 (있으면) -->
                 <!-- 썸네일 (JS로 필요하면 채우기) -->
@@ -117,7 +114,7 @@
             <section class="room-detail-section">
                 <h2 class="room-detail-section-title">선호 조건</h2>
                 <div id="room-preference-chips" class="room-chip-list">
-                    <!-- JS에서 칩 추가 (깔끔함, 조용함 등) -->
+
                 </div>
             </section>
 
@@ -153,33 +150,25 @@
                     </div>
                 </div>
 
-                <button type="button"
-                        class="btn-outline-full"
-                        id="btn-view-profile">
-                    프로필 보기 (추후 구현)
+                <button type="button" class="btn-outline-full" id="btn-view-profile">
+                    프로필 보기
                 </button>
             </section>
 
             <section class="room-detail-actions">
                 <!-- 비로그인 사용자용 -->
                 <div id="action-guest" style="display:none;">
-                    <button type="button"
-                            class="btn-primary-full"
-                            onclick="window.openAuthModal && window.openAuthModal()">
+                    <button type="button" class="btn-primary-full" onclick="window.openAuthModal && window.openAuthModal()">
                         로그인하고 문의하기
                     </button>
                 </div>
 
                 <!-- 로그인 + 작성자가 아닌 경우 -->
                 <div id="action-not-owner" style="display:none;">
-                    <button type="button"
-                            class="btn-outline-full"
-                            id="btn-like">
+                    <button type="button" class="btn-outline-full" id="btn-like">
                         ♡ 찜하기
                     </button>
-                    <button type="button"
-                            class="btn-primary-full"
-                            id="btn-start-chat">
+                    <button type="button" class="btn-primary-full" id="btn-start-chat">
                         💬 문의하기
                     </button>
                     <p class="room-detail-actions-hint">
@@ -189,19 +178,13 @@
 
                 <!-- 내가 올린 방인 경우 -->
                 <div id="action-owner" style="display:none;">
-                    <button type="button"
-                            class="btn-outline-full"
-                            id="btn-detail-edit">
+                    <button type="button" class="btn-outline-full" id="btn-detail-edit">
                         게시글 수정
                     </button>
-                    <button type="button"
-                            class="btn-outline-full"
-                            id="btn-detail-toggle-status">
+                    <button type="button" class="btn-outline-full" id="btn-detail-toggle-status">
                         모집 마감
                     </button>
-                    <button type="button"
-                            class="btn-danger-full"
-                            id="btn-detail-delete">
+                    <button type="button" class="btn-danger-full" id="btn-detail-delete">
                         게시글 삭제
                     </button>
                 </div>

@@ -2,7 +2,9 @@ package com.roommate.domain.member.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -20,5 +22,11 @@ public class MemberViewController {
     public String mypageEdit() {
         // 실제 수정 폼 화면
         return "members/mypageEdit";     // /WEB-INF/views/members/mypageEdit.jsp
+    }
+
+    @GetMapping("/{memberId}")
+    public String memberProfileView(@PathVariable Long memberId, Model model) {
+        model.addAttribute("memberId", memberId);
+        return "members/profile"; // /WEB-INF/views/members/profile.jsp
     }
 }

@@ -37,7 +37,11 @@ document.getElementById("photoFileInput")?.addEventListener("change",async (e) =
             method: "PUT",
             body: formData,
         });
-
+        if (res.status === 401 || res.status === 403) {
+          clearTokens();
+          window.openAuthModal?.("login");
+          return;
+        }
         if(!res.ok) {
             alert("프로필 사진 업로드에 실패했습니다");
             return;
@@ -47,7 +51,7 @@ document.getElementById("photoFileInput")?.addEventListener("change",async (e) =
 
         const profilePhoto = document.getElementById("profilePhoto");
         if (profilePhoto) {
-            profilePhoto.src = data.photo_url || data.photoUrl;
+            profilePhoto.src = data.photo_url || data.photoUrl || "/resources/img/default-profile.png" ;
         }
 
         alert("프로필 사진이 변경되었습니다.");
@@ -70,6 +74,11 @@ async function loadFormCodesForMypage() {
   }
 
   const res = await apiRequest("/api/members/form-codes", { method: "GET" });
+  if (res.status === 401 || res.status === 403) {
+    clearTokens();
+    window.openAuthModal?.("login");
+    throw new Error("AUTH");
+  }
   if (!res.ok) {
     throw new Error("form-codes load failed");
   }
@@ -156,6 +165,11 @@ async function loadFormCodesForMypage() {
  */
 async function loadMyProfile() {
   const res = await apiRequest("/api/members/me", { method: "GET" });
+  if (res.status === 401 || res.status === 403) {
+    clearTokens();
+    window.openAuthModal?.("login");
+    throw new Error("AUTH");
+  }
   if (!res.ok) {
     throw new Error("failed to load /api/members/me");
   }
