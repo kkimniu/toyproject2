@@ -160,7 +160,7 @@ function renderFavoriteList(list) {
 
   list.forEach((room) => {
     const roomId = room.roomId ?? room.room_id;
-    const title = room.title ?? room.roomTitle ?? room.room_title ?? "제목 없음";
+    const title = room.roomTitle ?? room.room_title ?? room.title ?? "제목 없음";
     const address = room.address ?? "";
     const deposit = room.deposit;
     const monthlyRent = room.monthlyRent ?? room.monthly_rent;
@@ -180,7 +180,7 @@ function renderFavoriteList(list) {
     card.innerHTML = `
       <img class="my-post-thumb" src="${thumb}" alt="thumbnail" />
       <div class="my-post-body">
-        <h4 class="my-post-title">${title}</h4>
+        <h4 class="my-post-title">${escapeHtml(title)}</h4>
         <p class="my-post-sub">${address}</p>
         <p class="my-post-price">보증금 ${formatMoney(deposit)} / 월세 ${formatMoney(monthlyRent)}</p>
       </div>
@@ -440,7 +440,7 @@ async function loadMyRooms() {
 
 function renderMyRoomCard(room) {
   const roomId = room.roomId ?? room.room_id;
-  const title = room.title ?? "-";
+  const title = room.roomTitle ?? room.room_title ?? room.title ?? "-";
   const address = room.address ?? "-";
   const status = room.status ?? "OPEN";
   const thumb = room.thumbnailUrl ?? room.thumbnail_url ?? "/resources/img/room/default-room.jpg";

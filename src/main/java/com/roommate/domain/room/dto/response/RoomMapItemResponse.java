@@ -11,8 +11,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public class RoomMapItemResponse {
     private final Long roomId;
+    private final String roomTitle;
     private final Double lat;
     private final Double lng;
+    private final String address;
     private final Double monthlyRent;
     private final Double deposit;
     private final RoomStatusEnum status;

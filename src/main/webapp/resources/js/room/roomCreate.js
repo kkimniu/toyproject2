@@ -21,7 +21,7 @@ const TEXT_KEY = makeDraftKey({ app: APP, page: TEXT_PAGE, userScope: USER_SCOPE
 const IMG_KEY  = makeDraftKey({ app: APP, page: IMG_PAGE, userScope: USER_SCOPE, version: VERSION });
 
 function validate(payload) {
-  if (!payload.title) return "제목은 필수입니다.";
+  if (!payload.room_title) return "제목은 필수입니다.";
   if (!payload.content) return "상세 설명은 필수입니다.";
   if (!payload.address) return "주소는 필수입니다.";
   if (payload.room_type_id == null || Number.isNaN(payload.room_type_id)) return "방 타입은 필수입니다.";
@@ -52,7 +52,7 @@ function debounce(fn, wait = 250) {
 function buildTextDraft() {
   // 주소 + 상세주소는 "분리 값"으로 저장(복구 UX 좋게)
   return {
-    title: v("title"),
+    room_title: v("roomTitle"),
     content: v("content"),
 
     room_type_id: v("roomTypeId"),
@@ -108,7 +108,7 @@ function applyTextDraft(draft) {
     el.value = (val ?? "");
   };
 
-  setVal("title", draft.title);
+  setVal("roomTitle", draft.room_title);
   setVal("content", draft.content);
 
   setVal("roomTypeId", draft.room_type_id);
@@ -130,7 +130,7 @@ const saveTextDraftDebounced = debounce(saveTextDraft, 250);
 function setupDraftAutoSave() {
   // 네 form DOM id 기준
   const ids = [
-    "title",
+    "roomTitle",
     "content",
     "roomTypeId",
     "monthlyRent",
@@ -384,7 +384,7 @@ async function submitRoom(e) {
   const fullAddress = addrDetail ? `${addr} ${addrDetail}` : addr;
 
   const payload = {
-    title: v("title"),
+    room_title: v("roomTitle"),
     content: v("content"),
 
     room_type_id: n("roomTypeId"),

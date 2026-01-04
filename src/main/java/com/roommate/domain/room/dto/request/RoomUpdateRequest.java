@@ -14,7 +14,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 public class RoomUpdateRequest {
-    private String title;
+    private String roomTitle;
     private String content;
     private Long roomTypeId;
     private Double monthlyRent;

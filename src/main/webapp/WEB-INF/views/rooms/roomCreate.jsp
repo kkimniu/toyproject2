@@ -26,7 +26,7 @@
 
       <div class="field">
         <label class="label">제목 <span class="req">*</span></label>
-        <input id="title" class="input" type="text" placeholder="예: 강남역 도보 5분, 투룸 룸메이트 구함"/>
+        <input id="roomTitle" class="input" type="text" placeholder="예: 강남역 도보 5분, 투룸 룸메이트 구함"/>
       </div>
 
       <div class="field">

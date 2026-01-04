@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MyRoomListItemResponse {
     private final Long roomId;
-    private final String title;
+    private final String roomTitle;
     private final String address;
     private final Double monthlyRent;
     private final Double deposit;

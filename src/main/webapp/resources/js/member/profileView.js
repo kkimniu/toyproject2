@@ -126,7 +126,7 @@ function initTabs() {
 
 function renderMemberRoomCard(room) {
   const roomId = pick(room, ["roomId", "room_id"]);
-  const title = pick(room, ["title"]) ?? "방 제목";
+  const title = pick(room, ["roomTitle", "room_title"]) ?? "방 제목";
   const address = pick(room, ["address"]) ?? "";
   const thumb =
     pick(room, ["thumbnailUrl", "thumbnail_url", "thumbnail"]) ||
