@@ -18,7 +18,7 @@ import java.util.List;
 @NoArgsConstructor
 public class RoomCreateRequest {
     @NotBlank
-    private String title;
+    private String roomTitle;
     @NotBlank
     private String content;
     @NotNull

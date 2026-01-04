@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class RoomDetailEntity {
     private Long roomId;
-    private String title;
+    private String roomTitle;
     private String content;
     private Long roomTypeId;
     private String roomTypeName;

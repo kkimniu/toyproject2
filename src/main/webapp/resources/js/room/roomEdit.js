@@ -121,7 +121,7 @@ async function loadRoomDetailAndFill(roomId, existingImageUrls) {
   const data = await res.json();
 
   // 값 채우기
-  setValue("title", data.title ?? data.roomTitle ?? "");
+  setValue("roomTitle", data.roomTitle ?? data.room_title ?? data.title ?? "");
   setValue("content", data.content ?? data.roomContent ?? "");
   setValue("address", data.address ?? "");
   setValue("legalDong", data.legalDong ?? data.legal_dong ?? "");
@@ -290,7 +290,7 @@ function bindSubmit(roomId, existingImageUrls, newImageUrls, tempFileIds) {
     const validTempFileIds = tempFileIds.filter((x) => Number.isFinite(Number(x)));
 
     const payload = {
-      title: v("title"),
+      room_title: v("roomTitle"),
       content: v("content"),
 
       room_type_id: n("roomTypeId"),
@@ -310,7 +310,7 @@ function bindSubmit(roomId, existingImageUrls, newImageUrls, tempFileIds) {
     };
 
     // 최소 검증
-    if (!payload.title || !payload.content || !payload.address || !payload.room_type_id) {
+    if (!payload.room_title  || !payload.content || !payload.address || !payload.room_type_id) {
       alert("필수 항목(제목/설명/주소/방타입)을 입력해 주세요.");
       return;
     }

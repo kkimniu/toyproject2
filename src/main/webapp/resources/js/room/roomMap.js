@@ -270,8 +270,10 @@ function renderRoomDetail(room) {
       imgEl.style.display = "none";
     }
   }
+  const roomTitle = room.roomTitle ?? room.room_title;
+
   document.getElementById("room-title").innerText =
-    room.title || "제목 없음";
+    roomTitle || "제목 없음";
   document.getElementById("room-address").innerText =
     room.address || "";
 
@@ -404,7 +406,7 @@ function renderNearbyRooms(selectedRoom) {
 
   candidates.forEach(({ room }) => {
     const id = room.roomId ?? room.room_id;
-    const title = room.title ?? room.room_title ?? "제목 없음";
+    const title = room.roomTitle ?? room.room_title ?? "제목 없음";
     const addr = room.address ?? "";
     const monthlyRent = room.monthlyRent ?? room.monthly_rent;
     const thumbnail = room.thumbnailUrl ?? room.thumbnail_url ?? "";

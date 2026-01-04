@@ -91,7 +91,7 @@ public class RoomServiceImpl implements RoomService {
     private RoomEntity toRoomEntity(RoomCreateRequest request, Long memberId, KakaoGeoPoint point) {
         RoomEntity roomEntity = new RoomEntity();
         roomEntity.setMemberId(memberId);
-        roomEntity.setRoomTitle(request.getTitle());
+        roomEntity.setRoomTitle(request.getRoomTitle());
         roomEntity.setRoomContent(request.getContent());
         roomEntity.setRoomTypeId(request.getRoomTypeId());
         roomEntity.setMonthlyRent(request.getMonthlyRent());
@@ -119,7 +119,7 @@ public class RoomServiceImpl implements RoomService {
      */
     private void applyUpdate(RoomEntity roomEntity, RoomUpdateRequest request) {
         KakaoGeoPoint point = resolveGeoPoint(request.getAddress());
-        roomEntity.setRoomTitle(request.getTitle());
+        roomEntity.setRoomTitle(request.getRoomTitle());
         roomEntity.setRoomContent(request.getContent());
         roomEntity.setRoomTypeId(request.getRoomTypeId());
         roomEntity.setMonthlyRent(request.getMonthlyRent());
@@ -218,7 +218,7 @@ public class RoomServiceImpl implements RoomService {
         if (roomDetailEntity.getLat() != null && roomDetailEntity.getLng() != null) {
             double lat = roomDetailEntity.getLat();
             double lng = roomDetailEntity.getLng();
-            String title = roomDetailEntity.getTitle();
+            String title = roomDetailEntity.getRoomTitle();
 
             kakaoMapUrl = buildKakaoMapUrl("map", title, lat, lng);
             kakaoDirectionUrl = buildKakaoMapUrl("to", title, lat, lng);
@@ -233,7 +233,7 @@ public class RoomServiceImpl implements RoomService {
 
         return new RoomDetailResponse(
                 roomDetailEntity.getRoomId(),
-                roomDetailEntity.getTitle(),
+                roomDetailEntity.getRoomTitle(),
                 roomDetailEntity.getContent(),
                 roomDetailEntity.getRoomTypeId(),
                 roomDetailEntity.getRoomTypeName(),
@@ -280,8 +280,10 @@ public class RoomServiceImpl implements RoomService {
         return roomMapItemEntities.stream().
                 map(roomMapItemEntity -> new RoomMapItemResponse(
                         roomMapItemEntity.getRoomId(),
+                        roomMapItemEntity.getRoomTitle(),
                         roomMapItemEntity.getLat(),
                         roomMapItemEntity.getLng(),
+                        roomMapItemEntity.getAddress(),
                         roomMapItemEntity.getMonthlyRent(),
                         roomMapItemEntity.getDeposit(),
                         roomMapItemEntity.getStatus(),

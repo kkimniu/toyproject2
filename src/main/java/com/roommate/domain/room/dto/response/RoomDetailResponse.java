@@ -16,7 +16,7 @@ import java.util.List;
 public class RoomDetailResponse {
 
     private final Long roomId;
-    private final String title;
+    private final String roomTitle;
     private final String content;
     private final Long roomTypeId;
     private final String roomTypeName;

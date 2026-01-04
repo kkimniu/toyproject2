@@ -28,7 +28,7 @@
 
       <div class="field">
         <label class="label">제목 <span class="req">*</span></label>
-        <input id="title" class="input" type="text" placeholder="예: 강남역 도보 5분, 투룸 룸메이트 구함"/>
+        <input id="roomTitle" class="input" type="text" placeholder="예: 강남역 도보 5분, 투룸 룸메이트 구함"/>
       </div>
 
       <div class="field">
@@ -108,7 +108,7 @@
 
     <section class="card">
       <div class="card-head">
-        <h2 class="card-title">이미지 (MVP: 미리보기만)</h2>
+        <h2 class="card-roomTitle">이미지 (MVP: 미리보기만)</h2>
         <p class="card-desc">업로드 API 연결 시 imageUrls로 전송</p>
       </div>
 

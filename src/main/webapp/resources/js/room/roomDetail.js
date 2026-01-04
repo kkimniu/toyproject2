@@ -272,6 +272,10 @@ function bindActionsOnce(roomId) {
     viewProfileBtn.addEventListener("click", () => {
       const ownerId = currentRoom?.ownerId ?? currentRoom?.owner_id ?? null;
       if (!ownerId) return;
+      if (isOwnerOfRoom(currentRoom)) {
+        location.href = "/members/mypage";
+        return;
+      }
       location.href = `/members/${ownerId}`;
     });
   }
@@ -367,6 +371,10 @@ async function loadRoomDetail(roomId) {
 // ===================== Render =====================
 
 function renderRoomDetail(room) {
+  const titleEl = document.querySelector(".room-detail-title");
+  if (titleEl) {
+    titleEl.textContent = room.roomTitle ?? room.room_title ?? room.title ?? "방 제목";
+  }
   const imageUrls = room.imageUrls ?? room.image_urls ?? [];
   const validUrls = imageUrls.filter(Boolean);
   const mainImgEl = document.getElementById("room-main-image");

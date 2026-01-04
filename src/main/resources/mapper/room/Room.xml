@@ -91,8 +91,10 @@
     <select id="findForMap" resultType="com.roommate.domain.room.entity.RoomMapItemEntity">
         SELECT
         r.room_id       AS roomId,
+        r.room_title    AS roomTitle,
         r.lat           AS lat,
         r.lng           AS lng,
+        r.address       AS address,
         r.monthly_rent  AS monthlyRent,
         r.deposit       AS deposit,
         r.status        AS status,
@@ -111,7 +113,7 @@
     <select id="findMyRooms" resultType="com.roommate.domain.room.dto.response.MyRoomListItemResponse">
         SELECT
         r.room_id        AS roomId,
-        r.room_title     AS title,
+        r.room_title     AS roomTitle,
         r.address        AS address,
         r.monthly_rent   AS monthlyRent,
         r.deposit        AS deposit,
@@ -134,7 +136,7 @@
     <select id="findDetailById" resultType="com.roommate.domain.room.entity.RoomDetailEntity">
         SELECT
         r.room_id       AS roomId,
-        r.room_title    AS title,
+        r.room_title    AS roomTitle,
         r.room_content  AS content,
         r.room_type_id  AS roomTypeId,
         rt.room_type_name AS roomTypeName,
