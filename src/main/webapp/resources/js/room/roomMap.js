@@ -9,6 +9,8 @@ let selectedRoomId = null;
 let markers = [];
 let currentRooms = []; // /api/rooms/map 에서 받아온 방 목록
 let currentMemberId = null;
+// 전역에 추가 (상단 변수들 근처)
+let currentRoom = null;
 
 function normalizeRoomId(roomIdRaw) {
   if (roomIdRaw == null) return null;
@@ -21,6 +23,11 @@ function normalizeRoomId(roomIdRaw) {
 function formatNumber(num) {
   if (num === null || num === undefined) return "-";
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function isOwnerOfRoom(room) {
+  const ownerId = room?.ownerId ?? room?.owner_id ?? null;
+  return ownerId && currentMemberId && String(ownerId) === String(currentMemberId);
 }
 
 function cutText(text, maxLen) {
@@ -58,6 +65,7 @@ window.addEventListener("load", async () => {
   // 오른쪽 카드 X 버튼
   document.getElementById("room-close-btn").addEventListener("click", () => {
     selectedRoomId = null;
+    currentRoom = null;
     document.getElementById("room-detail-body").style.display = "none";
     document.getElementById("room-detail-footer").style.display = "none";
     document.getElementById("room-image").style.display = "none";
@@ -123,16 +131,55 @@ window.addEventListener("load", async () => {
         const ok = requireLogin();
         if (!ok) return;
 
-        alert(
-          "문의하기(채팅)는 추후 WebSocket/채팅 API 연동 예정입니다. (roomId=" +
-            selectedRoomId +
-            ")"
-        );
-        // TODO: 나중에 채팅방 생성 API 연동
-      });
-    }
-});
+      // 혹시라도 UI 버그로 owner가 버튼을 보게 되는 상황 방어
+      if (currentRoom && isOwnerOfRoom(currentRoom)) {
+        alert("본인 방에는 문의할 수 없습니다.");
+        return;
+      }
 
+      if (btnChat.dataset.loading === "true") return;
+      btnChat.dataset.loading = "true";
+      btnChat.disabled = true;
+
+      try {
+        const res = await apiRequest('/api/chat/rooms', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ room_id: Number(selectedRoomId) }),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          // requireLogin()이 처리하겠지만, 토큰 만료 같은 케이스 방어
+          alert("로그인이 필요합니다.");
+          window.openAuthModal?.("login");
+          return;
+        }
+
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "");
+          alert("채팅방 생성에 실패했습니다." + (msg ? `\n${msg}` : ""));
+          return;
+        }
+
+        const data = await res.json();
+        const chatRoomId = data.chatRoomId ?? data.chat_room_id;
+
+        if (!chatRoomId) {
+          alert("채팅방 ID를 받지 못했습니다.");
+          return;
+        }
+        const contextPath = window.contextPath || "";
+        location.href = `${contextPath}/chats/${encodeURIComponent(chatRoomId)}`;
+      } catch (e) {
+        console.error("[rooms-map] start chat error:", e);
+        alert("채팅 연결 중 오류가 발생했습니다.");
+      } finally {
+        btnChat.dataset.loading = "false";
+        btnChat.disabled = false;
+      }
+    }); //btnChat.addEventListener 닫기
+  } //if (btnChat) 닫기
+}); // window load 닫기
 // ====== apiRequest 기반 비즈니스 로직 ======
 
 async function fetchRoomsForCurrentBounds() {
@@ -249,6 +296,7 @@ async function loadRoomDetail(roomId) {
 }
 
 function renderRoomDetail(room) {
+  currentRoom = room;
   document.getElementById("room-detail-empty").style.display = "none";
   document.getElementById("room-detail-body").style.display = "block";
   document.getElementById("room-detail-footer").style.display = "block";
@@ -405,7 +453,8 @@ function renderNearbyRooms(selectedRoom) {
   }
 
   candidates.forEach(({ room }) => {
-    const id = room.roomId ?? room.room_id;
+    const id = normalizeRoomId(room.roomId ?? room.room_id);
+    if (!id) return;
     const title = room.roomTitle ?? room.room_title ?? "제목 없음";
     const addr = room.address ?? "";
     const monthlyRent = room.monthlyRent ?? room.monthly_rent;

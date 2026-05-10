@@ -66,6 +66,7 @@ public enum ErrorCode {
     ROOM_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R107", "방 삭제 중 오류가 발생했습니다."),
     ROOM_STATUS_CHANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "R108", "방 상태 변경에 실패했습니다."),
     INVALID_ROOM_LOCATION(HttpStatus.BAD_REQUEST, "R109", "방 위치 정보가 올바르지 않습니다."),
+    INVALID_CHAT_ROOM_REQUEST(HttpStatus.BAD_REQUEST, "R110", "채팅방 생성 요청이 올바르지 않습니다."),
 
     // ===== ROOM IMAGE / 방 이미지 관련 =====
     ROOM_IMAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "I001", "방 이미지가 존재하지 않습니다."),
@@ -85,7 +86,10 @@ public enum ErrorCode {
     CHAT_ACCESS_DENIED(HttpStatus.FORBIDDEN, "C003", "채팅방 접근 권한이 없습니다."),
     CHAT_MESSAGE_SEND_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "C004", "메시지 전송에 실패했습니다."),
     CHAT_ROOM_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "C005", "채팅방 삭제에 실패했습니다."),
-
+    CHAT_SELF_CHAT_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "C006", "본인에게는 문의할 수 없습니다."),
+    CHAT_NOT_PARTICIPANT(HttpStatus.FORBIDDEN, "C007", "채팅방 참여자가 아닙니다."),
+    CHAT_MESSAGE_EMPTY(HttpStatus.BAD_REQUEST, "C008", "메시지 내용이 비어 있습니다."),
+    CHAT_MESSAGE_TOO_LONG(HttpStatus.BAD_REQUEST, "C009", "메시지는 500자 이하만 가능합니다."),
 
     // ===== REPORT / 신고 관련 =====
     REPORT_ALREADY_SUBMITTED(HttpStatus.CONFLICT, "RP001", "이미 신고한 대상입니다."),

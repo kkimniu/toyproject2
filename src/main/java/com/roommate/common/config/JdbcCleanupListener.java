@@ -10,6 +10,11 @@ import java.util.Collections;
 
 public class JdbcCleanupListener implements ServletContextListener {
     @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        // No startup work required.
+    }
+
+    @Override
     public void contextDestroyed(ServletContextEvent sce) {
         try {
             AbandonedConnectionCleanupThread.checkedShutdown();

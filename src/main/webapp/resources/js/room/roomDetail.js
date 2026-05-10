@@ -259,10 +259,57 @@ function bindActionsOnce(roomId) {
   // 문의하기 버튼
   const chatBtn = document.getElementById("btn-start-chat");
   if (chatBtn) {
-    chatBtn.addEventListener("click", () => {
+    chatBtn.addEventListener("click",async () => {
       const ok = requireLogin();
       if (!ok) return;
-      alert(`roomId=${roomId} 방 작성자와 채팅을 시작하는 기능은 추후 연동 예정입니다.`);
+
+      // 혹시라도 UI 버그로 owner가 버튼을 보게 되는 상황 방어
+      if (isOwnerOfRoom(currentRoom)) {
+        alert("본인 방에는 문의할 수 없습니다.");
+        return;
+      }
+
+      if (chatBtn.dataset.loading === "true") return;
+      chatBtn.dataset.loading = "true";
+      chatBtn.disabled = true;
+
+      try {
+        const res = await apiRequest('/api/chat/rooms', {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ room_id: Number(roomId) }),
+        });
+
+        if (res.status === 401 || res.status === 403) {
+          // requireLogin()이 처리하겠지만, 토큰 만료 같은 케이스 방어
+          alert("로그인이 필요합니다.");
+          window.openAuthModal?.("login");
+          return;
+        }
+
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "");
+          alert("채팅방 생성에 실패했습니다." + (msg ? `\n${msg}` : ""));
+          return;
+        }
+
+        const data = await res.json();
+        const chatRoomId = data.chatRoomId ?? data.chat_room_id;
+
+        if (!chatRoomId) {
+          alert("채팅방 ID를 받지 못했습니다.");
+          return;
+        }
+
+        // 채팅 화면으로 이동
+        location.href = `/chats/${encodeURIComponent(chatRoomId)}`;
+      } catch (e) {
+        console.error("[room-detail] start chat error:", e);
+        alert("채팅 연결 중 오류가 발생했습니다.");
+      } finally {
+        chatBtn.dataset.loading = "false";
+        chatBtn.disabled = false;
+      }
     });
   }
 
@@ -270,6 +317,9 @@ function bindActionsOnce(roomId) {
   const viewProfileBtn = document.getElementById("btn-view-profile");
   if (viewProfileBtn) {
     viewProfileBtn.addEventListener("click", () => {
+      const ok = requireLogin();   // 비로그인 → 로그인 유도 정책
+      if (!ok) return;
+
       const ownerId = currentRoom?.ownerId ?? currentRoom?.owner_id ?? null;
       if (!ownerId) return;
       if (isOwnerOfRoom(currentRoom)) {

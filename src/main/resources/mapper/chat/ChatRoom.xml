@@ -4,6 +4,190 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.roommate.domain.chat.repository.ChatRoomRepository">
+    <resultMap id="chatRoomMap" type="com.roommate.domain.chat.entity.ChatRoomEntity">
+        <id property="chatRoomId" column="chat_room_id"/>
+        <result property="roomId" column="room_id"/>
+        <result property="ownerId" column="owner_id"/>
+        <result property="partnerId" column="partner_id"/>
+        <result property="deletedByOwner" column="deleted_by_owner"/>
+        <result property="deletedByPartner" column="deleted_by_partner"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <!-- 방 + 작성자 + 문의자 기준 채팅방 조회 -->
+    <select id="findByRoomAndUsers" resultMap="chatRoomMap">
+        SELECT *
+        FROM chat_rooms
+        WHERE room_id = #{roomId}
+        AND owner_id = #{ownerId}
+        AND partner_id = #{partnerId}
+        LIMIT 1
+    </select>
+
+    <!-- 채팅방 단건 조회 -->
+    <select id="findById" resultMap="chatRoomMap">
+        SELECT *
+        FROM chat_rooms
+        WHERE chat_room_id = #{chatRoomId}
+    </select>
+
+    <!-- 채팅방 생성 -->
+    <insert id="insert" parameterType="com.roommate.domain.chat.entity.ChatRoomEntity"
+            useGeneratedKeys="true" keyProperty="chatRoomId">
+        INSERT INTO chat_rooms (
+        room_id,
+        owner_id,
+        partner_id,
+        deleted_by_owner,
+        deleted_by_partner
+        ) VALUES (
+        #{roomId},
+        #{ownerId},
+        #{partnerId},
+        #{deletedByOwner},
+        #{deletedByPartner}
+        )
+    </insert>
+
+    <insert id="insertMember">
+        INSERT IGNORE INTO chat_room_members (
+            chat_room_id,
+            member_id
+        ) VALUES (
+            #{chatRoomId},
+            #{memberId}
+        )
+    </insert>
+
+    <update id="unhideForMember">
+        UPDATE chat_room_members
+        SET is_hidden = 0,
+            hidden_at = NULL,
+            joined_at = NOW()
+        WHERE chat_room_id = #{chatRoomId}
+        AND member_id = #{memberId}
+    </update>
+
+    <select id="isHiddenForMember" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM chat_room_members
+            WHERE chat_room_id = #{chatRoomId}
+            AND member_id = #{memberId}
+            AND is_hidden = 1
+        )
+    </select>
+
+    <select id="findMyChatRooms" resultType="com.roommate.domain.chat.dto.response.ChatRoomListItemResponse">
+        SELECT
+            cr.chat_room_id AS chatRoomId,
+            cr.room_id AS roomId,
+            r.room_title AS roomTitle,
+            (
+                SELECT ri.image_url
+                FROM room_image ri
+                WHERE ri.room_id = cr.room_id
+                AND ri.deleted = 0
+                ORDER BY ri.sort_order ASC, ri.image_id ASC
+                LIMIT 1
+            ) AS roomThumbnailUrl,
+            CASE
+                WHEN cr.owner_id = #{memberId} THEN cr.partner_id
+                ELSE cr.owner_id
+            END AS otherMemberId,
+            other_member.name AS otherName,
+            other_member.photo_url AS otherPhotoUrl,
+            CASE
+                WHEN other_crm.is_hidden = 1 THEN '상대방이 나갔습니다.'
+                ELSE last_message.message
+            END AS lastMessage,
+            CASE
+                WHEN other_crm.is_hidden = 1 THEN other_crm.left_at
+                ELSE last_message.sent_at
+            END AS lastSentAt,
+            (
+                SELECT COUNT(*)
+                FROM chat_messages unread_message
+                WHERE unread_message.chat_room_id = cr.chat_room_id
+                AND unread_message.sender_id != #{memberId}
+                AND unread_message.message_id > COALESCE(crm.last_read_message_id, 0)
+                AND (
+                    crm.left_at IS NULL
+                    OR unread_message.sent_at > crm.left_at
+                )
+            ) AS unreadCount
+        FROM chat_room_members crm
+        INNER JOIN chat_rooms cr ON crm.chat_room_id = cr.chat_room_id
+        INNER JOIN rooms r ON cr.room_id = r.room_id
+        INNER JOIN members other_member
+            ON other_member.member_id = CASE
+                WHEN cr.owner_id = #{memberId} THEN cr.partner_id
+                ELSE cr.owner_id
+            END
+        INNER JOIN chat_room_members other_crm
+            ON other_crm.chat_room_id = cr.chat_room_id
+            AND other_crm.member_id = other_member.member_id
+        LEFT JOIN chat_messages last_message
+            ON last_message.message_id = (
+                SELECT visible_message.message_id
+                FROM chat_messages visible_message
+                WHERE visible_message.chat_room_id = cr.chat_room_id
+                AND (
+                    crm.left_at IS NULL
+                    OR visible_message.sent_at > crm.left_at
+                )
+                ORDER BY visible_message.sent_at DESC, visible_message.message_id DESC
+                LIMIT 1
+            )
+        WHERE crm.member_id = #{memberId}
+        AND crm.is_hidden = 0
+        ORDER BY
+            CASE
+                WHEN other_crm.is_hidden = 1 THEN other_crm.left_at
+                WHEN last_message.sent_at IS NOT NULL THEN last_message.sent_at
+                ELSE cr.created_at
+            END DESC,
+            cr.chat_room_id DESC
+    </select>
+
+    <update id="updateLastMessage">
+        UPDATE chat_rooms
+        SET last_message_id = #{messageId},
+            last_message_at = #{sentAt}
+        WHERE chat_room_id = #{chatRoomId}
+    </update>
+
+    <update id="markReadToLatest">
+        UPDATE chat_room_members
+        SET last_read_message_id = (
+                SELECT latest.message_id
+                FROM (
+                    SELECT MAX(message_id) AS message_id
+                    FROM chat_messages
+                    WHERE chat_room_id = #{chatRoomId}
+                ) latest
+            ),
+            last_read_at = NOW()
+        WHERE chat_room_id = #{chatRoomId}
+        AND member_id = #{memberId}
+    </update>
+
+    <update id="hideForMember">
+        UPDATE chat_room_members
+        SET is_hidden = 1,
+            hidden_at = NOW(),
+            left_at = NOW()
+        WHERE chat_room_id = #{chatRoomId}
+        AND member_id = #{memberId}
+    </update>
+
+    <update id="updateNotificationsEnabled">
+        UPDATE chat_room_members
+        SET notifications_enabled = #{notificationsEnabled}
+        WHERE chat_room_id = #{chatRoomId}
+        AND member_id = #{memberId}
+    </update>
 
     <update id="markDeletedByMember" parameterType="long">
         UPDATE chat_rooms

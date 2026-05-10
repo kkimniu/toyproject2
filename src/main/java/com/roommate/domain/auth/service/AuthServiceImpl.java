@@ -73,6 +73,7 @@ public class AuthServiceImpl implements AuthService {
         memberEntity.setName(signUpRequest.getName());
         memberEntity.setPhone(signUpRequest.getPhone());
         memberEntity.setPhotoUrl(signUpRequest.getPhotoUrl());
+        memberEntity.setRole(MemberRoleEnum.USER);
         memberEntity.setSleepTime(signUpRequest.getSleepTime());
         memberEntity.setWorkTypeId(signUpRequest.getWorkTypeId());
         // 흡연/음주 기본값 처리
