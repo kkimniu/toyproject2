@@ -1,0 +1,3 @@
+ALTER TABLE rooms
+    MODIFY monthly_rent DECIMAL(15,2) NOT NULL,
+    MODIFY deposit DECIMAL(15,2) NOT NULL DEFAULT 0;
