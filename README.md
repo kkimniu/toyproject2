@@ -94,54 +94,6 @@ src/main/webapp
     └── js
 ```
 
-## 설정
-
-`src/main/resources/application.properties.example`을 참고해서 실제 실행 환경의 `application.properties`를 준비합니다.
-
-필수 설정:
-
-```properties
-jwt.secret.key=...
-jwt.access.expiration.time=3600000
-jwt.refresh.expiration.time=604800000
-
-db.driver=com.mysql.cj.jdbc.Driver
-db.url=jdbc:mysql://localhost:3306/roommate?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-db.username=...
-db.password=...
-
-kakao.map.api.key=...
-kakao.js.key=...
-kakao.local.base-url=https://dapi.kakao.com
-kakao.ka.origin=roommate-service
-
-file.upload.root-path=...
-```
-
-## DB 적용
-
-초기 생성 시:
-
-```sql
-SOURCE src/main/resources/sql/schema.sql;
-```
-
-이미 DB가 생성된 상태에서 보증금/월세 컬럼 범위 오류가 나는 경우 아래 SQL을 적용합니다.
-
-```sql
-SOURCE src/main/resources/sql/2026-05-10_expand_room_price_columns.sql;
-```
-
-직접 실행할 SQL:
-
-```sql
-ALTER TABLE rooms
-    MODIFY monthly_rent DECIMAL(15,2) NOT NULL,
-    MODIFY deposit DECIMAL(15,2) NOT NULL DEFAULT 0;
-```
-
-기존 `DECIMAL(10,2)`는 최대 `99,999,999.99`까지만 저장할 수 있어 `100,000,000` 이상의 보증금 입력 시 MySQL `Out of range value for column 'deposit'` 오류가 발생합니다.
-
 ## 실행
 
 Maven이 설치된 환경에서 WAR를 빌드합니다.
