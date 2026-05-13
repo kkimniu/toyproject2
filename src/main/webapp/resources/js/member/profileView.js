@@ -179,7 +179,7 @@ async function loadMemberProfile(memberId) {
   const photoEl = document.getElementById("profilePhoto");
   if (photoEl) {
     const photoUrl = pick(profile, ["photo_url", "photoUrl"]);
-    photoEl.src = photoUrl || "/resources/img/default-profile.png";
+    photoEl.src = photoUrl || "/resources/img/default-profile.svg";
   }
 
   const joinedAt = pick(profile, ["joined_at", "joinedAt"]);

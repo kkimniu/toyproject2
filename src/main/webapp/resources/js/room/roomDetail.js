@@ -259,10 +259,43 @@ function bindActionsOnce(roomId) {
   // 문의하기 버튼
   const chatBtn = document.getElementById("btn-start-chat");
   if (chatBtn) {
-    chatBtn.addEventListener("click", () => {
+    chatBtn.addEventListener("click", async () => {
       const ok = requireLogin();
       if (!ok) return;
-      alert(`roomId=${roomId} 방 작성자와 채팅을 시작하는 기능은 추후 연동 예정입니다.`);
+
+      const partnerId = currentRoom?.ownerId ?? currentRoom?.owner_id;
+      if (!partnerId) {
+        alert("방 작성자 정보를 찾지 못했습니다.");
+        return;
+      }
+
+      chatBtn.disabled = true;
+      try {
+        const res = await apiRequest("/api/chat/rooms", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            room_id: Number(roomId),
+            partner_id: Number(partnerId),
+          }),
+        });
+
+        if (!res.ok) throw new Error("chat room create failed: " + res.status);
+
+        const data = await res.json();
+        const chatRoomId = data.chat_room_id ?? data.chatRoomId;
+        if (!chatRoomId) throw new Error("chat room id missing");
+
+        location.href = `/chat/rooms/${encodeURIComponent(chatRoomId)}`;
+      } catch (e) {
+        console.error("[room-detail] chat start error:", e);
+        alert("채팅방을 열지 못했습니다.");
+      } finally {
+        chatBtn.disabled = false;
+      }
     });
   }
 

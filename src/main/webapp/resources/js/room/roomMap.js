@@ -1,187 +1,135 @@
-// ES Module
-// /resources/js/room/roomMap.js
 import { apiRequest } from "../common/apiClient.js";
 import { requireLogin } from "../common/authGuard.js";
+import { getAccessToken, getTokenType } from "../common/authTokenStorage.js";
+
+const contextPath = window.contextPath || "";
+const searchParams = new URLSearchParams(window.location.search);
+const hasSearch = Array.from(searchParams.keys()).length > 0;
 
 let map;
 let clusterer;
 let selectedRoomId = null;
 let markers = [];
-let currentRooms = []; // /api/rooms/map 에서 받아온 방 목록
+let currentRooms = [];
 let currentMemberId = null;
 
-function normalizeRoomId(roomIdRaw) {
-  if (roomIdRaw == null) return null;
-  const s = String(roomIdRaw).trim();
-  if (!s || s === "undefined" || s === "null") return null;
-  if (!/^\d+$/.test(s)) return null;
-  return s;
-}
-
-function formatNumber(num) {
-  if (num === null || num === undefined) return "-";
-  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function cutText(text, maxLen) {
-  if (!text) return "";
-  if (text.length <= maxLen) return text;
-  return text.substring(0, maxLen) + "…";
-}
-
 window.addEventListener("load", async () => {
-  const container = document.getElementById("map");
-  const options = {
-    center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울
-    level: 6,
-  };
+  if (!window.kakao?.maps) {
+    showMapError("지도를 불러오지 못했습니다. Kakao 지도 키와 네트워크 상태를 확인해 주세요.");
+    return;
+  }
 
-  map = new kakao.maps.Map(container, options);
+  const container = document.getElementById("map");
+  if (!container) return;
+
+  map = new kakao.maps.Map(container, {
+    center: new kakao.maps.LatLng(37.5665, 126.9780),
+    level: 6,
+  });
+  map.relayout();
 
   clusterer = new kakao.maps.MarkerClusterer({
-    map: map,
+    map,
     averageCenter: true,
     minLevel: 7,
   });
 
+  bindMapUi();
   currentMemberId = await fetchCurrentMemberId();
-  // 초기 1회
-  fetchRoomsForCurrentBounds();
+  await fetchRoomsForCurrentBounds();
+
   let idleTimer = null;
-  // 지도 이동/줌 이후
   kakao.maps.event.addListener(map, "idle", () => {
+    if (hasSearch) return;
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-      fetchRoomsForCurrentBounds();
-    }, 300);
+    idleTimer = setTimeout(fetchRoomsForCurrentBounds, 300);
   });
-  // 오른쪽 카드 X 버튼
-  document.getElementById("room-close-btn").addEventListener("click", () => {
+});
+
+function bindMapUi() {
+  document.getElementById("room-close-btn")?.addEventListener("click", () => {
     selectedRoomId = null;
-    document.getElementById("room-detail-body").style.display = "none";
-    document.getElementById("room-detail-footer").style.display = "none";
-    document.getElementById("room-image").style.display = "none";
-  // 1) 카드만 접기 (위/아래 카드만 보이게)
-  //document.getElementById("room-detail-card").style.display = "none";
-
-  // 2) 카드 틀은 남기고 "마커를 클릭해 방 정보를..." 이런 문구 넣고 싶으면:
-   document.getElementById("room-detail-empty").style.display = "block";
+    setDetailVisible(false);
   });
 
-  // 상세 보기 버튼 → 뷰 페이지로 이동
-  document.getElementById("btn-detail").addEventListener("click", () => {
-  if (!selectedRoomId) return;
+  document.getElementById("btn-detail")?.addEventListener("click", () => {
+    if (!selectedRoomId) return;
+    window.location.href = `${contextPath}/rooms/${encodeURIComponent(selectedRoomId)}`;
+  });
 
-  // 로그인 안 되어 있으면 모달 띄우고 이동 막기
-  if (!requireLogin()) {
-    return;
-  }
-  const contextPath = window.contextPath || "";
-  window.location.href = `${contextPath}/rooms/${selectedRoomId}`;
-});
-
-    const btnFavorite = document.getElementById("btn-favorite");
-    if (btnFavorite) {
-      btnFavorite.addEventListener("click", async () => {
-        if (!selectedRoomId) return;
-
-        // 로그인 여부 체크
-        const ok = requireLogin();
-        if (!ok) return;
-
-        if (btnFavorite.dataset.loading === "true") return;
-        btnFavorite.dataset.loading = "true";
-        btnFavorite.disabled = true;
-
-
-        try {
-            const currentlyFavorited = btnFavorite.classList.contains("active");
-            const nextFavorited = !currentlyFavorited;
-            // 찜 추가
-            const res = await apiRequest(`/api/favorites/${selectedRoomId}`, {
-              method: nextFavorited ? "POST" : "DELETE",
-            });
-            if (!res.ok  && !(res.status === 404 && !nextFavorited)) {
-              throw new Error("favorite failed");
-            }
-          applyFavoriteButtonState(btnFavorite, nextFavorited);
-        } catch (e) {
-          console.error("[rooms-map] favorite toggle error:", e);
-          alert("관심 설정 중 오류가 발생했습니다.");
-        } finally {
-           btnFavorite.dataset.loading = "false";
-           btnFavorite.disabled = false;
-        }
-      });
-    }
-  // 문의하기 (나중에 채팅방 생성 API 연동)
-    const btnChat = document.getElementById("btn-chat");
-    if (btnChat) {
-      btnChat.addEventListener("click", async () => {
-        if (!selectedRoomId) return;
-
-        const ok = requireLogin();
-        if (!ok) return;
-
-        alert(
-          "문의하기(채팅)는 추후 WebSocket/채팅 API 연동 예정입니다. (roomId=" +
-            selectedRoomId +
-            ")"
-        );
-        // TODO: 나중에 채팅방 생성 API 연동
-      });
-    }
-});
-
-// ====== apiRequest 기반 비즈니스 로직 ======
+  document.getElementById("btn-favorite")?.addEventListener("click", toggleFavorite);
+  document.getElementById("btn-chat")?.addEventListener("click", openChatRoom);
+}
 
 async function fetchRoomsForCurrentBounds() {
+  const bounds = getRequestBounds();
+  const url = `${contextPath}/api/rooms/map?north=${bounds.north}&south=${bounds.south}&east=${bounds.east}&west=${bounds.west}&zoom=${bounds.zoom}`;
+
+  try {
+    const response = await apiRequest(url, { method: "GET" });
+    if (!response.ok) throw new Error(`rooms map api failed: ${response.status}`);
+
+    const rooms = await response.json();
+    const allowedRoomIds = await fetchAllowedRoomIdsFromRecommendation();
+    currentRooms = applySearchFilters(rooms, allowedRoomIds);
+
+    renderRoomMarkers(currentRooms);
+    renderSearchResultList(currentRooms);
+    focusSearchResults(currentRooms);
+  } catch (error) {
+    console.error(error);
+    renderSearchResultList([]);
+  }
+}
+
+function getRequestBounds() {
+  if (hasSearch) {
+    return { south: 33, north: 39, west: 124, east: 132, zoom: 6 };
+  }
+
   const bounds = map.getBounds();
   const sw = bounds.getSouthWest();
   const ne = bounds.getNorthEast();
-
-  const south = sw.getLat();
-  const west = sw.getLng();
-  const north = ne.getLat();
-  const east = ne.getLng();
-  const zoom = map.getLevel();
-
-  const url = `/api/rooms/map?north=${north}&south=${south}&east=${east}&west=${west}&zoom=${zoom}`;
-
-  try {
-    const res = await apiRequest(url, { method: "GET" });
-
-    if (!res.ok) {
-      console.error("지도용 방 목록 조회 실패:", res.status);
-      return;
-    }
-
-    const data = await res.json();
-    currentRooms = data;
-    renderRoomMarkers(data);
-  } catch (e) {
-    console.error("지도용 방 목록 조회 중 오류:", e);
-  }
+  return {
+    south: sw.getLat(),
+    west: sw.getLng(),
+    north: ne.getLat(),
+    east: ne.getLng(),
+    zoom: map.getLevel(),
+  };
 }
-// 현재 로그인한 사용자 ID 조회 (비로그인 시 null)
-async function fetchCurrentMemberId() {
-  try {
-    const res = await apiRequest("/api/members/me", { method: "GET" });
 
-    if (!res.ok) {
-      // 401이면 비로그인
-      console.debug("[rooms-map] not logged in (status=", res.status, ")");
-      return null;
-    }
+async function fetchAllowedRoomIdsFromRecommendation() {
+  const recommendationKeys = ["gender", "work_type_id", "hobby_id", "preference_id", "pet_id"];
+  const needsRecommendationFilter = recommendationKeys.some((key) => searchParams.has(key));
+  if (!needsRecommendationFilter) return null;
 
-    const data = await res.json();
-    const memberId = data.memberId ?? data.member_id ?? null;
-    console.debug("[rooms-map] currentMemberId =", memberId);
-    return memberId;
-  } catch (e) {
-    console.error("[rooms-map] fetchCurrentMemberId error:", e);
-    return null;
-  }
+  const response = await fetch(`${contextPath}/api/members/recommended-roommates?${searchParams.toString()}`, {
+    method: "GET",
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`recommended roommates api failed: ${response.status}`);
+
+  const roommates = await response.json();
+  return new Set(roommates.map((item) => String(item.room_id ?? item.roomId)).filter(Boolean));
+}
+
+function applySearchFilters(rooms, allowedRoomIds) {
+  if (!Array.isArray(rooms)) return [];
+
+  const region = searchParams.get("region");
+  const budget = searchParams.get("budget");
+
+  return rooms.filter((room) => {
+    const roomId = String(room.room_id ?? room.roomId ?? "");
+    const address = `${room.address ?? ""} ${room.legal_dong ?? room.legalDong ?? ""}`;
+    const monthlyRent = rentInManwon(room.monthly_rent ?? room.monthlyRent);
+
+    if (allowedRoomIds && !allowedRoomIds.has(roomId)) return false;
+    if (region && !address.includes(region)) return false;
+    if (budget && monthlyRent != null && monthlyRent > Number(budget)) return false;
+    return true;
+  });
 }
 
 function renderRoomMarkers(rooms) {
@@ -190,15 +138,14 @@ function renderRoomMarkers(rooms) {
   clusterer.clear();
 
   rooms.forEach((room) => {
-    const lat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
-    const lng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
-    if (lat == null || lng == null) return;
+    const lat = room.lat;
+    const lng = room.lng;
+    const roomId = normalizeRoomId(room.room_id ?? room.roomId);
+    if (lat == null || lng == null || !roomId) return;
 
-    const roomIdRaw = room.roomId ?? room.room_id;
-    const roomId = normalizeRoomId(roomIdRaw);
-    if (!roomId) return;
-    const pos = new kakao.maps.LatLng(lat, lng);
-    const marker = new kakao.maps.Marker({ position: pos });
+    const marker = new kakao.maps.Marker({
+      position: new kakao.maps.LatLng(lat, lng),
+    });
 
     kakao.maps.event.addListener(marker, "click", () => {
       selectedRoomId = roomId;
@@ -211,288 +158,292 @@ function renderRoomMarkers(rooms) {
   clusterer.addMarkers(markers);
 }
 
-async function loadRoomDetail(roomId) {
-  // ★ 안전장치: 잘못된 roomId일 경우 API 호출 막기
-  roomId = normalizeRoomId(roomId);
-  if (!roomId) {
-    console.warn("[rooms-map] loadRoomDetail 호출 시 roomId 없음:", roomId);
+function renderSearchResultList(rooms) {
+  const title = document.getElementById("nearby-title");
+  const list = document.getElementById("nearby-list");
+  if (!list) return;
+
+  if (title) title.textContent = hasSearch ? "검색 조건 매물" : "근처 다른 매물";
+  list.innerHTML = "";
+
+  if (!Array.isArray(rooms) || rooms.length === 0) {
+    list.innerHTML = '<p class="room-nearby-empty">조건에 맞는 매물이 없습니다.</p>';
     return;
   }
 
-  // ✅ 마커 클릭 시 상세 카드 전체 보이기
-  const detailCard = document.getElementById("room-detail-card");
-  if (detailCard) {
-    detailCard.style.display = "flex"; // .room-card가 flex 기준이라 flex로
-  }
+  rooms.forEach((room) => {
+    list.appendChild(createRoomListItem(room));
+  });
+}
 
-  // (원하면 로딩 문구를 잠깐 보여줄 수도 있음)
-  const emptyEl = document.getElementById("room-detail-empty");
-  if (emptyEl) {
-    emptyEl.style.display = "block";
-  }
+function createRoomListItem(room) {
+  const roomId = normalizeRoomId(room.room_id ?? room.roomId);
+  const title = room.room_title ?? room.roomTitle ?? "제목 없음";
+  const address = room.address ?? "";
+  const thumbnail = room.thumbnail_url ?? room.thumbnailUrl ?? "";
+  const rent = rentInManwon(room.monthly_rent ?? room.monthlyRent);
 
-  try {
-    const res = await apiRequest(`/api/rooms/${roomId}`, { method: "GET" });
-    console.log("[rooms-map] /api/rooms/" + roomId + " status =", res.status);
-
-    if (!res.ok) {
-      console.error("방 상세 조회 실패:", res.status);
-      return;
+  const item = document.createElement("div");
+  item.className = "room-nearby-item";
+  item.addEventListener("click", () => {
+    if (!roomId) return;
+    selectedRoomId = roomId;
+    loadRoomDetail(roomId);
+    if (room.lat != null && room.lng != null && map) {
+      map.setCenter(new kakao.maps.LatLng(room.lat, room.lng));
     }
+  });
 
-    const room = await res.json();
-    renderRoomDetail(room);
-    renderNearbyRooms(room);
-  } catch (e) {
-    console.error("방 상세 조회 중 오류:", e);
+  item.innerHTML = `
+    <img class="room-nearby-thumb" src="${escapeAttribute(thumbnail || `${contextPath}/resources/img/room/default-room.jpg`)}" alt="방 이미지">
+    <div class="room-nearby-meta">
+      <div class="room-nearby-title-text">${escapeHtml(cutText(title, 22))}</div>
+      <div class="room-nearby-address">${escapeHtml(address)}</div>
+      <div class="room-nearby-price">${rent != null ? `월세 ${formatNumber(rent)}만원` : "월세 정보 없음"}</div>
+    </div>
+  `;
+  return item;
+}
+
+function focusSearchResults(rooms) {
+  if (!hasSearch || !Array.isArray(rooms) || rooms.length === 0 || !map) return;
+
+  const bounds = new kakao.maps.LatLngBounds();
+  let count = 0;
+  rooms.forEach((room) => {
+    if (room.lat == null || room.lng == null) return;
+    bounds.extend(new kakao.maps.LatLng(room.lat, room.lng));
+    count += 1;
+  });
+
+  if (count === 1) {
+    const room = rooms.find((item) => item.lat != null && item.lng != null);
+    map.setCenter(new kakao.maps.LatLng(room.lat, room.lng));
+    map.setLevel(4);
+  } else if (count > 1) {
+    map.setBounds(bounds);
+  }
+}
+
+async function loadRoomDetail(roomId) {
+  try {
+    const response = await apiRequest(`${contextPath}/api/rooms/${encodeURIComponent(roomId)}`, { method: "GET" });
+    if (!response.ok) throw new Error(`room detail api failed: ${response.status}`);
+
+    renderRoomDetail(await response.json());
+  } catch (error) {
+    console.error(error);
+    alert("방 정보를 불러오지 못했습니다.");
   }
 }
 
 function renderRoomDetail(room) {
-  document.getElementById("room-detail-empty").style.display = "none";
-  document.getElementById("room-detail-body").style.display = "block";
-  document.getElementById("room-detail-footer").style.display = "block";
+  setDetailVisible(true);
 
-  // 찜 버튼 초기 상태 세팅
-  const btnFavorite = document.getElementById("btn-favorite");
-  const btnChat = document.getElementById("btn-chat");
-
-  const imageUrls = room.imageUrls ?? room.image_urls ?? [];
-  const validUrls = imageUrls.filter(Boolean);
-
-  const imgEl = document.getElementById("room-image");
-  if (imgEl) {
-    if (validUrls.length > 0) {
-      imgEl.src = validUrls[0];
-      imgEl.style.display = "block";
-    } else {
-      imgEl.src = "";
-      imgEl.style.display = "none";
-    }
-  }
-  const roomTitle = room.roomTitle ?? room.room_title;
-
-  document.getElementById("room-title").innerText =
-    roomTitle || "제목 없음";
-  document.getElementById("room-address").innerText =
-    room.address || "";
-
-  //  월세 / 보증금 (여기 전부 수정됨)
-  const monthlyRent = room.monthlyRent ?? room.monthly_rent;
-  const deposit = room.deposit;
-
-  let monthlyText;
-  if (monthlyRent != null) {
-    const manwon = Math.round(monthlyRent / 10000); // 450000 → 45
-    monthlyText = `월세 ${formatNumber(manwon)}만원`;
-  } else {
-    monthlyText = "월세 정보 없음";
+  const imageUrls = room.image_urls ?? room.imageUrls ?? [];
+  const firstImage = Array.isArray(imageUrls) ? imageUrls.find(Boolean) : null;
+  const image = document.getElementById("room-image");
+  if (image) {
+    image.src = firstImage || "";
+    image.style.display = firstImage ? "block" : "none";
   }
 
-  document.getElementById("room-price").innerText = monthlyText;
+  setText("room-title", room.room_title ?? room.roomTitle ?? "제목 없음");
+  setText("room-address", room.address ?? "");
+  setText("room-price", formatRoomRent(room.monthly_rent ?? room.monthlyRent));
+  setText("room-available-from", room.available_from ?? room.availableFrom ?? "-");
+  setText("room-max-roommates", room.max_roommates ?? room.maxRoommates ? `${room.max_roommates ?? room.maxRoommates}명` : "-");
+  setText("room-floor-area", `${room.floor ?? "-"}층 / ${room.area_m2 ?? room.areaM2 ?? "-"}㎡`);
+  setText("room-content", cutText(room.content ?? "", 120));
+  setText("room-views", room.views ?? 0);
+  setText("room-status-text", statusText(room.status));
 
-  //  입주일 / 최대 인원 / 층·면적
-  const availableFrom = room.availableFrom ?? room.available_from;
-  const maxRoommates = room.maxRoommates ?? room.max_roommates;
-  const floor = room.floor;
-  const area = room.areaM2 ?? room.area_m2;
+  renderChips(document.getElementById("room-chips"), room.owner_tags ?? room.ownerTags ?? []);
 
-  document.getElementById("room-available-from").innerText =
-    availableFrom || "협의 가능";
-
-  document.getElementById("room-max-roommates").innerText =
-    maxRoommates != null ? `${maxRoommates}명` : "-";
-
-  document.getElementById("room-floor-area").innerText =
-    `${floor != null ? floor + "층" : "?층"} · ${
-      area != null ? area + "㎡" : "?㎡"
-    }`;
-
-  // 설명
-  const content = room.content;
-  document.getElementById("room-content").innerText =
-    cutText(content || "", 120);
-
-  //  조회수 / 상태
-  const views = room.views;
-  const status = room.status;
-
-  document.getElementById("room-views").innerText =
-    views != null ? views : 0;
-
-  const statusTextEl = document.getElementById("room-status-text");
-  if (status === "OPEN") {
-    statusTextEl.innerText = "모집중";
-    statusTextEl.style.color = "#16a34a";
-  } else if (status === "RESERVED") {
-    statusTextEl.innerText = "예약중";
-    statusTextEl.style.color = "#f97316";
-  } else if (status === "CLOSED") {
-    statusTextEl.innerText = "마감";
-    statusTextEl.style.color = "#9ca3af";
-  } else {
-    statusTextEl.innerText = "";
-    statusTextEl.style.color = "#6b7280";
-  }
-
-  //  태그(mock)
-  const chipContainer = document.getElementById("room-chips");
-    const ownerTags = room.ownerTags ?? room.owner_tags ?? [];
-
-    renderChips(chipContainer, ownerTags, { max: 4 });
-
-  // 내가 올린 방이면 찜/문의 버튼 숨기기
-  const ownerId = room.ownerId ?? room.owner_id;
+  const ownerId = room.owner_id ?? room.ownerId;
+  const favoriteButton = document.getElementById("btn-favorite");
+  const chatButton = document.getElementById("btn-chat");
 
   if (ownerId && currentMemberId && String(ownerId) === String(currentMemberId)) {
-    // 내 방인 경우 → 찜/문의 숨김
-    if (btnFavorite) btnFavorite.style.display = "none";
-    if (btnChat) btnChat.style.display = "none";
-  } else {
-    if (btnFavorite) {
-      btnFavorite.style.display = "inline-flex";
-      const initialFavorited = !!(room.favorited ?? room.isFavorited);
-      applyFavoriteButtonState(btnFavorite, initialFavorited);
-    }
-    if (btnChat) {
-      btnChat.style.display = "inline-flex";
-    }
+    if (favoriteButton) favoriteButton.style.display = "none";
+    if (chatButton) chatButton.style.display = "none";
+    return;
+  }
+
+  if (favoriteButton) {
+    favoriteButton.style.display = "inline-flex";
+    applyFavoriteButtonState(favoriteButton, Boolean(room.favorited ?? room.isFavorited));
+  }
+  if (chatButton) {
+    chatButton.style.display = "inline-flex";
+    chatButton.dataset.partnerId = ownerId || "";
   }
 }
 
-function renderNearbyRooms(selectedRoom) {
-  const listEl = document.getElementById("nearby-list");
-  listEl.innerHTML = "";
-  const sLat = selectedRoom.lat ?? selectedRoom.roomLat ?? selectedRoom.room_lat ?? selectedRoom.latitude;
-  const sLng = selectedRoom.lng ?? selectedRoom.roomLng ?? selectedRoom.room_lng ?? selectedRoom.longitude;
+async function toggleFavorite() {
+  if (!selectedRoomId || !requireLogin()) return;
 
-  if (!selectedRoom || sLat == null || sLng == null || !currentRooms.length) {
-    const p = document.createElement("p");
-    p.className = "room-nearby-empty";
-    p.innerText = "근처 매물이 없습니다.";
-    listEl.appendChild(p);
-    return;
-  }
-  const selectedId = normalizeRoomId(selectedRoom.roomId ?? selectedRoom.room_id);
+  const button = document.getElementById("btn-favorite");
+  if (!button || button.dataset.loading === "true") return;
 
-  // 간단 거리 계산 (위도/경도 차이로 근사)
-  function distance(room) {
-    const rLat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
-    const rLng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
-    if (rLat == null || rLng == null) return Infinity;
-    const dx = sLat - rLat;
-    const dy = sLng - rLng;
-    return Math.sqrt(dx * dx + dy * dy);
-  }
-
-  // 현재 뷰포트 안 방들 중에서, 자기 자신을 제외하고 가까운 순으로 3개
-  const candidates = currentRooms
-    .filter((r) => {
-      const id = normalizeRoomId(r.roomId ?? r.room_id);
-      return id && id !== selectedId;
-    })
-    .map((r) => ({ room: r, dist: distance(r) }))
-    .filter((x) => x.dist < Infinity)
-    .sort((a, b) => a.dist - b.dist)
-    .slice(0, 3); // 상위 3개만
-
-  if (candidates.length === 0) {
-    const p = document.createElement("p");
-    p.className = "room-nearby-empty";
-    p.innerText = "근처 매물이 없습니다.";
-    listEl.appendChild(p);
-    return;
-  }
-
-  candidates.forEach(({ room }) => {
-    const id = room.roomId ?? room.room_id;
-    const title = room.roomTitle ?? room.room_title ?? "제목 없음";
-    const addr = room.address ?? "";
-    const monthlyRent = room.monthlyRent ?? room.monthly_rent;
-    const thumbnail = room.thumbnailUrl ?? room.thumbnail_url ?? "";
-    const manwon = monthlyRent != null ? Math.round(monthlyRent / 10000) : null;
-
-    const item = document.createElement("div");
-    item.className = "room-nearby-item";
-    item.addEventListener("click", () => {
-      // 리스트 아이템 클릭 → 그 방 상세로 이동
-      selectedRoomId = id;
-      loadRoomDetail(id);
-    const rLat = room.lat ?? room.roomLat ?? room.room_lat ?? room.latitude;
-    const rLng = room.lng ?? room.roomLng ?? room.room_lng ?? room.longitude;
-
-      if (rLat != null && rLng != null && map) {
-        map.setCenter(new kakao.maps.LatLng(rLat, rLng));
-      }
+  const nextFavorited = !button.classList.contains("active");
+  button.dataset.loading = "true";
+  button.disabled = true;
+  try {
+    const response = await apiRequest(`${contextPath}/api/favorites/${encodeURIComponent(selectedRoomId)}`, {
+      method: nextFavorited ? "POST" : "DELETE",
     });
-
-    const img = document.createElement("img");
-    img.className = "room-nearby-thumb";
-    img.src = thumbnail || "/resources/img/room/default-room.jpg";
-    img.alt = "room image";
-
-    const meta = document.createElement("div");
-    meta.className = "room-nearby-meta";
-
-    const titleEl = document.createElement("div");
-    titleEl.className = "room-nearby-title-text";
-    titleEl.innerText = cutText(title, 18);
-
-    const addrEl = document.createElement("div");
-    addrEl.className = "room-nearby-address";
-    addrEl.innerText = addr;
-
-    const priceEl = document.createElement("div");
-    priceEl.className = "room-nearby-price";
-    priceEl.innerText =
-      manwon != null ? `월세 ${formatNumber(manwon)}만원` : "월세 정보 없음";
-
-    meta.appendChild(titleEl);
-    meta.appendChild(addrEl);
-    meta.appendChild(priceEl);
-
-    item.appendChild(img);
-    item.appendChild(meta);
-    listEl.appendChild(item);
-  });
-}
-
-function applyFavoriteButtonState(btn, favorited) {
-  if (!btn) return;
-  if (favorited) {
-    btn.classList.add("active");
-    btn.textContent = "찜 완료";
-  } else {
-    btn.classList.remove("active");
-    btn.textContent = "♡ 찜하기";
+    if (!response.ok && !(response.status === 404 && !nextFavorited)) {
+      throw new Error(`favorite api failed: ${response.status}`);
+    }
+    applyFavoriteButtonState(button, nextFavorited);
+  } catch (error) {
+    console.error(error);
+    alert("찜 설정 중 오류가 발생했습니다.");
+  } finally {
+    button.dataset.loading = "false";
+    button.disabled = false;
   }
 }
-function renderChips(containerEl, tags, options = {}) {
-  const { max = 6, emptyText = null } = options;
 
-  if (!containerEl) return;
+async function openChatRoom() {
+  if (!selectedRoomId || !requireLogin()) return;
 
-  containerEl.innerHTML = "";
-
-  const safeTags = Array.isArray(tags) ? tags.filter(Boolean) : [];
-  const sliced = safeTags.slice(0, max);
-
-  if (sliced.length === 0) {
-    if (emptyText) {
-      const span = document.createElement("span");
-      span.className = "chip";
-      span.innerText = emptyText;
-      containerEl.appendChild(span);
-    }
+  const button = document.getElementById("btn-chat");
+  const partnerId = button?.dataset.partnerId;
+  if (!partnerId) {
+    alert("방 작성자 정보를 찾지 못했습니다.");
     return;
   }
 
-  sliced.forEach((text) => {
-    const span = document.createElement("span");
-    //  CSS가 어디에 정의돼있든 최대한 깨지지 않게 두 클래스 같이 줌
-    span.className = "chip room-chip";
-    span.innerText = text;
-    containerEl.appendChild(span);
-  });
+  button.disabled = true;
+  try {
+    const response = await apiRequest(`${contextPath}/api/chat/rooms`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        room_id: Number(selectedRoomId),
+        partner_id: Number(partnerId),
+      }),
+    });
+    if (!response.ok) throw new Error(`chat room api failed: ${response.status}`);
+
+    const data = await response.json();
+    const chatRoomId = data.chat_room_id ?? data.chatRoomId;
+    if (chatRoomId) {
+      window.location.href = `${contextPath}/chat/rooms/${encodeURIComponent(chatRoomId)}`;
+    }
+  } catch (error) {
+    console.error(error);
+    alert("채팅방을 열지 못했습니다.");
+  } finally {
+    button.disabled = false;
+  }
 }
 
+async function fetchCurrentMemberId() {
+  const token = getAccessToken();
+  if (!token) return null;
+
+  try {
+    const response = await fetch(`${contextPath}/api/members/me`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        Authorization: `${getTokenType()} ${token}`,
+      },
+    });
+    if (!response.ok) return null;
+    const data = await response.json();
+    return data.member_id ?? data.memberId ?? null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function setDetailVisible(visible) {
+  const empty = document.getElementById("room-detail-empty");
+  const body = document.getElementById("room-detail-body");
+  const footer = document.getElementById("room-detail-footer");
+  const image = document.getElementById("room-image");
+
+  if (empty) empty.style.display = visible ? "none" : "block";
+  if (body) body.style.display = visible ? "block" : "none";
+  if (footer) footer.style.display = visible ? "block" : "none";
+  if (!visible && image) image.style.display = "none";
+}
+
+function renderChips(container, tags) {
+  if (!container) return;
+  const safeTags = Array.isArray(tags) ? tags.filter(Boolean).slice(0, 4) : [];
+  container.innerHTML = safeTags.map((tag) => `<span class="chip room-chip">${escapeHtml(tag)}</span>`).join("");
+}
+
+function applyFavoriteButtonState(button, favorited) {
+  button.classList.toggle("active", favorited);
+  button.textContent = favorited ? "찜 완료" : "찜하기";
+}
+
+function showMapError(message) {
+  const mapEl = document.getElementById("map");
+  if (mapEl) {
+    mapEl.innerHTML = `<div style="padding:24px;color:#667085;">${escapeHtml(message)}</div>`;
+  }
+}
+
+function normalizeRoomId(value) {
+  if (value == null) return null;
+  const text = String(value).trim();
+  return /^\d+$/.test(text) ? text : null;
+}
+
+function rentInManwon(value) {
+  if (value == null || value === "") return null;
+  const numeric = Number(value);
+  if (Number.isNaN(numeric)) return null;
+  return numeric > 10000 ? Math.round(numeric / 10000) : numeric;
+}
+
+function formatRoomRent(value) {
+  const rent = rentInManwon(value);
+  return rent != null ? `월세 ${formatNumber(rent)}만원` : "월세 정보 없음";
+}
+
+function formatNumber(value) {
+  if (value == null) return "-";
+  return Number(value).toLocaleString("ko-KR");
+}
+
+function statusText(status) {
+  if (status === "OPEN") return "모집중";
+  if (status === "RESERVED") return "예약중";
+  if (status === "CLOSED") return "마감";
+  if (status === "HIDDEN") return "비공개";
+  return "";
+}
+
+function cutText(text, maxLen) {
+  const value = String(text ?? "");
+  return value.length > maxLen ? `${value.slice(0, maxLen)}...` : value;
+}
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function escapeAttribute(value) {
+  return escapeHtml(value).replaceAll("`", "&#096;");
+}

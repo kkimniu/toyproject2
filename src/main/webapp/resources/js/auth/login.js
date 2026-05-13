@@ -374,6 +374,7 @@ async function handleRegisterSubmit(e) {
   const name = document.getElementById("regName")?.value?.trim() ?? "";
   const email = document.getElementById("regEmail")?.value?.trim() ?? "";
   const phone = document.getElementById("regPhone")?.value?.trim() ?? "";
+  const gender = document.getElementById("regGender")?.value || null;
   const password = document.getElementById("regPassword")?.value ?? "";
   const confirmPw = document.getElementById("regConfirm")?.value ?? "";
   const smoking = document.getElementById("regSmoking")?.value ?? "NON_SMOKER";
@@ -419,6 +420,7 @@ async function handleRegisterSubmit(e) {
     password,
     name,
     phone,
+    gender,
 
     // 자바: sleepTime → JSON: sleep_time
     sleep_time : sleepTime,     // String

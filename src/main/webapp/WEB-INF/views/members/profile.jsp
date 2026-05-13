@@ -14,7 +14,7 @@
     <div class="profile-summary-top">
       <!-- 왼쪽: 프로필 사진 -->
       <div class="profile-summary-photo">
-        <img id="profilePhoto" src="${pageContext.request.contextPath}/resources/img/default-profile.png" alt="프로필 사진" class="profile-photo-lg">
+        <img id="profilePhoto" src="${pageContext.request.contextPath}/resources/img/default-profile.svg" alt="프로필 사진" class="profile-photo-lg">
       </div>
 
       <!-- 가운데: 이름 / 이메일 / 전화번호 / 가입일 -->

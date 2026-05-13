@@ -2,6 +2,7 @@ package com.roommate.common.security;
 
 import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.entity.MemberRoleEnum;
+import com.roommate.domain.member.entity.MemberStatusEnum;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,12 +20,16 @@ public class UserDetailsImpl implements UserDetails {
     private final Long memberId;
     private final String email;
     private final String password;
+    private final MemberStatusEnum status;
+    private final int deleted;
 
     public UserDetailsImpl(MemberEntity memberEntity){
         this.memberId = memberEntity.getMemberId();
         this.email = memberEntity.getEmail();
         this.password = memberEntity.getPassword();
         this.role = memberEntity.getRole();
+        this.status = memberEntity.getStatus();
+        this.deleted = memberEntity.getDeleted();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -48,7 +53,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return status != MemberStatusEnum.BANNED;
     }
 
     @Override
@@ -58,6 +63,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return deleted == 0 && status != MemberStatusEnum.DELETED;
     }
 }

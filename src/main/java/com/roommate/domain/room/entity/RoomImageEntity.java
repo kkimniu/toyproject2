@@ -16,5 +16,7 @@ public class RoomImageEntity {
     private Long roomId;
     private String imageUrl;
     private Integer sortOrder;
+    @Builder.Default
+    private boolean deleted = false;
     private LocalDateTime createdAt;
 }

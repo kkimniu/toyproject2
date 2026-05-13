@@ -4,6 +4,7 @@ import com.roommate.common.security.UserDetailsImpl;
 import com.roommate.domain.member.dto.request.MemberPasswordChangeRequest;
 import com.roommate.domain.member.dto.request.MemberProfileUpdateRequest;
 import com.roommate.domain.member.dto.response.*;
+import com.roommate.domain.member.service.MemberRecommendationService;
 import com.roommate.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 public class MemberRestController {
 
     private final MemberService memberService;
+    private final MemberRecommendationService memberRecommendationService;
 
     /**
      * 일 종류에 전체를 조회합니다
@@ -34,6 +36,26 @@ public class MemberRestController {
         MemberResponse memberResponse = memberService.memberInfo(userDetails.getMemberId());
         return ResponseEntity.ok(memberResponse);
     }
+
+    @GetMapping("/recommended-roommates")
+    public ResponseEntity<List<RecommendedRoommateResponse>> getRecommendedRoommates(@RequestParam(required = false) String region,
+                                                                                     @RequestParam(required = false) Integer budget,
+                                                                                     @RequestParam(required = false) String gender,
+                                                                                     @RequestParam(name = "work_type_id", required = false) List<Long> workTypeIds,
+                                                                                     @RequestParam(name = "hobby_id", required = false) List<Long> hobbyIds,
+                                                                                     @RequestParam(name = "preference_id", required = false) List<Long> preferenceIds,
+                                                                                     @RequestParam(name = "pet_id", required = false) List<Long> petIds) {
+        return ResponseEntity.ok(memberRecommendationService.getRecommendedRoommates(
+                region,
+                budget,
+                gender,
+                workTypeIds,
+                hobbyIds,
+                preferenceIds,
+                petIds
+        ));
+    }
+
     @GetMapping("/{memberId}")
     public ResponseEntity<MemberPublicResponse> getMemberPublicInfo(@PathVariable Long memberId) {
         MemberPublicResponse memberPublicResponse = memberService.memberPublicInfo(memberId);

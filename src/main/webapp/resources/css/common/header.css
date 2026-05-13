@@ -1,97 +1,152 @@
-/* /resources/css/common/header.css */
-
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 40px;
-  border-bottom: 1px solid #eee;
+  gap: 28px;
+  min-height: 72px;
+  padding: 0 48px;
+  border-bottom: 1px solid #e5e7eb;
   background-color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 42px;
+  min-width: 0;
 }
 
 .logo {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 800;
   text-decoration: none;
-  color: #111;
+  color: #101828;
+  letter-spacing: 0;
+  white-space: nowrap;
 }
 
 .gnb {
   list-style: none;
   display: flex;
-  gap: 18px;
+  gap: 30px;
+  align-items: center;
   margin: 0;
   padding: 0;
 }
 
 .gnb a {
   text-decoration: none;
-  color: #222;
+  color: #374151;
   font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+
+.gnb a:hover {
+  color: #111827;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.header-icon-btn {
-  position: relative;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 18px;
-}
-
-.badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  min-width: 16px;
-  padding: 1px 4px;
-  border-radius: 999px;
-  background-color: #111827;
-  color: #fff;
-  font-size: 10px;
-  text-align: center;
+  gap: 10px;
+  margin-left: auto;
 }
 
 .header-text-btn {
-  border: none;
-  background: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: #fff;
   cursor: pointer;
   font-size: 14px;
-  padding: 4px 6px;
+  font-weight: 700;
+  padding: 10px 16px;
+  color: #111827;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.header-text-btn:hover {
+  background: #f9fafb;
+}
+
+.header-join-btn {
+  border-color: #111827;
+}
+
+.header-join-btn:hover {
+  background: #111827;
+  color: #fff;
 }
 
 .header-profile {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 14px;
 }
 
 .header-username {
   text-decoration: none;
   color: #111;
+  font-weight: 700;
 }
-.header-primary-btn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:700;
-  background:#0b0f1a;
-  color:#fff;
-  text-decoration:none;
-  margin-right:10px;
+
+.header-primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  background: #0b0f1a;
+  color: #fff;
+  text-decoration: none;
 }
-.header-primary-btn:hover{ opacity:.9; }
+
+.header-primary-btn:hover {
+  opacity: .9;
+}
+
+#headerAuthButtons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 980px) {
+  .header {
+    padding: 16px 20px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    min-height: auto;
+  }
+
+  .header-left,
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .gnb {
+    gap: 16px;
+    overflow-x: auto;
+  }
+}

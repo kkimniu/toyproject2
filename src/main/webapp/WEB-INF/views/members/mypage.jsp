@@ -15,7 +15,7 @@
       <!-- 왼쪽: 프로필 사진 + 사진 변경 버튼 -->
       <div class="profile-summary-photo">
         <img id="profilePhoto"
-             src="/resources/img/default-profile.png"
+             src="/resources/img/default-profile.svg"
              alt="프로필 사진"
              class="profile-photo-lg">
         <input type="file" id="photoFileInput" accept="image/*" style="display:none;">

@@ -15,6 +15,7 @@ import com.roommate.domain.member.entity.MemberDrinkingEnum;
 import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
+import com.roommate.domain.member.entity.MemberStatusEnum;
 import com.roommate.domain.member.repository.MemberHobbyRepository;
 import com.roommate.domain.member.repository.MemberPetRepository;
 import com.roommate.domain.member.repository.MemberPreferenceRepository;
@@ -73,6 +74,8 @@ public class AuthServiceImpl implements AuthService {
         memberEntity.setName(signUpRequest.getName());
         memberEntity.setPhone(signUpRequest.getPhone());
         memberEntity.setPhotoUrl(signUpRequest.getPhotoUrl());
+        memberEntity.setGender(signUpRequest.getGender());
+        memberEntity.setBirthDate(signUpRequest.getBirthDate());
         memberEntity.setSleepTime(signUpRequest.getSleepTime());
         memberEntity.setWorkTypeId(signUpRequest.getWorkTypeId());
         // 흡연/음주 기본값 처리
@@ -93,6 +96,8 @@ public class AuthServiceImpl implements AuthService {
                 memberEntity.getName(),
                 memberEntity.getPhone(),
                 memberEntity.getPhotoUrl(),
+                memberEntity.getGender(),
+                memberEntity.getBirthDate(),
                 memberEntity.getSleepTime(),
                 memberEntity.getSmoking(),
                 memberEntity.getDrinking(),
@@ -110,11 +115,15 @@ public class AuthServiceImpl implements AuthService {
                 memberEntity.getName(),
                 memberEntity.getPhone(),
                 memberEntity.getPhotoUrl(),
+                memberEntity.getGender(),
+                memberEntity.getBirthDate(),
                 memberEntity.getSleepTime(),
                 memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
                 memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
                 memberEntity.getMbti(),
                 memberEntity.getRole(),
+                memberEntity.getStatus(),
+                memberEntity.getBannedUntil(),
                 accessToken,
                 "Bearer"
         );
@@ -160,6 +169,12 @@ public class AuthServiceImpl implements AuthService {
             // 왜 이렇게 썼는지:
             // - soft delete 된 회원은 로그인 자체를 막아서
             //   탈퇴 후 토큰 발급/서비스 이용을 차단하기 위함.
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+        if (memberEntity.getStatus() == MemberStatusEnum.BANNED) {
+            throw new ApiException(ErrorCode.MEMBER_BANNED);
+        }
+        if (memberEntity.getStatus() != null && memberEntity.getStatus() != MemberStatusEnum.ACTIVE) {
             throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
         }
 
@@ -224,6 +239,12 @@ public class AuthServiceImpl implements AuthService {
         MemberEntity memberEntity = memberRepository.findById(memberId).orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
 
         if (memberEntity.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+        if (memberEntity.getStatus() == MemberStatusEnum.BANNED) {
+            throw new ApiException(ErrorCode.MEMBER_BANNED);
+        }
+        if (memberEntity.getStatus() != null && memberEntity.getStatus() != MemberStatusEnum.ACTIVE) {
             throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
         }
 

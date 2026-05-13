@@ -65,7 +65,7 @@ public class MemberServiceImpl implements MemberService {
 
     private MemberResponse toMemberResponse(MemberEntity memberEntity, WorkTypeEntity workTypeEntity, List<HobbyEntity> hobbyEntities, List<PreferenceEntity> preferenceEntities, List<PetEntity> petEntities) {
 
-        if (workTypeEntity.getWorkTypeId() != null && workTypeEntity == null) {
+        if (workTypeEntity == null && memberEntity.getWorkTypeId() != null) {
             throw new ApiException(ErrorCode.WORK_TYPE_NOT_FOUND);
         }
 
@@ -85,11 +85,15 @@ public class MemberServiceImpl implements MemberService {
                 memberEntity.getName(),
                 memberEntity.getPhone(),
                 memberEntity.getPhotoUrl(),
+                memberEntity.getGender(),
+                memberEntity.getBirthDate(),
                 memberEntity.getSleepTime(),
                 memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
                 memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
                 memberEntity.getMbti(),
                 memberEntity.getRole(),
+                memberEntity.getStatus(),
+                memberEntity.getBannedUntil(),
                 hobbyEntities.stream().map(this::toHobbyResponse).toList(),
                 preferenceEntities.stream().map(this::toPreferenceResponse).toList(),
                 petEntities.stream().map(this::toPetResponse).toList());
@@ -97,7 +101,7 @@ public class MemberServiceImpl implements MemberService {
 
     private MemberPublicResponse toMemberPublicResponse(MemberEntity memberEntity, WorkTypeEntity workTypeEntity, List<HobbyEntity> hobbyEntities, List<PreferenceEntity> preferenceEntities, List<PetEntity> petEntities) {
 
-        if (workTypeEntity.getWorkTypeId() != null && workTypeEntity == null) {
+        if (workTypeEntity == null && memberEntity.getWorkTypeId() != null) {
             throw new ApiException(ErrorCode.WORK_TYPE_NOT_FOUND);
         }
 
@@ -115,6 +119,8 @@ public class MemberServiceImpl implements MemberService {
                 workTypeName,
                 memberEntity.getName(),
                 memberEntity.getPhotoUrl(),
+                memberEntity.getGender(),
+                memberEntity.getBirthDate(),
                 memberEntity.getSleepTime(),
                 memberEntity.getSmoking() != null ? memberEntity.getSmoking() : MemberSmokingEnum.NON_SMOKER,
                 memberEntity.getDrinking() != null ? memberEntity.getDrinking() : MemberDrinkingEnum.NONE,
@@ -194,6 +200,12 @@ public class MemberServiceImpl implements MemberService {
         }
         if (memberProfileUpdateRequest.getPhotoUrl() != null) {
             memberEntity.setPhotoUrl(memberProfileUpdateRequest.getPhotoUrl());
+        }
+        if (memberProfileUpdateRequest.getGender() != null) {
+            memberEntity.setGender(memberProfileUpdateRequest.getGender());
+        }
+        if (memberProfileUpdateRequest.getBirthDate() != null) {
+            memberEntity.setBirthDate(memberProfileUpdateRequest.getBirthDate());
         }
         if (memberProfileUpdateRequest.getWorkTypeId() != null) {
             memberEntity.setWorkTypeId(memberProfileUpdateRequest.getWorkTypeId());

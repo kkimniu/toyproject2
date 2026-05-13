@@ -51,7 +51,7 @@ document.getElementById("photoFileInput")?.addEventListener("change",async (e) =
 
         const profilePhoto = document.getElementById("profilePhoto");
         if (profilePhoto) {
-            profilePhoto.src = data.photo_url || data.photoUrl || "/resources/img/default-profile.png" ;
+            profilePhoto.src = data.photo_url || data.photoUrl || "/resources/img/default-profile.svg" ;
         }
 
         alert("프로필 사진이 변경되었습니다.");
@@ -196,7 +196,7 @@ async function loadMyProfile() {
 
   if (profilePhoto) {
     const url = data.photo_url || data.photoUrl || "";
-    profilePhoto.src = url || "/resources/img/default-profile.png";
+    profilePhoto.src = url || "/resources/img/default-profile.svg";
   }
 
   if (profileWorkType) {
@@ -251,6 +251,7 @@ async function loadMyProfile() {
   // ----- 오른쪽 수정 폼 값 세팅 -----
   const mpName = document.getElementById("mpName");
   const mpPhone = document.getElementById("mpPhone");
+  const mpGender = document.getElementById("mpGender");
   const mpWorkType = document.getElementById("mpWorkType");
   const mpSleepTime = document.getElementById("mpSleepTime");
   const mpSmoking = document.getElementById("mpSmoking");
@@ -259,6 +260,7 @@ async function loadMyProfile() {
 
   mpName && (mpName.value = data.name || "");
   mpPhone && (mpPhone.value = data.phone || "");
+  mpGender && (mpGender.value = data.gender || "");
   if (mpWorkType && (data.work_type_id || data.workTypeId)) {
     mpWorkType.value = data.work_type_id || data.workTypeId;
   }
@@ -311,6 +313,7 @@ function setupMypageFormSubmit() {
 
     const name = document.getElementById("mpName").value.trim();
     const phone = document.getElementById("mpPhone").value.trim();
+    const gender = document.getElementById("mpGender")?.value || null;
     const workTypeRaw = document.getElementById("mpWorkType").value;
     const sleepTime = document.getElementById("mpSleepTime").value || null;
     const smoking = document.getElementById("mpSmoking").value;
@@ -339,6 +342,7 @@ function setupMypageFormSubmit() {
     const payload = {
       name,
       phone,
+      gender,
       work_type_id: workTypeId,
       sleep_time: sleepTime,
       smoking,
@@ -373,8 +377,7 @@ function setupMypageFormSubmit() {
         console.log("payload:", payload);
 
       alert("프로필이 수정되었습니다.");
-      // 수정 후 최신 데이터 다시 로딩
-      await loadMyProfile();
+      window.location.href = "/members/mypage";
     } catch (err) {
       console.error("update profile error:", err);
       if (errorSpan) {

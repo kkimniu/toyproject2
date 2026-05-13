@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="320" viewBox="0 0 480 320" role="img" aria-label="기본 방 이미지">
+  <rect width="480" height="320" fill="#f3f4f6"/>
+  <rect x="96" y="86" width="288" height="176" rx="8" fill="#ffffff" stroke="#d1d5db" stroke-width="8"/>
+  <rect x="128" y="118" width="96" height="72" rx="4" fill="#e5e7eb"/>
+  <rect x="256" y="118" width="96" height="72" rx="4" fill="#e5e7eb"/>
+  <rect x="128" y="214" width="224" height="18" rx="9" fill="#d1d5db"/>
+  <path d="M86 96 240 42l154 54" fill="none" stroke="#9ca3af" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

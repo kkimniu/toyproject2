@@ -2,6 +2,7 @@ package com.roommate.domain.member.entity;
 
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -20,6 +21,11 @@ public class MemberEntity {
     private String photoUrl;
     @Builder.Default
     private MemberRoleEnum role = MemberRoleEnum.USER;
+    @Builder.Default
+    private MemberStatusEnum status = MemberStatusEnum.ACTIVE;
+    private LocalDateTime bannedUntil;
+    private MemberGenderEnum gender;
+    private LocalDate birthDate;
     @Builder.Default
     private int reportCount = 0;
     @Builder.Default
