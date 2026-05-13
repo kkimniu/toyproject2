@@ -37,6 +37,7 @@ public enum ErrorCode {
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "M003", "이메일 또는 비밀번호가 올바르지 않습니다."),
     INVALID_EMAIL_FORMAT(HttpStatus.BAD_REQUEST, "M004", "이메일 형식이 올바르지 않습니다."),
     MEMBER_DEACTIVATED(HttpStatus.FORBIDDEN, "M005", "탈퇴한 회원입니다."),
+    MEMBER_BANNED(HttpStatus.FORBIDDEN, "M006", "정지된 회원입니다."),
 
     // ===== WORK_TYPE / 근무 유형 관련 =====
     WORK_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "W001", "존재하지 않는 근무 유형입니다."),

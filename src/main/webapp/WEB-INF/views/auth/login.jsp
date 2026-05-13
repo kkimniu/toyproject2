@@ -59,6 +59,16 @@
           <input type="text" id="regPhone" placeholder="010-1234-5678" required>
         </div>
 
+        <div class="form-group">
+          <label for="regGender">성별</label>
+          <select id="regGender" required>
+            <option value="">선택해주세요</option>
+            <option value="FEMALE">여성</option>
+            <option value="MALE">남성</option>
+            <option value="OTHER">기타</option>
+          </select>
+        </div>
+
         <!-- 4. 비밀번호 / 비밀번호 확인 -->
         <div class="form-row">
           <div class="form-group">

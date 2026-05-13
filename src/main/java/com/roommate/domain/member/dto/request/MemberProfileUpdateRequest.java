@@ -3,11 +3,13 @@ package com.roommate.domain.member.dto.request;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
+import com.roommate.domain.member.entity.MemberGenderEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -18,6 +20,8 @@ public class MemberProfileUpdateRequest {
     private String name;
     private String phone;
     private String photoUrl;
+    private MemberGenderEnum gender;
+    private LocalDate birthDate;
 
     private Long workTypeId;
     private String sleepTime;

@@ -60,8 +60,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         http.authorizeRequests()
                 // ====== 뷰(페이지) 쪽: 모두 허용 ======
-                .antMatchers("/", "/index").permitAll()
+                .antMatchers("/", "/index.jsp", "/main").permitAll()
                 .antMatchers("/rooms/**").permitAll()      // 상세 페이지 (뷰)
+                .antMatchers("/chat/**").permitAll()
                 .antMatchers("/resources/**", "/favicon.ico").permitAll()
                 .antMatchers("/upload/**").permitAll()
                 .antMatchers("/ws/**").permitAll()
@@ -72,17 +73,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
                 // 3) 찜 조회용 API- 허용
                 .antMatchers(HttpMethod.GET, "/api/favorites/**").permitAll()
-                // 4) 채팅 조회용 API
+                .antMatchers(HttpMethod.GET,
+                        "/api/members/recommended-roommates",
+                        "/api/members/form-codes",
+                        "/api/members/work-types",
+                        "/api/members/hobbies",
+                        "/api/members/preferences",
+                        "/api/members/pets").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/chat/rooms/**").authenticated()
-                // 5) 인증/회원가입/폼코드 등 공개 API
+
+                // 4) 인증/회원가입/폼코드 등 공개 API
                 .antMatchers(
                         "/api/auth/signup",
                         "/api/auth/login",
                         "/api/auth/refresh",
-                        "/api/members/form-codes",
                         "/api/files/**").permitAll()
 
-                // 6) 테스트/로그인 관련 뷰 페이지 - 공개
+                // 5) 테스트/로그인 관련 뷰 페이지 - 공개
                 .antMatchers("/auth/login-test", "/auth/me-test", "/auth/login").permitAll()
                 // ====== 회원 전용(authenticated) ======
                 .antMatchers(HttpMethod.GET, "/api/members/**").authenticated()
@@ -101,6 +108,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 // 9) 채팅 API - 로그인 필요
                 .antMatchers(HttpMethod.POST, "/api/chat/rooms/**").authenticated()
+                .antMatchers(HttpMethod.PATCH, "/api/chat/rooms/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/chat/rooms/**").authenticated()
 
                 // 10) 관리자 API

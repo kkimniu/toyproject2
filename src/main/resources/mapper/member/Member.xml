@@ -13,6 +13,10 @@
         <result property="phone" column="phone"/>
         <result property="photoUrl" column="photo_url"/>
         <result property="role" column="role" javaType="com.roommate.domain.member.entity.MemberRoleEnum"/>
+        <result property="status" column="status" javaType="com.roommate.domain.member.entity.MemberStatusEnum"/>
+        <result property="bannedUntil" column="banned_until"/>
+        <result property="gender" column="gender" javaType="com.roommate.domain.member.entity.MemberGenderEnum"/>
+        <result property="birthDate" column="birth_date"/>
         <result property="reportCount" column="report_count"/>
         <result property="deleted" column="deleted"/>
         <result property="memberCreatedAt" column="member_created_at"/>
@@ -42,6 +46,10 @@
         phone,
         photo_url,
         role,
+        status,
+        banned_until,
+        gender,
+        birth_date,
         report_count,
         deleted,
         sleep_time,
@@ -57,6 +65,10 @@
         #{phone},
         #{photoUrl},
         #{role},
+        #{status},
+        #{bannedUntil},
+        #{gender},
+        #{birthDate},
         #{reportCount},
         #{deleted},
         #{sleepTime},
@@ -83,8 +95,11 @@
         UPDATE members
         <set>
             work_type_id = #{workTypeId},
+            name = #{name},
             phone = #{phone},
             photo_url = #{photoUrl},
+            gender = #{gender},
+            birth_date = #{birthDate},
             sleep_time = #{sleepTime},
             smoking = #{smoking},
             drinking = #{drinking},
@@ -96,7 +111,8 @@
     </update>
     <update id="softDeleteMember" parameterType="long">
         UPDATE members
-        SET deleted = 1
+        SET deleted = 1,
+            status = 'DELETED'
         WHERE member_id = #{memberId}
     </update>
     <!-- 비밀번호 변경 전용 업데이트 -->

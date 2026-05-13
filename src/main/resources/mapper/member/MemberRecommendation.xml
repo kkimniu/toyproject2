@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.member.repository.MemberRecommendationRepository">
+    <resultMap id="recommendedRoommateMap" type="com.roommate.domain.member.entity.RecommendedRoommateEntity">
+        <id property="roomId" column="room_id"/>
+        <result property="roomTitle" column="room_title"/>
+        <result property="memberId" column="member_id"/>
+        <result property="name" column="name"/>
+        <result property="age" column="age"/>
+        <result property="workTypeName" column="work_type_name"/>
+        <result property="location" column="location"/>
+        <result property="intro" column="intro"/>
+        <result property="budget" column="budget"/>
+        <result property="rating" column="rating"/>
+        <result property="imageUrl" column="image_url"/>
+        <result property="tagText" column="tag_text"/>
+    </resultMap>
+
+    <select id="findRecommendedRoommates" resultMap="recommendedRoommateMap">
+        SELECT
+            r.room_id AS room_id,
+            r.room_title AS room_title,
+            m.member_id AS member_id,
+            COALESCE(NULLIF(m.name, ''), '이름 미등록') AS name,
+            CASE
+                WHEN m.birth_date IS NULL THEN NULL
+                ELSE TIMESTAMPDIFF(YEAR, m.birth_date, CURDATE())
+            END AS age,
+            wt.work_type_name AS work_type_name,
+            COALESCE(NULLIF(r.legal_dong, ''), NULLIF(r.address, ''), '지역 미등록') AS location,
+            CONCAT(
+                COALESCE(NULLIF(wt.work_type_name, ''), '회원'),
+                '이고, ',
+                CASE
+                    WHEN m.smoking = 'SMOKER' THEN '흡연'
+                    ELSE '비흡연'
+                END,
+                ' 생활을 선호합니다.'
+            ) AS intro,
+            CASE
+                WHEN r.monthly_rent IS NULL THEN '월세 미등록'
+                ELSE CONCAT('월 ', FORMAT(r.monthly_rent, 0), '만원')
+            END AS budget,
+            NULL AS rating,
+            NULLIF(m.photo_url, '') AS image_url,
+            GROUP_CONCAT(DISTINCT member_tags.tag_name ORDER BY member_tags.tag_name SEPARATOR ',') AS tag_text
+        FROM rooms r
+        JOIN members m ON m.member_id = r.member_id
+        LEFT JOIN work_types wt ON wt.work_type_id = m.work_type_id
+        LEFT JOIN (
+            SELECT mh.member_id, h.hobby_name AS tag_name
+            FROM member_hobbies mh
+            JOIN hobbies h ON h.hobby_id = mh.hobby_id
+            UNION ALL
+            SELECT mp.member_id, p.preference_name AS tag_name
+            FROM member_preferences mp
+            JOIN preferences p ON p.preference_id = mp.preference_id
+            UNION ALL
+            SELECT mpet.member_id, pet.pet_name AS tag_name
+            FROM member_pets mpet
+            JOIN pets pet ON pet.pet_id = mpet.pet_id
+        ) member_tags ON member_tags.member_id = m.member_id
+        WHERE r.deleted = 0
+          AND m.deleted = 0
+          AND m.status = 'ACTIVE'
+          AND r.status IN ('OPEN', 'RESERVED')
+        <if test="region != null and region != ''">
+          AND (r.address LIKE CONCAT('%', #{region}, '%')
+               OR r.legal_dong LIKE CONCAT('%', #{region}, '%'))
+        </if>
+        <if test="maxMonthlyRent != null">
+          AND r.monthly_rent &lt;= #{maxMonthlyRent}
+        </if>
+        <if test="gender != null and gender != ''">
+          AND m.gender = #{gender}
+        </if>
+        <if test="workTypeIds != null and workTypeIds.size() > 0">
+          AND m.work_type_id IN
+          <foreach collection="workTypeIds" item="workTypeId" open="(" separator="," close=")">
+            #{workTypeId}
+          </foreach>
+        </if>
+        <if test="hobbyIds != null and hobbyIds.size() > 0">
+          AND EXISTS (
+            SELECT 1
+            FROM member_hobbies mh_filter
+            WHERE mh_filter.member_id = m.member_id
+              AND mh_filter.hobby_id IN
+              <foreach collection="hobbyIds" item="hobbyId" open="(" separator="," close=")">
+                #{hobbyId}
+              </foreach>
+          )
+        </if>
+        <if test="preferenceIds != null and preferenceIds.size() > 0">
+          AND EXISTS (
+            SELECT 1
+            FROM member_preferences mp_filter
+            WHERE mp_filter.member_id = m.member_id
+              AND mp_filter.preference_id IN
+              <foreach collection="preferenceIds" item="preferenceId" open="(" separator="," close=")">
+                #{preferenceId}
+              </foreach>
+          )
+        </if>
+        <if test="petIds != null and petIds.size() > 0">
+          AND EXISTS (
+            SELECT 1
+            FROM member_pets mpet_filter
+            WHERE mpet_filter.member_id = m.member_id
+              AND mpet_filter.pet_id IN
+              <foreach collection="petIds" item="petId" open="(" separator="," close=")">
+                #{petId}
+              </foreach>
+          )
+        </if>
+        GROUP BY
+            r.room_id,
+            r.room_title,
+            m.member_id,
+            m.name,
+            m.birth_date,
+            wt.work_type_name,
+            r.legal_dong,
+            r.address,
+            r.monthly_rent,
+            m.photo_url,
+            m.smoking,
+            r.room_created_at
+        ORDER BY r.room_created_at DESC
+        LIMIT 12
+    </select>
+</mapper>

@@ -13,7 +13,7 @@
   <section class="mypage-left">
     <div class="profile-card">
       <div class="profile-photo-wrapper">
-        <img id="profilePhoto" src="" alt="프로필 사진" class="profile-photo">
+        <img id="profilePhoto" src="/resources/img/default-profile.svg" alt="프로필 사진" class="profile-photo">
         <input type="file" id="photoFileInput" accept="image/*" style="display: none;"/>
         <button type="button" class="btn-photo-upload" onclick="document.getElementById('photoFileInput').click();">
         사진 변경
@@ -63,6 +63,16 @@
       <div class="form-row">
         <label for="mpPhone">전화번호</label>
         <input type="text" id="mpPhone" placeholder="010-1234-5678">
+      </div>
+
+      <div class="form-row">
+        <label for="mpGender">성별</label>
+        <select id="mpGender">
+          <option value="">선택 안함</option>
+          <option value="FEMALE">여성</option>
+          <option value="MALE">남성</option>
+          <option value="OTHER">기타</option>
+        </select>
       </div>
 
       <div class="form-row">

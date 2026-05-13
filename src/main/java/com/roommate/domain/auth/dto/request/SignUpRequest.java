@@ -3,12 +3,14 @@ package com.roommate.domain.auth.dto.request;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import com.roommate.domain.member.entity.MemberDrinkingEnum;
+import com.roommate.domain.member.entity.MemberGenderEnum;
 import com.roommate.domain.member.entity.MemberSmokingEnum;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.validation.constraints.*;
+import java.time.LocalDate;
 import java.util.List;
 
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
@@ -30,6 +32,8 @@ public class SignUpRequest {
     private String phone;
     @Size(max = 255)
     private String photoUrl;
+    private MemberGenderEnum gender;
+    private LocalDate birthDate;
 
     private String sleepTime;
 
