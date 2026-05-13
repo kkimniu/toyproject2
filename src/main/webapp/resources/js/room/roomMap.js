@@ -310,12 +310,6 @@ async function openChatRoom() {
   if (!selectedRoomId || !requireLogin()) return;
 
   const button = document.getElementById("btn-chat");
-  const partnerId = button?.dataset.partnerId;
-  if (!partnerId) {
-    alert("방 작성자 정보를 찾지 못했습니다.");
-    return;
-  }
-
   button.disabled = true;
   try {
     const response = await apiRequest(`${contextPath}/api/chat/rooms`, {
@@ -326,7 +320,6 @@ async function openChatRoom() {
       },
       body: JSON.stringify({
         room_id: Number(selectedRoomId),
-        partner_id: Number(partnerId),
       }),
     });
     if (!response.ok) throw new Error(`chat room api failed: ${response.status}`);
@@ -334,7 +327,7 @@ async function openChatRoom() {
     const data = await response.json();
     const chatRoomId = data.chat_room_id ?? data.chatRoomId;
     if (chatRoomId) {
-      window.location.href = `${contextPath}/chat/rooms/${encodeURIComponent(chatRoomId)}`;
+      window.location.href = `${contextPath}/chats/${encodeURIComponent(chatRoomId)}`;
     }
   } catch (error) {
     console.error(error);

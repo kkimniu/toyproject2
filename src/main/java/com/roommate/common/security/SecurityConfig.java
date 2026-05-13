@@ -65,7 +65,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/chat/**").permitAll()
                 .antMatchers("/resources/**", "/favicon.ico").permitAll()
                 .antMatchers("/upload/**").permitAll()
+                .antMatchers("/ws/**").permitAll()
                 .antMatchers("/members/**").permitAll()      // 마이페이지 (뷰)
+                .antMatchers("/chats", "/chats/**").permitAll()      // 채팅 페이지 (뷰)
 
                 // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
@@ -78,6 +80,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/api/members/hobbies",
                         "/api/members/preferences",
                         "/api/members/pets").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/chat/rooms/**").authenticated()
 
                 // 4) 인증/회원가입/폼코드 등 공개 API
                 .antMatchers(
@@ -103,10 +106,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/favorites/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/favorites/**").authenticated()
 
-                // 9) 관리자 API
+                // 9) 채팅 API - 로그인 필요
+                .antMatchers(HttpMethod.POST, "/api/chat/rooms/**").authenticated()
+                .antMatchers(HttpMethod.PATCH, "/api/chat/rooms/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/chat/rooms/**").authenticated()
+
+                // 10) 관리자 API
                 .antMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // 10) 그 외 나머지 요청은 전부 인증 필요
+                // 11) 그 외 나머지 요청은 전부 인증 필요
                 .anyRequest().authenticated();
         http.formLogin().disable().httpBasic().disable();
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);

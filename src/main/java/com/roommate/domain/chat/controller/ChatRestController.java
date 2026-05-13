@@ -1,49 +1,61 @@
 package com.roommate.domain.chat.controller;
 
 import com.roommate.common.security.UserDetailsImpl;
-import com.roommate.domain.chat.dto.ChatMessageRequest;
-import com.roommate.domain.chat.dto.ChatMessageResponse;
-import com.roommate.domain.chat.dto.ChatRoomListItemResponse;
-import com.roommate.domain.chat.dto.ChatResquest;
-import com.roommate.domain.chat.dto.ChatResponse;
-import com.roommate.domain.chat.service.ChatService;
+import com.roommate.domain.chat.dto.request.ChatNotificationSettingRequest;
+import com.roommate.domain.chat.dto.request.ChatRoomCreateRequest;
+import com.roommate.domain.chat.dto.response.ChatRoomListItemResponse;
+import com.roommate.domain.chat.dto.response.ChatMessageResponse;
+import com.roommate.domain.chat.dto.response.ChatRoomCreateResponse;
+import com.roommate.domain.chat.service.ChatMessageService;
+import com.roommate.domain.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/api/chat/rooms")
-@RequiredArgsConstructor
-public class ChatRestController {
-    private final ChatService chatService;
+import java.util.List;
 
-    @GetMapping
-    public ResponseEntity<java.util.List<ChatRoomListItemResponse>> getChatRooms(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return ResponseEntity.ok(chatService.getChatRooms(userDetails.getMemberId()));
-    }
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/chat/rooms")
+public class ChatRestController {
+
+    private final ChatRoomService chatRoomService;
+    private final ChatMessageService chatMessageService;
 
     @PostMapping
-    public ResponseEntity<ChatResponse> createOrGetChatRoom(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                            @RequestBody ChatResquest request) {
-        ChatResponse response = chatService.createOrGetChatRoom(
-                userDetails.getMemberId(),
-                request.getRoomId(),
-                request.getPartnerId()
-        );
-        return ResponseEntity.ok(response);
+    public ChatRoomCreateResponse createOrGetChatRoom(@RequestBody ChatRoomCreateRequest chatRoomCreateRequest, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long chatRoomId = chatRoomService.getOrCreateChatRoom(chatRoomCreateRequest.getRoomId(), userDetails.getMemberId());
+        return new ChatRoomCreateResponse(chatRoomId);
+    }
+
+    @GetMapping
+    public List<ChatRoomListItemResponse> getMyChatRooms(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return chatRoomService.getMyChatRooms(userDetails.getMemberId());
     }
 
     @GetMapping("/{chatRoomId}/messages")
-    public ResponseEntity<java.util.List<ChatMessageResponse>> getMessages(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                                           @PathVariable Long chatRoomId) {
-        return ResponseEntity.ok(chatService.getMessages(userDetails.getMemberId(), chatRoomId));
+    public List<ChatMessageResponse> getChatMessages(@PathVariable Long chatRoomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long memberId = userDetails.getMemberId();
+        return chatMessageService.getMessages(chatRoomId, memberId);
     }
 
-    @PostMapping("/{chatRoomId}/messages")
-    public ResponseEntity<ChatMessageResponse> sendMessage(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                                                           @PathVariable Long chatRoomId,
-                                                           @RequestBody ChatMessageRequest request) {
-        return ResponseEntity.ok(chatService.sendMessage(userDetails.getMemberId(), chatRoomId, request.getMessage()));
+    @PatchMapping("/{chatRoomId}/read")
+    public void markRead(@PathVariable Long chatRoomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        chatRoomService.markRead(chatRoomId, userDetails.getMemberId());
+    }
+
+    @DeleteMapping("/{chatRoomId}/me")
+    public void hideChatRoom(@PathVariable Long chatRoomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        chatRoomService.hideChatRoom(chatRoomId, userDetails.getMemberId());
+    }
+
+    @PatchMapping("/{chatRoomId}/notifications")
+    public void updateNotificationsEnabled(
+            @PathVariable Long chatRoomId,
+            @RequestBody ChatNotificationSettingRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        boolean enabled = request.getNotificationsEnabled() == null || request.getNotificationsEnabled();
+        chatRoomService.updateNotificationsEnabled(chatRoomId, userDetails.getMemberId(), enabled);
     }
 }

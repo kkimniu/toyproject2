@@ -1,15 +1,19 @@
-package com.roommate.domain.chat.dto;
+package com.roommate.domain.chat.dto.response;
 
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
+
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @Getter
 @AllArgsConstructor
-public class ChatResponse {
+public class ChatMessageResponse {
+    private Long messageId;
     private Long chatRoomId;
-    private Long roomId;
-    private Long partnerId;
+    private Long senderId;
+    private String message;
+    private LocalDateTime sentAt;
 }

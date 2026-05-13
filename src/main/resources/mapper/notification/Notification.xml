@@ -5,6 +5,26 @@
 
 <mapper namespace="com.roommate.domain.notification.repository.NotificationRepository">
 
+    <insert id="insertChatNotificationIfEnabled">
+        INSERT INTO notifications (
+            member_id,
+            type,
+            reference_id,
+            message
+        )
+        SELECT
+            #{memberId},
+            'CHAT',
+            #{chatRoomId},
+            LEFT(#{message}, 255)
+        FROM chat_room_members
+        WHERE chat_room_id = #{chatRoomId}
+        AND member_id = #{memberId}
+        AND notifications_enabled = 1
+        AND is_hidden = 0
+        LIMIT 1
+    </insert>
+
     <delete id="deleteByMemberId" parameterType="long">
         DELETE FROM notifications
         WHERE member_id = #{memberId}

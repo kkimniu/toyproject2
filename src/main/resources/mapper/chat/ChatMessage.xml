@@ -1,42 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.roommate.domain.chat.repository.ChatMessageRepository">
+
     <resultMap id="chatMessageMap" type="com.roommate.domain.chat.entity.ChatMessageEntity">
         <id property="messageId" column="message_id"/>
         <result property="chatRoomId" column="chat_room_id"/>
         <result property="senderId" column="sender_id"/>
-        <result property="senderName" column="sender_name"/>
         <result property="message" column="message"/>
         <result property="sentAt" column="sent_at"/>
+        <result property="deletedBySender" column="deleted_by_sender"/>
+        <result property="deletedByReceiver" column="deleted_by_receiver"/>
     </resultMap>
 
-    <insert id="save" parameterType="com.roommate.domain.chat.entity.ChatMessageEntity" useGeneratedKeys="true" keyProperty="messageId">
+    <!-- 채팅 메시지 목록 조회 (기본: 오래된 순) -->
+    <select id="findByChatRoomId" resultMap="chatMessageMap">
+        SELECT *
+        FROM chat_messages
+        WHERE chat_room_id = #{chatRoomId}
+        ORDER BY sent_at ASC
+    </select>
+
+    <select id="findVisibleByChatRoomId" resultMap="chatMessageMap">
+        SELECT cm.*
+        FROM chat_messages cm
+        INNER JOIN chat_room_members crm
+            ON crm.chat_room_id = cm.chat_room_id
+            AND crm.member_id = #{memberId}
+        WHERE cm.chat_room_id = #{chatRoomId}
+        AND (
+            crm.left_at IS NULL
+            OR cm.sent_at > crm.left_at
+        )
+        ORDER BY cm.sent_at ASC
+    </select>
+
+    <!-- 채팅 메시지 저장 -->
+    <insert id="insert" parameterType="com.roommate.domain.chat.entity.ChatMessageEntity"
+            useGeneratedKeys="true" keyProperty="messageId">
         INSERT INTO chat_messages (
-            chat_room_id,
-            sender_id,
-            message
+        chat_room_id,
+        sender_id,
+        message,
+        sent_at,
+        deleted_by_sender,
+        deleted_by_receiver
         ) VALUES (
-            #{chatRoomId},
-            #{senderId},
-            #{message}
+        #{chatRoomId},
+        #{senderId},
+        #{message},
+        #{sentAt},
+        #{deletedBySender},
+        #{deletedByReceiver}
         )
     </insert>
 
-    <select id="findByChatRoomId" resultMap="chatMessageMap">
-        SELECT
-            cm.message_id,
-            cm.chat_room_id,
-            cm.sender_id,
-            m.name AS sender_name,
-            cm.message,
-            cm.sent_at
-        FROM chat_messages cm
-        JOIN members m ON m.member_id = cm.sender_id
-        WHERE cm.chat_room_id = #{chatRoomId}
-          AND cm.is_deleted = 0
-        ORDER BY cm.sent_at ASC, cm.message_id ASC
-    </select>
 </mapper>

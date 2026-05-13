@@ -159,8 +159,7 @@ async function handleRoommateActionClick(event) {
   if (!messageButton) return;
 
   const roomId = messageButton.dataset.roomId;
-  const partnerId = messageButton.dataset.partnerId;
-  if (!roomId || !partnerId) return;
+  if (!roomId) return;
 
   messageButton.disabled = true;
   try {
@@ -172,7 +171,6 @@ async function handleRoommateActionClick(event) {
       },
       body: JSON.stringify({
         room_id: Number(roomId),
-        partner_id: Number(partnerId),
       }),
     });
 
@@ -187,7 +185,7 @@ async function handleRoommateActionClick(event) {
     const data = await response.json();
     const chatRoomId = data.chat_room_id ?? data.chatRoomId;
     if (chatRoomId) {
-      window.location.href = `${contextPath}/chat/rooms/${encodeURIComponent(chatRoomId)}`;
+      window.location.href = `${contextPath}/chats/${encodeURIComponent(chatRoomId)}`;
     }
   } catch (error) {
     console.error(error);

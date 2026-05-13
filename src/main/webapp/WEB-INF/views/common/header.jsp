@@ -11,7 +11,7 @@
       <li><a href="${pageContext.request.contextPath}/main">홈</a></li>
       <li><a href="${pageContext.request.contextPath}/rooms">룸메이트 찾기</a></li>
       <li><a href="${pageContext.request.contextPath}/rooms/map">지도 검색</a></li>
-      <li><a href="${pageContext.request.contextPath}/chat/rooms">채팅</a></li>
+      <li><a href="${pageContext.request.contextPath}/chats">채팅</a></li>
       <li><a href="${pageContext.request.contextPath}/community">커뮤니티</a></li>
       <li><a href="${pageContext.request.contextPath}/notices">공지사항</a></li>
     </ul>

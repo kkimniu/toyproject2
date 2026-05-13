@@ -8,7 +8,10 @@ import java.util.List;
 
 @Mapper
 public interface ChatMessageRepository {
-    void save(ChatMessageEntity chatMessageEntity);
-
+    void insert (ChatMessageEntity chatMessageEntity);
     List<ChatMessageEntity> findByChatRoomId(@Param("chatRoomId") Long chatRoomId);
+    List<ChatMessageEntity> findVisibleByChatRoomId(
+            @Param("chatRoomId") Long chatRoomId,
+            @Param("memberId") Long memberId
+    );
 }
