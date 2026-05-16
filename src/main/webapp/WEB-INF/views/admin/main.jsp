@@ -14,11 +14,33 @@
   <main class="admin-page">
     <section class="admin-heading">
       <p>관리자</p>
-      <h1>대시보드</h1>
+      <h1>회원 관리</h1>
     </section>
 
-    <section class="admin-placeholder" aria-label="향후 관리자 기능">
-      <h2>표시할 관리 항목이 없습니다.</h2>
+    <section class="member-summary" aria-label="회원 목록 요약">
+      <span id="adminMemberCount">회원을 불러오는 중입니다.</span>
+    </section>
+
+    <section class="member-table-section" aria-label="회원 목록">
+      <div class="member-table-wrap">
+        <table class="member-table">
+          <thead>
+            <tr>
+              <th scope="col">회원 ID</th>
+              <th scope="col">이메일</th>
+              <th scope="col">이름</th>
+              <th scope="col">권한</th>
+              <th scope="col">상태</th>
+              <th scope="col">가입일</th>
+            </tr>
+          </thead>
+          <tbody id="adminMemberTableBody">
+            <tr class="member-table-empty">
+              <td colspan="6">회원 목록을 불러오는 중입니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 
@@ -26,6 +48,7 @@
     window.contextPath = "${pageContext.request.contextPath}";
   </script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/adminGuard.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/memberList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 </body>
 </html>
