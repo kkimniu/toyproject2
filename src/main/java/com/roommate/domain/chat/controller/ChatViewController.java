@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-@RequestMapping("/chats")
+@RequestMapping({"/chats", "/chat/rooms"})
 @RequiredArgsConstructor
 public class ChatViewController {
     @GetMapping

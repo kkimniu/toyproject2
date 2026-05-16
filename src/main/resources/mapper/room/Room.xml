@@ -87,6 +87,27 @@
         AND deleted = 0
     </select>
 
+    <insert id="insertRoomView">
+        INSERT IGNORE INTO room_views (
+            room_id,
+            member_id
+        ) VALUES (
+            #{roomId},
+            #{memberId}
+        )
+    </insert>
+
+    <update id="syncRoomViewCount">
+        UPDATE rooms
+        SET views = (
+            SELECT COUNT(*)
+            FROM room_views rv
+            WHERE rv.room_id = #{roomId}
+        )
+        WHERE room_id = #{roomId}
+        AND deleted = 0
+    </update>
+
     <!-- 지도용 목록 -->
     <select id="findForMap" resultType="com.roommate.domain.room.entity.RoomMapItemEntity">
         SELECT

@@ -43,7 +43,7 @@
                     <span id="room-created-at"></span>
                 </div>
                 <div class="room-detail-meta-item">
-                    👁 <span>${room.views}</span>
+                    👁 <span id="room-views">0</span>
                 </div>
             </div>
         </div>
@@ -138,15 +138,6 @@
                     </div>
                     <div class="room-author-info">
                         <div id="author-name" class="room-author-name">작성자</div>
-                    </div>
-                </div>
-
-                <div class="room-author-extra">
-                    <div class="room-author-stat">
-                        👁 <span id="author-views">0</span> 회 열람
-                    </div>
-                    <div class="room-author-stat">
-                        가입일 <span id="author-joined">-</span>
                     </div>
                 </div>
 

@@ -25,6 +25,10 @@ public interface RoomRepository {
 
     RoomEntity findById(@Param("roomId") Long roomId);
 
+    int insertRoomView(@Param("roomId") Long roomId, @Param("memberId") Long memberId);
+
+    void syncRoomViewCount(@Param("roomId") Long roomId);
+
     // 지도용 목록 조회
     List<RoomMapItemEntity> findForMap(@Param("north") double north, @Param("south") double south, @Param("east") double east, @Param("west") double west, @Param("zoom") int zoom);
 

@@ -98,14 +98,8 @@
             END AS otherMemberId,
             other_member.name AS otherName,
             other_member.photo_url AS otherPhotoUrl,
-            CASE
-                WHEN other_crm.is_hidden = 1 THEN '상대방이 나갔습니다.'
-                ELSE last_message.message
-            END AS lastMessage,
-            CASE
-                WHEN other_crm.is_hidden = 1 THEN other_crm.left_at
-                ELSE last_message.sent_at
-            END AS lastSentAt,
+            last_message.message AS lastMessage,
+            last_message.sent_at AS lastSentAt,
             (
                 SELECT COUNT(*)
                 FROM chat_messages unread_message
@@ -144,7 +138,6 @@
         AND crm.is_hidden = 0
         ORDER BY
             CASE
-                WHEN other_crm.is_hidden = 1 THEN other_crm.left_at
                 WHEN last_message.sent_at IS NOT NULL THEN last_message.sent_at
                 ELSE cr.created_at
             END DESC,
