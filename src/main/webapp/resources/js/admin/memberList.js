@@ -27,19 +27,20 @@ async function loadMembers() {
     if (members.length === 0) {
       tableBody.innerHTML = `
         <tr class="member-table-empty">
-          <td colspan="6">표시할 회원이 없습니다.</td>
+          <td colspan="7">표시할 회원이 없습니다.</td>
         </tr>
       `;
       return;
     }
 
     tableBody.innerHTML = members.map(renderMemberRow).join("");
+    bindActionButtons(tableBody);
   } catch (error) {
     console.error(error);
     count.textContent = "회원 목록을 불러오지 못했습니다.";
     tableBody.innerHTML = `
       <tr class="member-table-empty">
-        <td colspan="6">회원 목록을 불러오지 못했습니다.</td>
+        <td colspan="7">회원 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
   }
@@ -57,8 +58,67 @@ function renderMemberRow(member) {
       <td><span class="member-role">${escapeHtml(role)}</span></td>
       <td><span class="member-status ${statusClass(status)}">${escapeHtml(status)}</span></td>
       <td>${escapeHtml(formatDate(member.member_created_at))}</td>
+      <td>${renderActionCell(member)}</td>
     </tr>
   `;
+}
+
+function renderActionCell(member) {
+  if (member.role !== "USER") {
+    return '<span class="member-action-empty">-</span>';
+  }
+
+  const nextStatus = member.status === "BANNED" ? "ACTIVE" : "BANNED";
+  const label = nextStatus === "BANNED" ? "정지" : "해제";
+  return `
+    <button
+      type="button"
+      class="member-action-btn"
+      data-member-id="${escapeHtml(member.member_id)}"
+      data-next-status="${escapeHtml(nextStatus)}">
+      ${label}
+    </button>
+  `;
+}
+
+function bindActionButtons(container) {
+  container.querySelectorAll(".member-action-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await updateMemberStatus(button);
+    });
+  });
+}
+
+async function updateMemberStatus(button) {
+  const memberId = button.dataset.memberId;
+  const nextStatus = button.dataset.nextStatus;
+  if (!memberId || !nextStatus) return;
+
+  const ok = confirm(nextStatus === "BANNED" ? "이 회원을 정지하시겠습니까?" : "이 회원의 정지를 해제하시겠습니까?");
+  if (!ok) return;
+
+  button.disabled = true;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/members/${encodeURIComponent(memberId)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: nextStatus }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`admin member status api failed: ${response.status}`);
+    }
+
+    const updatedMember = await response.json();
+    const row = button.closest("tr");
+    if (!row) return;
+    row.outerHTML = renderMemberRow(updatedMember);
+    bindActionButtons(document.getElementById("adminMemberTableBody"));
+  } catch (error) {
+    console.error(error);
+    alert("회원 상태를 변경하지 못했습니다.");
+    button.disabled = false;
+  }
 }
 
 function statusClass(status) {

@@ -150,4 +150,13 @@
         LIMIT #{limit}
         OFFSET #{offset}
     </select>
+
+    <update id="updateMemberStatusForAdmin">
+        UPDATE members
+        SET status = #{status},
+            banned_until = NULL,
+            member_updated_at = NOW()
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
 </mapper>
