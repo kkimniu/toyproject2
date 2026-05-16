@@ -131,4 +131,23 @@
         WHERE member_id = #{memberId}
         AND deleted = 0
     </update>
+
+    <select id="countMembersForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+    </select>
+
+    <select id="findMembersForAdmin" resultType="com.roommate.admin.dto.AdminMemberListItemResponse">
+        SELECT
+            member_id AS memberId,
+            email,
+            name,
+            role,
+            status,
+            member_created_at AS memberCreatedAt
+        FROM members
+        ORDER BY member_created_at DESC, member_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
 </mapper>

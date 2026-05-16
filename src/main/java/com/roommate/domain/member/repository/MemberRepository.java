@@ -1,9 +1,11 @@
 package com.roommate.domain.member.repository;
 
 import com.roommate.domain.member.entity.MemberEntity;
+import com.roommate.admin.dto.AdminMemberListItemResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -29,5 +31,8 @@ public interface MemberRepository {
 
     void updatePhotoUrl(@Param("memberId") Long memberId, @Param("photoUrl") String photoUrl);
 
+    long countMembersForAdmin();
+
+    List<AdminMemberListItemResponse> findMembersForAdmin(@Param("limit") int limit, @Param("offset") int offset);
 
 }
