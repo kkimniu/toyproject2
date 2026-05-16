@@ -191,7 +191,11 @@ window.addEventListener("DOMContentLoaded", async () => {
   const backBtn = document.getElementById("btn-back");
   if (backBtn) {
     backBtn.addEventListener("click", () => {
-      location.href = "/rooms/map";
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      location.href = "/rooms";
     });
   }
 
@@ -406,7 +410,7 @@ function bindActionsOnce(roomId) {
 
 async function loadRoomDetail(roomId) {
   try {
-    const res = await apiRequest(`/api/rooms/${roomId}`, { method: "GET" });
+    const res = await apiRequest(`/api/rooms/${roomId}?count_view=true`, { method: "GET" });
     if (!res.ok) {
       console.error("[room-detail] room detail load fail:", res.status);
       return null;
@@ -462,6 +466,10 @@ function renderRoomDetail(room) {
     createdAtEl.innerText = formatDate(room.roomCreatedAt ?? room.room_created_at);
   }
 
+  const views = room.views ?? 0;
+  const roomViewsEl = document.getElementById("room-views");
+  if (roomViewsEl) roomViewsEl.innerText = formatNumber(views);
+
   const monthlyRent = room.monthlyRent ?? room.monthly_rent;
   const deposit = room.deposit;
 
@@ -513,10 +521,6 @@ function renderRoomDetail(room) {
   const contentEl = document.getElementById("room-content");
   if (contentEl) contentEl.innerText = room.content || "";
 
-  const views = room.views ?? 0;
-  const authorViewsEl = document.getElementById("author-views");
-  if (authorViewsEl) authorViewsEl.innerText = views;
-
   const authorName = room.ownerName ?? room.owner_name ?? "작성자";
   const authorPhoto = room.ownerPhotoUrl ?? room.owner_photo_url ?? "";
   const authorPhotoEl = document.getElementById("author-photo");
@@ -524,11 +528,6 @@ function renderRoomDetail(room) {
 
   const authorNameEl = document.getElementById("author-name");
   if (authorNameEl) authorNameEl.innerText = authorName;
-
-  const authorJoinedEl = document.getElementById("author-joined");
-  if (authorJoinedEl) {
-    authorJoinedEl.innerText = formatDate(room.ownerJoinedAt ?? room.owner_joined_at);
-  }
 
   //  찜 상태는 렌더에서 확정(초기/재렌더 모두 안정)
   const likeBtn = document.getElementById("btn-like");

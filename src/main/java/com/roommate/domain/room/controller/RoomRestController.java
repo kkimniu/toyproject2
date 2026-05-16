@@ -30,9 +30,11 @@ public class RoomRestController {
 
     // 방 상세 조회
     @GetMapping("/{roomId}")
-    public RoomDetailResponse getRoomDetail(@PathVariable Long roomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public RoomDetailResponse getRoomDetail(@PathVariable Long roomId,
+                                            @RequestParam(name = "count_view", defaultValue = "false") boolean countView,
+                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long memberId = (userDetails != null) ? userDetails.getMemberId() : null;
-        return roomService.getRoomDetail(roomId, memberId);
+        return roomService.getRoomDetail(roomId, memberId, countView);
     }
     // 방 조회 (특정 작성자)
     @GetMapping("/member/{memberId}")

@@ -21,7 +21,7 @@ public interface RoomService {
 
     public void changeStatus(Long roomId, RoomStatusUpdateRequest roomStatusUpdateRequest, Long memberId);
 
-    public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId);
+    public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId, boolean countView);
 
     public List<RoomMapItemResponse> getRoomsForMap(double north, double south, double east, double west, int zoom);
 

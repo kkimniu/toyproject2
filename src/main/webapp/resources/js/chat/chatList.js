@@ -59,7 +59,7 @@ function renderRoom(room) {
   const unreadCount = Number(pick(room, ["unreadCount", "unread_count"]) ?? 0);
   const thumbnailUrl = pick(room, ["roomThumbnailUrl", "room_thumbnail_url"]);
   const otherPhotoUrl = pick(room, ["otherPhotoUrl", "other_photo_url"]);
-  const imageUrl = thumbnailUrl || otherPhotoUrl || "/resources/img/room/default-room.jpg";
+  const imageUrl = thumbnailUrl || otherPhotoUrl || "/resources/img/default-room.svg";
 
   return `
     <a class="chat-room-item" href="/chats/${encodeURIComponent(chatRoomId)}">

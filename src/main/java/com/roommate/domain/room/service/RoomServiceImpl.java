@@ -198,8 +198,13 @@ public class RoomServiceImpl implements RoomService {
 
 
     @Override
-    @Transactional(readOnly = true)
-    public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId) {
+    @Transactional
+    public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId, boolean countView) {
+        if (countView && currentMemberId != null) {
+            roomRepository.insertRoomView(roomId, currentMemberId);
+            roomRepository.syncRoomViewCount(roomId);
+        }
+
         RoomDetailEntity roomDetailEntity = roomRepository.findDetailById(roomId);
         if (roomDetailEntity == null) {
             throw new ApiException(ErrorCode.ROOM_NOT_FOUND);

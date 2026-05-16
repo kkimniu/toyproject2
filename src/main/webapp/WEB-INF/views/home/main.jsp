@@ -78,5 +78,6 @@
     window.contextPath = "${pageContext.request.contextPath}";
   </script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/home/main.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 </body>
 </html>
