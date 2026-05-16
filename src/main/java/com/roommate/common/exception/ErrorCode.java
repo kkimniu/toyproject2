@@ -30,6 +30,9 @@ public enum ErrorCode {
     ADMIN_MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "AD002", "관리 대상 회원이 존재하지 않습니다."),
     ADMIN_MEMBER_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD003", "회원 삭제에 실패했습니다."),
     ADMIN_MEMBER_BAN_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD004", "회원 정지 처리에 실패했습니다."),
+    ADMIN_SELF_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD005", "관리자는 본인 계정을 정지하거나 해제할 수 없습니다."),
+    ADMIN_TARGET_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD006", "다른 관리자 계정은 정지하거나 해제할 수 없습니다."),
+    ADMIN_MEMBER_STATUS_INVALID(HttpStatus.BAD_REQUEST, "AD007", "변경할 수 없는 회원 상태입니다."),
 
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),

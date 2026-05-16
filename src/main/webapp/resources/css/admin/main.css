@@ -112,6 +112,36 @@ body {
   color: #475467;
 }
 
+.member-action-btn {
+  min-width: 64px;
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #101828;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.member-action-btn:hover {
+  background: #f9fafb;
+}
+
+.member-action-btn[data-next-status="BANNED"] {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
+.member-action-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.member-action-empty {
+  color: #98a2b3;
+}
+
 @media (max-width: 720px) {
   .admin-page {
     padding: 32px 18px 72px;

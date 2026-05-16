@@ -32,11 +32,12 @@
               <th scope="col">권한</th>
               <th scope="col">상태</th>
               <th scope="col">가입일</th>
+              <th scope="col">관리</th>
             </tr>
           </thead>
           <tbody id="adminMemberTableBody">
             <tr class="member-table-empty">
-              <td colspan="6">회원 목록을 불러오는 중입니다.</td>
+              <td colspan="7">회원 목록을 불러오는 중입니다.</td>
             </tr>
           </tbody>
         </table>
