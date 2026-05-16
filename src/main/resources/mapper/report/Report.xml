@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.report.repository.ReportRepository">
+    <select id="countReportsForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM report
+    </select>
+
+    <select id="findReportsForAdmin" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.reporter_id AS reporterId,
+            reporter.email AS reporterEmail,
+            reporter.name AS reporterName,
+            r.reason AS reason,
+            r.status AS status,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        ORDER BY r.report_created_at DESC, r.report_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+</mapper>

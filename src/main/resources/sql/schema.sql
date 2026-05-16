@@ -88,6 +88,7 @@ CREATE TABLE report (
     room_id BIGINT NOT NULL,
     target_member_id BIGINT NOT NULL,
     reason TEXT,
+    status ENUM('PENDING','RESOLVED') NOT NULL DEFAULT 'PENDING',
     report_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE,
