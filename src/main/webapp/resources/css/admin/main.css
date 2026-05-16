@@ -29,60 +29,77 @@ body {
   letter-spacing: 0;
 }
 
-.member-summary {
-  margin-top: 32px;
+.admin-section {
+  margin-top: 36px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0;
+}
+
+.section-header p {
+  margin: 8px 0 0;
   color: #475467;
   font-size: 14px;
   font-weight: 700;
 }
 
-.member-table-section {
-  margin-top: 18px;
-}
-
-.member-table-wrap {
+.data-table-wrap {
   overflow-x: auto;
   border: 1px solid #eaecf0;
   border-radius: 8px;
   background: #fff;
 }
 
-.member-table {
+.data-table {
   width: 100%;
   min-width: 760px;
   border-collapse: collapse;
 }
 
-.member-table th,
-.member-table td {
+.data-table th,
+.data-table td {
   padding: 16px 18px;
   border-bottom: 1px solid #eaecf0;
   text-align: left;
   font-size: 14px;
 }
 
-.member-table th {
+.data-table th {
   color: #475467;
   background: #f9fafb;
   font-weight: 700;
 }
 
-.member-table td {
+.data-table td {
   color: #101828;
+  vertical-align: top;
 }
 
-.member-table tbody tr:last-child td {
+.data-table tbody tr:last-child td {
   border-bottom: 0;
 }
 
-.member-table-empty td {
+.data-table-empty td {
   height: 120px;
   color: #667085;
   text-align: center;
+  vertical-align: middle;
 }
 
 .member-role,
-.member-status {
+.member-status,
+.report-status {
   display: inline-flex;
   align-items: center;
   min-height: 28px;
@@ -142,6 +159,57 @@ body {
   color: #98a2b3;
 }
 
+.report-filter {
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.report-filter-btn {
+  min-width: 72px;
+  height: 34px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-filter-btn.is-active {
+  background: #101828;
+  color: #fff;
+}
+
+.report-party {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.report-party strong {
+  font-size: 14px;
+}
+
+.report-party span,
+.report-reason {
+  color: #667085;
+}
+
+.report-status-pending {
+  background: #fffaeb;
+  color: #b54708;
+}
+
+.report-status-resolved {
+  background: #ecfdf3;
+  color: #027a48;
+}
+
 @media (max-width: 720px) {
   .admin-page {
     padding: 32px 18px 72px;
@@ -149,5 +217,11 @@ body {
 
   .admin-heading h1 {
     font-size: 30px;
+  }
+
+  .section-header,
+  .section-header-reports {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
