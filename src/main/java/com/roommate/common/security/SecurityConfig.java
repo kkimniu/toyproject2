@@ -68,6 +68,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/ws/**").permitAll()
                 .antMatchers("/members/**").permitAll()      // 마이페이지 (뷰)
                 .antMatchers("/chats", "/chats/**").permitAll()      // 채팅 페이지 (뷰)
+                .antMatchers("/admin", "/admin/**").permitAll()
 
                 // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()

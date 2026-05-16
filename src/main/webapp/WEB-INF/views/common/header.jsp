@@ -31,6 +31,10 @@
     </div>
 
     <div id="headerProfileArea" class="header-profile" style="display:none;">
+      <a href="${pageContext.request.contextPath}/admin"
+         id="headerAdminLink"
+         class="header-text-btn"
+         style="display:none;">관리자</a>
       <a href="${pageContext.request.contextPath}/members/mypage"
          class="header-username"
          id="headerUsername">user</a>

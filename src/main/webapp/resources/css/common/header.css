@@ -67,6 +67,7 @@
   font-weight: 700;
   padding: 10px 16px;
   color: #111827;
+  text-decoration: none;
   transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
 }
 

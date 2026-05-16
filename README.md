@@ -1,5 +1,9 @@
 # Roommate Toy Project
 
+## Development Notes
+
+- [Admin page backlog](docs/admin-backlog.md)
+
 룸메이트와 방 매물을 등록하고, 관심 있는 방 작성자에게 실시간으로 문의할 수 있는 Spring MVC 기반 웹 애플리케이션입니다.
 
 ## 기술 스택
