@@ -12,6 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnOpenLogin = document.getElementById("btnOpenLogin");
   const btnOpenRegister = document.getElementById("btnOpenRegister");
   const btnHeaderRoomCreate = document.getElementById("btnHeaderRoomCreate");
+  const headerAdminLink = document.getElementById("headerAdminLink");
 
   btnOpenLogin?.addEventListener("click", () => {
     window.openAuthModal?.("login");
@@ -37,6 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const showGuestHeader = () => {
     if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "none";
+    if (headerAdminLink) headerAdminLink.style.display = "none";
     if (authButtons) authButtons.style.display = "flex";
     if (profileArea) profileArea.style.display = "none";
   };
@@ -63,12 +65,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
     const name = data.name || "";
     const email = data.email || "";
+    const isAdmin = data.member_role_enum === "ADMIN";
     const handle = email && email.includes("@") ? email.split("@")[0] : name || "user";
 
     if (headerUsername) headerUsername.textContent = handle;
     if (authButtons) authButtons.style.display = "none";
     if (profileArea) profileArea.style.display = "flex";
     if (btnHeaderRoomCreate) btnHeaderRoomCreate.style.display = "inline-flex";
+    if (headerAdminLink) headerAdminLink.style.display = isAdmin ? "inline-flex" : "none";
   } catch (error) {
     console.warn("header init error:", error);
     showGuestHeader();
