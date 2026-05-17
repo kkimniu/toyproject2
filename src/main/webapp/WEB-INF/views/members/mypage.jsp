@@ -120,7 +120,14 @@
   </section>
 
   <section class="mypage-tab-content" id="tab-activities" style="display:none;">
-    <!-- TODO: 활동 내역 내용 -->
+    <div class="mypage-section-header">
+      <h2 class="mypage-section-title">신고 내역</h2>
+      <p class="mypage-section-subtitle">내가 접수한 신고와 처리 결과를 확인할 수 있습니다.</p>
+    </div>
+
+    <div id="myReportList" class="my-report-list">
+      <p class="favorite-empty">신고 내역을 불러오는 중입니다.</p>
+    </div>
   </section>
 
   <!-- 🔐 계정 설정 탭 안에 비밀번호 변경 카드 + 모달 배치하면 됨 -->

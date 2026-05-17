@@ -18,6 +18,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       loadMyProfile(),
       loadMyFavorites(),
       loadMyRooms(),
+      loadMyReports(),
     ]);
   } catch (e) {
     console.error("mypage view init error:", e);
@@ -275,6 +276,64 @@ async function loadMyRooms() {
   }
 }
 
+async function loadMyReports() {
+  const wrap = document.getElementById("myReportList");
+  if (!wrap) return;
+
+  wrap.innerHTML = '<p class="favorite-empty">신고 내역을 불러오는 중입니다.</p>';
+
+  try {
+    const res = await apiRequest("/api/reports/me", { method: "GET" });
+    if (!res.ok) throw new Error("my reports load failed: " + res.status);
+
+    const reports = await res.json();
+    if (!Array.isArray(reports) || reports.length === 0) {
+      wrap.innerHTML = '<p class="favorite-empty">접수한 신고가 없습니다.</p>';
+      return;
+    }
+
+    wrap.innerHTML = reports.map(renderMyReportCard).join("");
+  } catch (e) {
+    console.error("[mypage] loadMyReports error:", e);
+    wrap.innerHTML = '<p class="favorite-empty">신고 내역을 불러오지 못했습니다.</p>';
+  }
+}
+
+function renderMyReportCard(report) {
+  return `
+    <article class="my-report-card">
+      <div class="my-report-head">
+        <div>
+          <h4>${escapeHtml(report.target_member_name || "대상 회원")}</h4>
+          <p>${escapeHtml(report.target_member_email || "-")}</p>
+        </div>
+        <span class="my-report-status ${reportStatusClass(report.status)}">${escapeHtml(reportStatusText(report.status))}</span>
+      </div>
+      <dl class="my-report-meta">
+        <div>
+          <dt>신고 사유</dt>
+          <dd>${escapeHtml(report.reason || "-")}</dd>
+        </div>
+        <div>
+          <dt>접수일</dt>
+          <dd>${escapeHtml(formatDate(report.report_created_at))}</dd>
+        </div>
+        <div>
+          <dt>처리 결과</dt>
+          <dd>${escapeHtml(resolutionTypeText(report.resolution_type))}</dd>
+        </div>
+        <div>
+          <dt>처리일</dt>
+          <dd>${escapeHtml(report.processed_at ? formatDate(report.processed_at) : "-")}</dd>
+        </div>
+      </dl>
+      <div class="my-report-message">
+        ${escapeHtml(report.resolution_message || "아직 처리 결과가 등록되지 않았습니다.")}
+      </div>
+    </article>
+  `;
+}
+
 function renderMyRoomCard(room) {
   const roomId = room.roomId ?? room.room_id;
   const title = room.roomTitle ?? room.room_title ?? room.title ?? "제목 없음";
@@ -468,6 +527,23 @@ function statusText(status) {
     case "HIDDEN": return "비공개";
     default: return "상태 미확인";
   }
+}
+
+function reportStatusClass(status) {
+  if (status === "RESOLVED") return "RESOLVED";
+  return "PENDING";
+}
+
+function reportStatusText(status) {
+  if (status === "RESOLVED") return "처리완료";
+  return "대기";
+}
+
+function resolutionTypeText(value) {
+  if (value === "ACCEPTED") return "신고 인정";
+  if (value === "REJECTED") return "신고 반려";
+  if (value === "NO_ACTION") return "조치 없음";
+  return "-";
 }
 
 function formatMoney(value) {

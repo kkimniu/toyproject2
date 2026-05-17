@@ -1,6 +1,7 @@
 package com.roommate.domain.report.repository;
 
 import com.roommate.admin.dto.AdminReportListItemResponse;
+import com.roommate.domain.report.dto.MyReportListItemResponse;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,4 +21,6 @@ public interface ReportRepository {
                                    @Param("resolutionType") String resolutionType,
                                    @Param("resolutionMessage") String resolutionMessage,
                                    @Param("processedBy") Long processedBy);
+
+    List<MyReportListItemResponse> findMyReports(@Param("reporterId") Long reporterId);
 }
