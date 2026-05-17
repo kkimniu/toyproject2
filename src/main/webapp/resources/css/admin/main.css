@@ -187,6 +187,34 @@ body {
   font-weight: 700;
 }
 
+.report-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-filter-btn {
+  min-width: 64px;
+  height: 36px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-filter-btn:hover {
+  background: #f9fafb;
+}
+
+.report-filter-btn.is-active {
+  border-color: #98a2b3;
+  background: #f2f4f7;
+  color: #101828;
+}
+
 .member-role,
 .member-status,
 .report-status {

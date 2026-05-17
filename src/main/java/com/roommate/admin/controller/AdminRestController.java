@@ -1,5 +1,6 @@
 package com.roommate.admin.controller;
 
+import com.roommate.admin.dto.AdminActionLogListResponse;
 import com.roommate.admin.dto.AdminDashboardSummaryResponse;
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
@@ -7,6 +8,7 @@ import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
 import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
+import com.roommate.admin.service.AdminActionLogService;
 import com.roommate.admin.service.AdminDashboardService;
 import com.roommate.admin.service.AdminMemberService;
 import com.roommate.admin.service.AdminReportService;
@@ -28,6 +30,7 @@ public class AdminRestController {
 
     private final AdminMemberService adminMemberService;
     private final AdminReportService adminReportService;
+    private final AdminActionLogService adminActionLogService;
     private final AdminDashboardService adminDashboardService;
 
     @GetMapping("/dashboard/summary")
@@ -39,6 +42,12 @@ public class AdminRestController {
     public AdminMemberListResponse getMembers(@RequestParam(defaultValue = "1") int page,
                                               @RequestParam(defaultValue = "20") int size) {
         return adminMemberService.getMembers(page, size);
+    }
+
+    @GetMapping("/action-logs")
+    public AdminActionLogListResponse getActionLogs(@RequestParam(defaultValue = "1") int page,
+                                                    @RequestParam(defaultValue = "20") int size) {
+        return adminActionLogService.getLogs(page, size);
     }
 
     @PatchMapping("/members/{memberId}/status")

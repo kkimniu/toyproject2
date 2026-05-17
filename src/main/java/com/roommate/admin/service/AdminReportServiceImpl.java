@@ -15,6 +15,7 @@ import java.util.List;
 public class AdminReportServiceImpl implements AdminReportService {
 
     private final ReportRepository reportRepository;
+    private final AdminActionLogService adminActionLogService;
 
     @Override
     public AdminReportListResponse getReports(int page,
@@ -83,6 +84,8 @@ public class AdminReportServiceImpl implements AdminReportService {
         if (updatedCount != 1) {
             throw new ApiException(ErrorCode.ADMIN_REPORT_RESOLVE_FAILED);
         }
+
+        adminActionLogService.logReportResolved(processedBy, reportId, resolutionType);
 
         return reportRepository.findReportForAdminById(reportId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ADMIN_REPORT_NOT_FOUND));
