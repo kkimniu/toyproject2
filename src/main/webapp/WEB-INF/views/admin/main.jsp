@@ -12,6 +12,24 @@
   <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
   <main class="admin-page">
+    <section class="admin-summary" aria-label="관리자 요약 지표">
+      <article class="summary-item">
+        <span>전체 회원</span>
+        <strong id="summaryTotalMembers">-</strong>
+      </article>
+      <article class="summary-item">
+        <span>정지 회원</span>
+        <strong id="summaryBannedMembers">-</strong>
+      </article>
+      <article class="summary-item">
+        <span>대기 신고</span>
+        <strong id="summaryPendingReports">-</strong>
+      </article>
+      <article class="summary-item">
+        <span>처리 완료 신고</span>
+        <strong id="summaryResolvedReports">-</strong>
+      </article>
+    </section>
     <section class="admin-heading">
       <p>관리자</p>
       <h1>운영 관리</h1>
@@ -23,6 +41,14 @@
           <h2>회원 관리</h2>
           <p id="adminMemberCount">회원을 불러오는 중입니다.</p>
         </div>
+        <label class="page-size-control">
+          <span>표시 개수</span>
+          <select id="memberPageSize">
+            <option value="5">5개</option>
+            <option value="10">10개</option>
+            <option value="20" selected>20개</option>
+          </select>
+        </label>
       </div>
 
       <div class="data-table-wrap">
@@ -45,6 +71,12 @@
           </tbody>
         </table>
       </div>
+
+      <div class="table-pagination" aria-label="회원 목록 페이지 이동">
+        <button type="button" id="btnPrevMembers" class="pagination-btn">이전</button>
+        <span id="memberPageInfo">-</span>
+        <button type="button" id="btnNextMembers" class="pagination-btn">다음</button>
+      </div>
     </section>
 
     <section class="admin-section" aria-label="신고 목록">
@@ -54,12 +86,51 @@
           <p id="adminReportCount">신고를 불러오는 중입니다.</p>
         </div>
 
-        <div class="report-filter" role="group" aria-label="신고 상태 필터">
-          <button type="button" class="report-filter-btn is-active" data-status="ALL">전체</button>
-          <button type="button" class="report-filter-btn" data-status="PENDING">대기</button>
-          <button type="button" class="report-filter-btn" data-status="RESOLVED">처리완료</button>
+        <div class="section-controls">
+          <label class="page-size-control">
+            <span>표시 개수</span>
+            <select id="reportPageSize">
+              <option value="5">5개</option>
+              <option value="10">10개</option>
+              <option value="20" selected>20개</option>
+            </select>
+          </label>
+
+          <div class="report-filter" role="group" aria-label="신고 상태 필터">
+            <button type="button" class="report-filter-btn is-active" data-status="ALL">전체</button>
+            <button type="button" class="report-filter-btn" data-status="PENDING">대기</button>
+            <button type="button" class="report-filter-btn" data-status="RESOLVED">처리완료</button>
+          </div>
         </div>
       </div>
+
+      <form id="reportSearchForm" class="report-search-form">
+        <label>
+          <span>상태</span>
+          <select name="status">
+            <option value="">전체</option>
+            <option value="PENDING">대기</option>
+            <option value="RESOLVED">처리완료</option>
+          </select>
+        </label>
+        <label>
+          <span>신고자</span>
+          <input type="search" name="reporter" placeholder="이름 또는 이메일">
+        </label>
+        <label>
+          <span>신고 대상</span>
+          <input type="search" name="target" placeholder="이름 또는 이메일">
+        </label>
+        <label>
+          <span>시작일</span>
+          <input type="date" name="from">
+        </label>
+        <label>
+          <span>종료일</span>
+          <input type="date" name="to">
+        </label>
+        <button type="submit">검색</button>
+      </form>
 
       <div class="data-table-wrap">
         <table class="data-table report-table">
@@ -80,6 +151,12 @@
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="table-pagination" aria-label="신고 목록 페이지 이동">
+        <button type="button" id="btnPrevReports" class="pagination-btn">이전</button>
+        <span id="reportPageInfo">-</span>
+        <button type="button" id="btnNextReports" class="pagination-btn">다음</button>
       </div>
     </section>
   </main>
@@ -125,6 +202,7 @@
     window.contextPath = "${pageContext.request.contextPath}";
   </script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/adminGuard.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/dashboardSummary.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/memberList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/reportList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>

@@ -1,6 +1,7 @@
 package com.roommate.admin.controller;
 
 import com.roommate.admin.dto.AdminActionLogListResponse;
+import com.roommate.admin.dto.AdminDashboardSummaryResponse;
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
 import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
@@ -8,6 +9,7 @@ import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
 import com.roommate.admin.service.AdminActionLogService;
+import com.roommate.admin.service.AdminDashboardService;
 import com.roommate.admin.service.AdminMemberService;
 import com.roommate.admin.service.AdminReportService;
 import com.roommate.common.security.UserDetailsImpl;
@@ -29,6 +31,12 @@ public class AdminRestController {
     private final AdminMemberService adminMemberService;
     private final AdminReportService adminReportService;
     private final AdminActionLogService adminActionLogService;
+    private final AdminDashboardService adminDashboardService;
+
+    @GetMapping("/dashboard/summary")
+    public AdminDashboardSummaryResponse getDashboardSummary() {
+        return adminDashboardService.getSummary();
+    }
 
     @GetMapping("/members")
     public AdminMemberListResponse getMembers(@RequestParam(defaultValue = "1") int page,
@@ -51,8 +59,13 @@ public class AdminRestController {
 
     @GetMapping("/reports")
     public AdminReportListResponse getReports(@RequestParam(defaultValue = "1") int page,
-                                              @RequestParam(defaultValue = "20") int size) {
-        return adminReportService.getReports(page, size);
+                                              @RequestParam(defaultValue = "20") int size,
+                                              @RequestParam(required = false) String status,
+                                              @RequestParam(required = false) String reporter,
+                                              @RequestParam(required = false) String target,
+                                              @RequestParam(required = false) String from,
+                                              @RequestParam(required = false) String to) {
+        return adminReportService.getReports(page, size, status, reporter, target, from, to);
     }
 
     @PatchMapping("/reports/{reportId}/status")

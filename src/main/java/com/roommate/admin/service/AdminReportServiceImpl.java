@@ -18,13 +18,33 @@ public class AdminReportServiceImpl implements AdminReportService {
     private final AdminActionLogService adminActionLogService;
 
     @Override
-    public AdminReportListResponse getReports(int page, int size) {
+    public AdminReportListResponse getReports(int page,
+                                              int size,
+                                              String status,
+                                              String reporter,
+                                              String target,
+                                              String from,
+                                              String to) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(size, 1);
         int offset = (safePage - 1) * safeSize;
 
-        long totalCount = reportRepository.countReportsForAdmin();
-        List<AdminReportListItemResponse> items = reportRepository.findReportsForAdmin(safeSize, offset);
+        String safeStatus = normalize(status);
+        String safeReporter = normalize(reporter);
+        String safeTarget = normalize(target);
+        String safeFrom = normalize(from);
+        String safeTo = normalize(to);
+
+        long totalCount = reportRepository.countReportsForAdmin(safeStatus, safeReporter, safeTarget, safeFrom, safeTo);
+        List<AdminReportListItemResponse> items = reportRepository.findReportsForAdmin(
+                safeStatus,
+                safeReporter,
+                safeTarget,
+                safeFrom,
+                safeTo,
+                safeSize,
+                offset
+        );
         int totalPages = totalCount == 0 ? 0 : (int) Math.ceil((double) totalCount / safeSize);
         boolean hasNext = safePage < totalPages;
 
@@ -75,5 +95,9 @@ public class AdminReportServiceImpl implements AdminReportService {
         return "ACCEPTED".equals(resolutionType)
                 || "REJECTED".equals(resolutionType)
                 || "NO_ACTION".equals(resolutionType);
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

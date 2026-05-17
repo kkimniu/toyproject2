@@ -137,6 +137,12 @@
         FROM members
     </select>
 
+    <select id="countMembersByStatusForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+        WHERE status = #{status}
+    </select>
+
     <select id="findMembersForAdmin" resultType="com.roommate.admin.dto.AdminMemberListItemResponse">
         SELECT
             member_id AS memberId,

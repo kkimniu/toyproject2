@@ -2,22 +2,29 @@ import { apiRequest } from "../common/apiClient.js";
 
 const contextPath = window.contextPath || "";
 let reports = [];
-let activeStatus = "ALL";
+let currentPage = 1;
+let totalPages = 1;
+let currentFilters = {};
 let selectedReportId = null;
+let pageSize = 20;
+let currentPage = 1;
+let totalPages = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  bindPageSizeSelect();
   bindFilterButtons();
+  bindPaginationButtons();
   bindResolutionModal();
   await loadReports();
 });
 
-async function loadReports() {
+async function loadReports(page = currentPage) {
   const count = document.getElementById("adminReportCount");
   const tableBody = document.getElementById("adminReportTableBody");
   if (!count || !tableBody) return;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/reports?page=1&size=20`, {
+    const response = await apiRequest(`${contextPath}/api/admin/reports?page=${currentPage}&size=${pageSize}`, {
       method: "GET",
     });
 
@@ -27,8 +34,12 @@ async function loadReports() {
 
     const data = await response.json();
     reports = Array.isArray(data.items) ? data.items : [];
+    currentPage = Number(data.page || currentPage);
+    totalPages = Number(data.total_pages || 0);
     count.textContent = `전체 신고 ${formatNumber(data.total_count || 0)}건`;
+    renderPagination();
     renderReports();
+    renderPagination();
   } catch (error) {
     console.error(error);
     count.textContent = "신고 목록을 불러오지 못했습니다.";
@@ -37,7 +48,18 @@ async function loadReports() {
         <td colspan="7">신고 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
+    totalPages = 0;
+    renderPagination();
   }
+}
+
+function bindPageSizeSelect() {
+  const select = document.getElementById("reportPageSize");
+  select?.addEventListener("change", async () => {
+    pageSize = Number(select.value || 20);
+    currentPage = 1;
+    await loadReports();
+  });
 }
 
 function bindFilterButtons() {
@@ -49,6 +71,23 @@ function bindFilterButtons() {
       });
       renderReports();
     });
+  });
+}
+
+function bindPaginationButtons() {
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+
+  prevButton?.addEventListener("click", async () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    await loadReports();
+  });
+
+  nextButton?.addEventListener("click", async () => {
+    if (currentPage >= totalPages) return;
+    currentPage += 1;
+    await loadReports();
   });
 }
 
@@ -71,21 +110,28 @@ function renderReports() {
   const tableBody = document.getElementById("adminReportTableBody");
   if (!tableBody) return;
 
-  const visibleReports = activeStatus === "ALL"
-    ? reports
-    : reports.filter((report) => report.status === activeStatus);
-
-  if (visibleReports.length === 0) {
+  if (reports.length === 0) {
     tableBody.innerHTML = `
       <tr class="data-table-empty">
-        <td colspan="7">${emptyMessage()}</td>
+        <td colspan="7">검색 조건에 맞는 신고가 없습니다.</td>
       </tr>
     `;
     return;
   }
 
-  tableBody.innerHTML = visibleReports.map(renderReportRow).join("");
+  tableBody.innerHTML = reports.map(renderReportRow).join("");
   bindActionButtons(tableBody);
+}
+
+function renderPagination() {
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+  const pageInfo = document.getElementById("reportPageInfo");
+  if (!prevButton || !nextButton || !pageInfo) return;
+
+  prevButton.disabled = currentPage <= 1 || totalPages === 0;
+  nextButton.disabled = currentPage >= totalPages || totalPages === 0;
+  pageInfo.textContent = totalPages === 0 ? "0 / 0" : `${currentPage} / ${totalPages}`;
 }
 
 function renderReportRow(report) {
@@ -182,24 +228,14 @@ async function submitResolution(form) {
       throw new Error(`admin report status api failed: ${response.status}`);
     }
 
-    const updatedReport = await response.json();
-    reports = reports.map((report) => (
-      report.report_id === updatedReport.report_id ? updatedReport : report
-    ));
     closeResolutionModal();
-    renderReports();
+    await loadReports(currentPage);
   } catch (error) {
     console.error(error);
     alert("신고 상태를 변경하지 못했습니다.");
   } finally {
     submitButton.disabled = false;
   }
-}
-
-function emptyMessage() {
-  if (activeStatus === "PENDING") return "대기 중인 신고가 없습니다.";
-  if (activeStatus === "RESOLVED") return "처리 완료된 신고가 없습니다.";
-  return "표시할 신고가 없습니다.";
 }
 
 function statusClass(status) {
