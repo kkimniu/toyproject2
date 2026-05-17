@@ -42,8 +42,13 @@ public class AdminRestController {
 
     @GetMapping("/reports")
     public AdminReportListResponse getReports(@RequestParam(defaultValue = "1") int page,
-                                              @RequestParam(defaultValue = "20") int size) {
-        return adminReportService.getReports(page, size);
+                                              @RequestParam(defaultValue = "20") int size,
+                                              @RequestParam(required = false) String status,
+                                              @RequestParam(required = false) String reporter,
+                                              @RequestParam(required = false) String target,
+                                              @RequestParam(required = false) String from,
+                                              @RequestParam(required = false) String to) {
+        return adminReportService.getReports(page, size, status, reporter, target, from, to);
     }
 
     @PatchMapping("/reports/{reportId}/status")

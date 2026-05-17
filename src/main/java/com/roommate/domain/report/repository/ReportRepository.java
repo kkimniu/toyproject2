@@ -10,9 +10,19 @@ import java.util.Optional;
 
 @Mapper
 public interface ReportRepository {
-    long countReportsForAdmin();
+    long countReportsForAdmin(@Param("status") String status,
+                              @Param("reporter") String reporter,
+                              @Param("target") String target,
+                              @Param("from") String from,
+                              @Param("to") String to);
 
-    List<AdminReportListItemResponse> findReportsForAdmin(@Param("limit") int limit, @Param("offset") int offset);
+    List<AdminReportListItemResponse> findReportsForAdmin(@Param("status") String status,
+                                                          @Param("reporter") String reporter,
+                                                          @Param("target") String target,
+                                                          @Param("from") String from,
+                                                          @Param("to") String to,
+                                                          @Param("limit") int limit,
+                                                          @Param("offset") int offset);
 
     Optional<AdminReportListItemResponse> findReportForAdminById(@Param("reportId") Long reportId);
 

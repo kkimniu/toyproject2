@@ -4,7 +4,13 @@ import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportListResponse;
 
 public interface AdminReportService {
-    AdminReportListResponse getReports(int page, int size);
+    AdminReportListResponse getReports(int page,
+                                       int size,
+                                       String status,
+                                       String reporter,
+                                       String target,
+                                       String from,
+                                       String to);
 
     AdminReportListItemResponse updateReportStatus(Long reportId,
                                                    String status,
