@@ -12,4 +12,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class AdminReportStatusUpdateRequest {
     private String status;
+    private String resolutionType;
+    private String resolutionMessage;
 }

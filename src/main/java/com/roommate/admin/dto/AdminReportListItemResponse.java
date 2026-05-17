@@ -20,5 +20,11 @@ public class AdminReportListItemResponse {
     private String reporterName;
     private String reason;
     private String status;
+    private String resolutionType;
+    private String resolutionMessage;
+    private Long processedBy;
+    private String processedByEmail;
+    private String processedByName;
+    private LocalDateTime processedAt;
     private LocalDateTime reportCreatedAt;
 }

@@ -6,5 +6,9 @@ import com.roommate.admin.dto.AdminReportListResponse;
 public interface AdminReportService {
     AdminReportListResponse getReports(int page, int size);
 
-    AdminReportListItemResponse updateReportStatus(Long reportId, String status);
+    AdminReportListItemResponse updateReportStatus(Long reportId,
+                                                   String status,
+                                                   String resolutionType,
+                                                   String resolutionMessage,
+                                                   Long processedBy);
 }
