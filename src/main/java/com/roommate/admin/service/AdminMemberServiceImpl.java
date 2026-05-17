@@ -18,6 +18,7 @@ import java.util.List;
 public class AdminMemberServiceImpl implements AdminMemberService {
 
     private final MemberRepository memberRepository;
+    private final AdminActionLogService adminActionLogService;
 
     @Override
     public AdminMemberListResponse getMembers(int page, int size) {
@@ -56,6 +57,12 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         if (updatedCount != 1) {
             throw new ApiException(ErrorCode.ADMIN_MEMBER_BAN_FAILED);
         }
+
+        adminActionLogService.logMemberStatusChange(
+                currentAdminId,
+                memberId,
+                status == MemberStatusEnum.BANNED ? "MEMBER_BANNED" : "MEMBER_UNBANNED"
+        );
 
         member.setStatus(status);
         return new AdminMemberListItemResponse(
