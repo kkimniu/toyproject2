@@ -159,6 +159,50 @@
         <button type="button" id="btnNextReports" class="pagination-btn">다음</button>
       </div>
     </section>
+
+    <section class="admin-section" aria-label="작업 로그">
+      <div class="section-header">
+        <div>
+          <h2>작업 로그</h2>
+          <p id="adminActionLogCount">작업 로그를 불러오는 중입니다.</p>
+        </div>
+
+        <label class="page-size-control">
+          <span>표시 개수</span>
+          <select id="actionLogPageSize">
+            <option value="5">5개</option>
+            <option value="10">10개</option>
+            <option value="20" selected>20개</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table action-log-table">
+          <thead>
+            <tr>
+              <th scope="col">로그 ID</th>
+              <th scope="col">수행 관리자</th>
+              <th scope="col">작업</th>
+              <th scope="col">대상</th>
+              <th scope="col">상세</th>
+              <th scope="col">수행 시각</th>
+            </tr>
+          </thead>
+          <tbody id="adminActionLogTableBody">
+            <tr class="data-table-empty">
+              <td colspan="6">작업 로그를 불러오는 중입니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-pagination" aria-label="작업 로그 페이지 이동">
+        <button type="button" id="btnPrevActionLogs" class="pagination-btn">이전</button>
+        <span id="actionLogPageInfo">-</span>
+        <button type="button" id="btnNextActionLogs" class="pagination-btn">다음</button>
+      </div>
+    </section>
   </main>
 
   <div class="report-resolution-modal" id="reportResolutionModal" aria-hidden="true">
@@ -205,6 +249,7 @@
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/dashboardSummary.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/memberList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/reportList.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/actionLogList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 </body>
 </html>

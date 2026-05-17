@@ -268,6 +268,11 @@ body {
   color: #b42318;
 }
 
+.member-action-btn[data-next-role="USER"] {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
 .member-action-btn:disabled {
   cursor: wait;
   opacity: 0.6;
@@ -275,33 +280,6 @@ body {
 
 .member-action-empty {
   color: #98a2b3;
-}
-
-.member-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.member-role-action-btn {
-  min-width: 76px;
-  height: 34px;
-  border: 1px solid #d0d5dd;
-  border-radius: 6px;
-  background: #fff;
-  color: #344054;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.member-role-action-btn:hover {
-  background: #f9fafb;
-}
-
-.member-role-action-btn:disabled {
-  cursor: wait;
-  opacity: 0.6;
 }
 
 .report-search-form {
@@ -416,6 +394,36 @@ body {
 
 .report-action-empty {
   color: #98a2b3;
+}
+
+.action-log-admin,
+.action-log-target {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-log-admin strong,
+.action-log-target strong {
+  font-size: 14px;
+}
+
+.action-log-admin span,
+.action-log-target span,
+.action-log-detail {
+  color: #667085;
+}
+
+.action-log-type {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #f2f4f7;
+  color: #344054;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .report-resolution-modal {
