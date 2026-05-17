@@ -20,10 +20,17 @@
             reporter.name AS reporterName,
             r.reason AS reason,
             r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_by AS processedBy,
+            processor.email AS processedByEmail,
+            processor.name AS processedByName,
+            r.processed_at AS processedAt,
             r.report_created_at AS reportCreatedAt
         FROM report r
         INNER JOIN members target ON target.member_id = r.target_member_id
         INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        LEFT JOIN members processor ON processor.member_id = r.processed_by
         ORDER BY r.report_created_at DESC, r.report_id DESC
         LIMIT #{limit}
         OFFSET #{offset}
@@ -40,16 +47,27 @@
             reporter.name AS reporterName,
             r.reason AS reason,
             r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_by AS processedBy,
+            processor.email AS processedByEmail,
+            processor.name AS processedByName,
+            r.processed_at AS processedAt,
             r.report_created_at AS reportCreatedAt
         FROM report r
         INNER JOIN members target ON target.member_id = r.target_member_id
         INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        LEFT JOIN members processor ON processor.member_id = r.processed_by
         WHERE r.report_id = #{reportId}
     </select>
 
     <update id="updateReportStatusForAdmin">
         UPDATE report
-        SET status = #{status}
+        SET status = #{status},
+            resolution_type = #{resolutionType},
+            resolution_message = #{resolutionMessage},
+            processed_by = #{processedBy},
+            processed_at = NOW()
         WHERE report_id = #{reportId}
         AND status = 'PENDING'
     </update>

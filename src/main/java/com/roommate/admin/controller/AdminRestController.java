@@ -48,7 +48,14 @@ public class AdminRestController {
 
     @PatchMapping("/reports/{reportId}/status")
     public AdminReportListItemResponse updateReportStatus(@PathVariable Long reportId,
-                                                          @RequestBody AdminReportStatusUpdateRequest request) {
-        return adminReportService.updateReportStatus(reportId, request.getStatus());
+                                                          @RequestBody AdminReportStatusUpdateRequest request,
+                                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminReportService.updateReportStatus(
+                reportId,
+                request.getStatus(),
+                request.getResolutionType(),
+                request.getResolutionMessage(),
+                userDetails.getMemberId()
+        );
     }
 }

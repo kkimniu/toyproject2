@@ -37,6 +37,8 @@ public enum ErrorCode {
     ADMIN_REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "AD009", "이미 처리 완료된 신고입니다."),
     ADMIN_REPORT_STATUS_INVALID(HttpStatus.BAD_REQUEST, "AD010", "변경할 수 없는 신고 상태입니다."),
     ADMIN_REPORT_RESOLVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD011", "신고 처리에 실패했습니다."),
+    ADMIN_REPORT_RESOLUTION_TYPE_INVALID(HttpStatus.BAD_REQUEST, "AD012", "유효하지 않은 신고 처리 결과입니다."),
+    ADMIN_REPORT_RESOLUTION_MESSAGE_REQUIRED(HttpStatus.BAD_REQUEST, "AD013", "신고자 안내 문구를 입력해야 합니다."),
 
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),

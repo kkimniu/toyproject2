@@ -31,9 +31,19 @@ public class AdminReportServiceImpl implements AdminReportService {
     }
 
     @Override
-    public AdminReportListItemResponse updateReportStatus(Long reportId, String status) {
+    public AdminReportListItemResponse updateReportStatus(Long reportId,
+                                                          String status,
+                                                          String resolutionType,
+                                                          String resolutionMessage,
+                                                          Long processedBy) {
         if (!"RESOLVED".equals(status)) {
             throw new ApiException(ErrorCode.ADMIN_REPORT_STATUS_INVALID);
+        }
+        if (!isValidResolutionType(resolutionType)) {
+            throw new ApiException(ErrorCode.ADMIN_REPORT_RESOLUTION_TYPE_INVALID);
+        }
+        if (resolutionMessage == null || resolutionMessage.isBlank()) {
+            throw new ApiException(ErrorCode.ADMIN_REPORT_RESOLUTION_MESSAGE_REQUIRED);
         }
 
         AdminReportListItemResponse report = reportRepository.findReportForAdminById(reportId)
@@ -43,12 +53,24 @@ public class AdminReportServiceImpl implements AdminReportService {
             throw new ApiException(ErrorCode.ADMIN_REPORT_ALREADY_RESOLVED);
         }
 
-        int updatedCount = reportRepository.updateReportStatusForAdmin(reportId, status);
+        int updatedCount = reportRepository.updateReportStatusForAdmin(
+                reportId,
+                status,
+                resolutionType,
+                resolutionMessage,
+                processedBy
+        );
         if (updatedCount != 1) {
             throw new ApiException(ErrorCode.ADMIN_REPORT_RESOLVE_FAILED);
         }
 
         return reportRepository.findReportForAdminById(reportId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ADMIN_REPORT_NOT_FOUND));
+    }
+
+    private boolean isValidResolutionType(String resolutionType) {
+        return "ACCEPTED".equals(resolutionType)
+                || "REJECTED".equals(resolutionType)
+                || "NO_ACTION".equals(resolutionType);
     }
 }

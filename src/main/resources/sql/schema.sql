@@ -89,11 +89,16 @@ CREATE TABLE report (
     target_member_id BIGINT NOT NULL,
     reason TEXT,
     status ENUM('PENDING','RESOLVED') NOT NULL DEFAULT 'PENDING',
+    resolution_type ENUM('ACCEPTED','REJECTED','NO_ACTION'),
+    resolution_message VARCHAR(500),
+    processed_by BIGINT,
+    processed_at DATETIME,
     report_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE,
     FOREIGN KEY (reporter_id) REFERENCES members(member_id) ON DELETE CASCADE,
-    FOREIGN KEY (target_member_id) REFERENCES members(member_id) ON DELETE CASCADE
+    FOREIGN KEY (target_member_id) REFERENCES members(member_id) ON DELETE CASCADE,
+    FOREIGN KEY (processed_by) REFERENCES members(member_id)
 );
 
 CREATE TABLE chat_rooms (

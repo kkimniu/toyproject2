@@ -15,5 +15,9 @@ public interface ReportRepository {
 
     Optional<AdminReportListItemResponse> findReportForAdminById(@Param("reportId") Long reportId);
 
-    int updateReportStatusForAdmin(@Param("reportId") Long reportId, @Param("status") String status);
+    int updateReportStatusForAdmin(@Param("reportId") Long reportId,
+                                   @Param("status") String status,
+                                   @Param("resolutionType") String resolutionType,
+                                   @Param("resolutionMessage") String resolutionMessage,
+                                   @Param("processedBy") Long processedBy);
 }
