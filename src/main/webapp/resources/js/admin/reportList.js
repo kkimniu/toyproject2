@@ -4,9 +4,14 @@ const contextPath = window.contextPath || "";
 let reports = [];
 let activeStatus = "ALL";
 let selectedReportId = null;
+let pageSize = 20;
+let currentPage = 1;
+let totalPages = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  bindPageSizeSelect();
   bindFilterButtons();
+  bindPaginationButtons();
   bindResolutionModal();
   await loadReports();
 });
@@ -17,7 +22,7 @@ async function loadReports() {
   if (!count || !tableBody) return;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/reports?page=1&size=20`, {
+    const response = await apiRequest(`${contextPath}/api/admin/reports?page=${currentPage}&size=${pageSize}`, {
       method: "GET",
     });
 
@@ -27,7 +32,10 @@ async function loadReports() {
 
     const data = await response.json();
     reports = Array.isArray(data.items) ? data.items : [];
+    currentPage = Number(data.page || currentPage);
+    totalPages = Number(data.total_pages || 0);
     count.textContent = `전체 신고 ${formatNumber(data.total_count || 0)}건`;
+    renderPagination();
     renderReports();
   } catch (error) {
     console.error(error);
@@ -37,7 +45,18 @@ async function loadReports() {
         <td colspan="7">신고 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
+    totalPages = 0;
+    renderPagination();
   }
+}
+
+function bindPageSizeSelect() {
+  const select = document.getElementById("reportPageSize");
+  select?.addEventListener("change", async () => {
+    pageSize = Number(select.value || 20);
+    currentPage = 1;
+    await loadReports();
+  });
 }
 
 function bindFilterButtons() {
@@ -49,6 +68,23 @@ function bindFilterButtons() {
       });
       renderReports();
     });
+  });
+}
+
+function bindPaginationButtons() {
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+
+  prevButton?.addEventListener("click", async () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    await loadReports();
+  });
+
+  nextButton?.addEventListener("click", async () => {
+    if (currentPage >= totalPages) return;
+    currentPage += 1;
+    await loadReports();
   });
 }
 
@@ -86,6 +122,17 @@ function renderReports() {
 
   tableBody.innerHTML = visibleReports.map(renderReportRow).join("");
   bindActionButtons(tableBody);
+}
+
+function renderPagination() {
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+  const pageInfo = document.getElementById("reportPageInfo");
+  if (!prevButton || !nextButton || !pageInfo) return;
+
+  prevButton.disabled = currentPage <= 1 || totalPages === 0;
+  nextButton.disabled = currentPage >= totalPages || totalPages === 0;
+  pageInfo.textContent = totalPages === 0 ? "0 / 0" : `${currentPage} / ${totalPages}`;
 }
 
 function renderReportRow(report) {

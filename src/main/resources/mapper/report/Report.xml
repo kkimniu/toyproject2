@@ -9,6 +9,12 @@
         FROM report
     </select>
 
+    <select id="countReportsByStatusForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM report
+        WHERE status = #{status}
+    </select>
+
     <select id="findReportsForAdmin" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
         SELECT
             r.report_id AS reportId,

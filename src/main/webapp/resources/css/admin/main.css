@@ -29,6 +29,37 @@ body {
   letter-spacing: 0;
 }
 
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 28px;
+  margin-bottom: 28px;
+}
+
+.summary-item {
+  display: grid;
+  gap: 10px;
+  min-height: 108px;
+  padding: 20px;
+  border: 1px solid #eaecf0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.summary-item span {
+  color: #475467;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.summary-item strong {
+  color: #101828;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
 .admin-section {
   margin-top: 36px;
 }
@@ -52,6 +83,32 @@ body {
   color: #475467;
   font-size: 14px;
   font-weight: 700;
+}
+
+.section-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-size-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.page-size-control select {
+  width: 76px;
+  height: 38px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  padding: 0 10px;
+  font: inherit;
 }
 
 .data-table-wrap {
@@ -95,6 +152,39 @@ body {
   color: #667085;
   text-align: center;
   vertical-align: middle;
+}
+
+.table-pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.pagination-btn {
+  min-width: 64px;
+  height: 36px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pagination-btn:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.table-pagination span {
+  min-width: 72px;
+  color: #475467;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .member-role,
@@ -361,8 +451,17 @@ body {
     font-size: 30px;
   }
 
+  .admin-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .section-header,
   .section-header-reports {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .section-controls {
     align-items: stretch;
     flex-direction: column;
   }

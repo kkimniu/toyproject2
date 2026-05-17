@@ -1,11 +1,13 @@
 package com.roommate.admin.controller;
 
+import com.roommate.admin.dto.AdminDashboardSummaryResponse;
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
 import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
 import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
+import com.roommate.admin.service.AdminDashboardService;
 import com.roommate.admin.service.AdminMemberService;
 import com.roommate.admin.service.AdminReportService;
 import com.roommate.common.security.UserDetailsImpl;
@@ -26,6 +28,12 @@ public class AdminRestController {
 
     private final AdminMemberService adminMemberService;
     private final AdminReportService adminReportService;
+    private final AdminDashboardService adminDashboardService;
+
+    @GetMapping("/dashboard/summary")
+    public AdminDashboardSummaryResponse getDashboardSummary() {
+        return adminDashboardService.getSummary();
+    }
 
     @GetMapping("/members")
     public AdminMemberListResponse getMembers(@RequestParam(defaultValue = "1") int page,

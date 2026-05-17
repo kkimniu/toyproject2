@@ -12,6 +12,8 @@ import java.util.Optional;
 public interface ReportRepository {
     long countReportsForAdmin();
 
+    long countReportsByStatusForAdmin(@Param("status") String status);
+
     List<AdminReportListItemResponse> findReportsForAdmin(@Param("limit") int limit, @Param("offset") int offset);
 
     Optional<AdminReportListItemResponse> findReportForAdminById(@Param("reportId") Long reportId);
