@@ -6,10 +6,14 @@ let currentPage = 1;
 let totalPages = 1;
 let currentFilters = {};
 let selectedReportId = null;
+let pageSize = 20;
+let currentPage = 1;
+let totalPages = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
-  bindSearchForm();
-  bindPagination();
+  bindPageSizeSelect();
+  bindFilterButtons();
+  bindPaginationButtons();
   bindResolutionModal();
   await loadReports();
 });
@@ -20,12 +24,7 @@ async function loadReports(page = currentPage) {
   if (!count || !tableBody) return;
 
   try {
-    const params = new URLSearchParams({
-      page: String(page),
-      size: "20",
-      ...currentFilters,
-    });
-    const response = await apiRequest(`${contextPath}/api/admin/reports?${params.toString()}`, {
+    const response = await apiRequest(`${contextPath}/api/admin/reports?page=${currentPage}&size=${pageSize}`, {
       method: "GET",
     });
 
@@ -35,9 +34,10 @@ async function loadReports(page = currentPage) {
 
     const data = await response.json();
     reports = Array.isArray(data.items) ? data.items : [];
-    currentPage = data.page || 1;
-    totalPages = data.total_pages || 0;
+    currentPage = Number(data.page || currentPage);
+    totalPages = Number(data.total_pages || 0);
     count.textContent = `전체 신고 ${formatNumber(data.total_count || 0)}건`;
+    renderPagination();
     renderReports();
     renderPagination();
   } catch (error) {
@@ -48,30 +48,46 @@ async function loadReports(page = currentPage) {
         <td colspan="7">신고 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
+    totalPages = 0;
+    renderPagination();
   }
 }
 
-function bindSearchForm() {
-  const form = document.getElementById("reportSearchForm");
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    currentFilters = Object.fromEntries(
-      [...formData.entries()]
-        .map(([key, value]) => [key, String(value).trim()])
-        .filter(([, value]) => value)
-    );
+function bindPageSizeSelect() {
+  const select = document.getElementById("reportPageSize");
+  select?.addEventListener("change", async () => {
+    pageSize = Number(select.value || 20);
     currentPage = 1;
-    await loadReports(1);
+    await loadReports();
   });
 }
 
-function bindPagination() {
-  document.getElementById("btnPrevReports")?.addEventListener("click", async () => {
-    if (currentPage > 1) await loadReports(currentPage - 1);
+function bindFilterButtons() {
+  document.querySelectorAll(".report-filter-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeStatus = button.dataset.status || "ALL";
+      document.querySelectorAll(".report-filter-btn").forEach((item) => {
+        item.classList.toggle("is-active", item === button);
+      });
+      renderReports();
+    });
   });
-  document.getElementById("btnNextReports")?.addEventListener("click", async () => {
-    if (currentPage < totalPages) await loadReports(currentPage + 1);
+}
+
+function bindPaginationButtons() {
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+
+  prevButton?.addEventListener("click", async () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    await loadReports();
+  });
+
+  nextButton?.addEventListener("click", async () => {
+    if (currentPage >= totalPages) return;
+    currentPage += 1;
+    await loadReports();
   });
 }
 
@@ -108,15 +124,14 @@ function renderReports() {
 }
 
 function renderPagination() {
-  const prev = document.getElementById("btnPrevReports");
-  const next = document.getElementById("btnNextReports");
-  const info = document.getElementById("reportPageInfo");
-  if (!prev || !next || !info) return;
+  const prevButton = document.getElementById("btnPrevReports");
+  const nextButton = document.getElementById("btnNextReports");
+  const pageInfo = document.getElementById("reportPageInfo");
+  if (!prevButton || !nextButton || !pageInfo) return;
 
-  const safeTotalPages = totalPages || 1;
-  info.textContent = `${currentPage} / ${safeTotalPages}`;
-  prev.disabled = currentPage <= 1;
-  next.disabled = totalPages === 0 || currentPage >= totalPages;
+  prevButton.disabled = currentPage <= 1 || totalPages === 0;
+  nextButton.disabled = currentPage >= totalPages || totalPages === 0;
+  pageInfo.textContent = totalPages === 0 ? "0 / 0" : `${currentPage} / ${totalPages}`;
 }
 
 function renderReportRow(report) {

@@ -1,8 +1,13 @@
 import { apiRequest } from "../common/apiClient.js";
 
 const contextPath = window.contextPath || "";
+let pageSize = 20;
+let currentPage = 1;
+let totalPages = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  bindPageSizeSelect();
+  bindPaginationButtons();
   await loadMembers();
 });
 
@@ -12,7 +17,7 @@ async function loadMembers() {
   if (!count || !tableBody) return;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/members?page=1&size=20`, {
+    const response = await apiRequest(`${contextPath}/api/admin/members?page=${currentPage}&size=${pageSize}`, {
       method: "GET",
     });
 
@@ -22,6 +27,9 @@ async function loadMembers() {
 
     const data = await response.json();
     const members = Array.isArray(data.items) ? data.items : [];
+    currentPage = Number(data.page || currentPage);
+    totalPages = Number(data.total_pages || 0);
+    renderPagination();
     count.textContent = `전체 회원 ${formatNumber(data.total_count || 0)}명`;
 
     if (members.length === 0) {
@@ -43,7 +51,46 @@ async function loadMembers() {
         <td colspan="7">회원 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
+    totalPages = 0;
+    renderPagination();
   }
+}
+
+function bindPaginationButtons() {
+  const prevButton = document.getElementById("btnPrevMembers");
+  const nextButton = document.getElementById("btnNextMembers");
+
+  prevButton?.addEventListener("click", async () => {
+    if (currentPage <= 1) return;
+    currentPage -= 1;
+    await loadMembers();
+  });
+
+  nextButton?.addEventListener("click", async () => {
+    if (currentPage >= totalPages) return;
+    currentPage += 1;
+    await loadMembers();
+  });
+}
+
+function bindPageSizeSelect() {
+  const select = document.getElementById("memberPageSize");
+  select?.addEventListener("change", async () => {
+    pageSize = Number(select.value || 20);
+    currentPage = 1;
+    await loadMembers();
+  });
+}
+
+function renderPagination() {
+  const prevButton = document.getElementById("btnPrevMembers");
+  const nextButton = document.getElementById("btnNextMembers");
+  const pageInfo = document.getElementById("memberPageInfo");
+  if (!prevButton || !nextButton || !pageInfo) return;
+
+  prevButton.disabled = currentPage <= 1 || totalPages === 0;
+  nextButton.disabled = currentPage >= totalPages || totalPages === 0;
+  pageInfo.textContent = totalPages === 0 ? "0 / 0" : `${currentPage} / ${totalPages}`;
 }
 
 function renderMemberRow(member) {

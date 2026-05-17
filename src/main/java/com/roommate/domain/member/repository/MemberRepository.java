@@ -34,6 +34,8 @@ public interface MemberRepository {
 
     long countMembersForAdmin();
 
+    long countMembersByStatusForAdmin(@Param("status") MemberStatusEnum status);
+
     List<AdminMemberListItemResponse> findMembersForAdmin(@Param("limit") int limit, @Param("offset") int offset);
 
     int updateMemberStatusForAdmin(@Param("memberId") Long memberId, @Param("status") MemberStatusEnum status);

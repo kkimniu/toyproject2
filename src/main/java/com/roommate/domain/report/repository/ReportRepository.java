@@ -16,13 +16,9 @@ public interface ReportRepository {
                               @Param("from") String from,
                               @Param("to") String to);
 
-    List<AdminReportListItemResponse> findReportsForAdmin(@Param("status") String status,
-                                                          @Param("reporter") String reporter,
-                                                          @Param("target") String target,
-                                                          @Param("from") String from,
-                                                          @Param("to") String to,
-                                                          @Param("limit") int limit,
-                                                          @Param("offset") int offset);
+    long countReportsByStatusForAdmin(@Param("status") String status);
+
+    List<AdminReportListItemResponse> findReportsForAdmin(@Param("limit") int limit, @Param("offset") int offset);
 
     Optional<AdminReportListItemResponse> findReportForAdminById(@Param("reportId") Long reportId);
 
