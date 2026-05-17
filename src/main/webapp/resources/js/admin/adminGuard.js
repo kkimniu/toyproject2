@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const member = await response.json();
-    if (member.member_role_enum !== "ADMIN") {
+    if (member.member_role_enum !== "ADMIN" && member.member_role_enum !== "SUPER_ADMIN") {
       window.location.href = `${window.contextPath || ""}/main`;
     }
   } catch (error) {

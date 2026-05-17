@@ -7,5 +7,7 @@ public interface AdminActionLogService {
 
     void logReportResolved(Long adminId, Long reportId, String resolutionType);
 
+    void logMemberRoleChange(Long adminId, Long memberId, String actionType);
+
     AdminActionLogListResponse getLogs(int page, int size);
 }

@@ -4,12 +4,30 @@ const contextPath = window.contextPath || "";
 let pageSize = 20;
 let currentPage = 1;
 let totalPages = 0;
+let currentAdminId = null;
+let currentAdminRole = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
+  await loadCurrentAdmin();
   bindPageSizeSelect();
   bindPaginationButtons();
   await loadMembers();
 });
+
+async function loadCurrentAdmin() {
+  try {
+    const response = await apiRequest(`${contextPath}/api/members/me`, {
+      method: "GET",
+    });
+    if (!response.ok) return;
+
+    const member = await response.json();
+    currentAdminId = member.member_id;
+    currentAdminRole = member.member_role_enum;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 async function loadMembers() {
   const count = document.getElementById("adminMemberCount");
@@ -111,10 +129,54 @@ function renderMemberRow(member) {
 }
 
 function renderActionCell(member) {
+  if (member.role === "SUPER_ADMIN" || member.member_id === currentAdminId) {
+    return '<span class="member-action-empty">-</span>';
+  }
+
+  if (member.role === "ADMIN") {
+    if (currentAdminRole !== "SUPER_ADMIN") {
+      return '<span class="member-action-empty">-</span>';
+    }
+
+    return `
+      <div class="member-actions">
+        ${renderStatusActionButton(member)}
+        <button
+          type="button"
+          class="member-role-action-btn"
+          data-member-id="${escapeHtml(member.member_id)}"
+          data-next-role="USER">
+          권한 회수
+        </button>
+      </div>
+    `;
+  }
+
   if (member.role !== "USER") {
     return '<span class="member-action-empty">-</span>';
   }
 
+  const roleAction = currentAdminRole === "SUPER_ADMIN"
+    ? `
+      <button
+        type="button"
+        class="member-role-action-btn"
+        data-member-id="${escapeHtml(member.member_id)}"
+        data-next-role="ADMIN">
+        관리자 승격
+      </button>
+    `
+    : "";
+
+  return `
+    <div class="member-actions">
+      ${renderStatusActionButton(member)}
+      ${roleAction}
+    </div>
+  `;
+}
+
+function renderStatusActionButton(member) {
   const nextStatus = member.status === "BANNED" ? "ACTIVE" : "BANNED";
   const label = nextStatus === "BANNED" ? "정지" : "해제";
   return `
@@ -132,6 +194,12 @@ function bindActionButtons(container) {
   container.querySelectorAll(".member-action-btn").forEach((button) => {
     button.addEventListener("click", async () => {
       await updateMemberStatus(button);
+    });
+  });
+
+  container.querySelectorAll(".member-role-action-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await updateMemberRole(button);
     });
   });
 }
@@ -164,6 +232,40 @@ async function updateMemberStatus(button) {
   } catch (error) {
     console.error(error);
     alert("회원 상태를 변경하지 못했습니다.");
+    button.disabled = false;
+  }
+}
+
+async function updateMemberRole(button) {
+  const memberId = button.dataset.memberId;
+  const nextRole = button.dataset.nextRole;
+  if (!memberId || !nextRole) return;
+
+  const ok = confirm(nextRole === "ADMIN"
+    ? "이 회원을 관리자로 승격하시겠습니까?"
+    : "이 관리자의 권한을 회수하시겠습니까?");
+  if (!ok) return;
+
+  button.disabled = true;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/members/${encodeURIComponent(memberId)}/role`, {
+      method: "PATCH",
+      body: JSON.stringify({ role: nextRole }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`admin member role api failed: ${response.status}`);
+    }
+
+    const updatedMember = await response.json();
+    const row = button.closest("tr");
+    if (!row) return;
+    row.outerHTML = renderMemberRow(updatedMember);
+    bindActionButtons(document.getElementById("adminMemberTableBody"));
+  } catch (error) {
+    console.error(error);
+    alert("회원 권한을 변경하지 못했습니다.");
     button.disabled = false;
   }
 }

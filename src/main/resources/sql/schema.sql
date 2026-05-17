@@ -11,7 +11,7 @@ CREATE TABLE members (
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(30),
     photo_url VARCHAR(500),
-    role ENUM('USER','ADMIN','BANNED') NOT NULL DEFAULT 'USER',
+    role ENUM('USER','ADMIN','SUPER_ADMIN','BANNED') NOT NULL DEFAULT 'USER',
     report_count INT NOT NULL DEFAULT 0,
     deleted TINYINT NOT NULL DEFAULT 0,
     sleep_time VARCHAR(50),
@@ -104,7 +104,13 @@ CREATE TABLE report (
 CREATE TABLE admin_action_log (
     admin_action_log_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     admin_id BIGINT NOT NULL,
-    action_type ENUM('MEMBER_BANNED','MEMBER_UNBANNED','REPORT_RESOLVED') NOT NULL,
+    action_type ENUM(
+        'MEMBER_BANNED',
+        'MEMBER_UNBANNED',
+        'REPORT_RESOLVED',
+        'MEMBER_PROMOTED_TO_ADMIN',
+        'MEMBER_DEMOTED_TO_USER'
+    ) NOT NULL,
     target_type ENUM('MEMBER','REPORT') NOT NULL,
     target_id BIGINT NOT NULL,
     action_detail VARCHAR(500),

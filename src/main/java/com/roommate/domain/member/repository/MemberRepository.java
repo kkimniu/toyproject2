@@ -2,6 +2,7 @@ package com.roommate.domain.member.repository;
 
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.domain.member.entity.MemberEntity;
+import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberStatusEnum;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -39,5 +40,7 @@ public interface MemberRepository {
     List<AdminMemberListItemResponse> findMembersForAdmin(@Param("limit") int limit, @Param("offset") int offset);
 
     int updateMemberStatusForAdmin(@Param("memberId") Long memberId, @Param("status") MemberStatusEnum status);
+
+    int updateMemberRoleForAdmin(@Param("memberId") Long memberId, @Param("role") MemberRoleEnum role);
 
 }

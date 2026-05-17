@@ -25,6 +25,11 @@ public class AdminActionLogServiceImpl implements AdminActionLogService {
     }
 
     @Override
+    public void logMemberRoleChange(Long adminId, Long memberId, String actionType) {
+        adminActionLogRepository.save(adminId, actionType, "MEMBER", memberId, null);
+    }
+
+    @Override
     public AdminActionLogListResponse getLogs(int page, int size) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.max(size, 1);
