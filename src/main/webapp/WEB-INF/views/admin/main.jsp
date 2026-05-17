@@ -104,6 +104,34 @@
         </div>
       </div>
 
+      <form id="reportSearchForm" class="report-search-form">
+        <label>
+          <span>상태</span>
+          <select name="status">
+            <option value="">전체</option>
+            <option value="PENDING">대기</option>
+            <option value="RESOLVED">처리완료</option>
+          </select>
+        </label>
+        <label>
+          <span>신고자</span>
+          <input type="search" name="reporter" placeholder="이름 또는 이메일">
+        </label>
+        <label>
+          <span>신고 대상</span>
+          <input type="search" name="target" placeholder="이름 또는 이메일">
+        </label>
+        <label>
+          <span>시작일</span>
+          <input type="date" name="from">
+        </label>
+        <label>
+          <span>종료일</span>
+          <input type="date" name="to">
+        </label>
+        <button type="submit">검색</button>
+      </form>
+
       <div class="data-table-wrap">
         <table class="data-table report-table">
           <thead>

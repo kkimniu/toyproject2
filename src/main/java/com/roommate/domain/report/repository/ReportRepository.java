@@ -10,7 +10,11 @@ import java.util.Optional;
 
 @Mapper
 public interface ReportRepository {
-    long countReportsForAdmin();
+    long countReportsForAdmin(@Param("status") String status,
+                              @Param("reporter") String reporter,
+                              @Param("target") String target,
+                              @Param("from") String from,
+                              @Param("to") String to);
 
     long countReportsByStatusForAdmin(@Param("status") String status);
 

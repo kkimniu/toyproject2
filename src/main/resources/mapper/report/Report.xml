@@ -6,7 +6,28 @@
 <mapper namespace="com.roommate.domain.report.repository.ReportRepository">
     <select id="countReportsForAdmin" resultType="long">
         SELECT COUNT(*)
-        FROM report
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        <where>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="reporter != null">
+                AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
+                    OR reporter.name LIKE CONCAT('%', #{reporter}, '%'))
+            </if>
+            <if test="target != null">
+                AND (target.email LIKE CONCAT('%', #{target}, '%')
+                    OR target.name LIKE CONCAT('%', #{target}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(r.report_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(r.report_created_at) &lt;= #{to}
+            </if>
+        </where>
     </select>
 
     <select id="countReportsByStatusForAdmin" resultType="long">
@@ -37,6 +58,25 @@
         INNER JOIN members target ON target.member_id = r.target_member_id
         INNER JOIN members reporter ON reporter.member_id = r.reporter_id
         LEFT JOIN members processor ON processor.member_id = r.processed_by
+        <where>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="reporter != null">
+                AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
+                    OR reporter.name LIKE CONCAT('%', #{reporter}, '%'))
+            </if>
+            <if test="target != null">
+                AND (target.email LIKE CONCAT('%', #{target}, '%')
+                    OR target.name LIKE CONCAT('%', #{target}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(r.report_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(r.report_created_at) &lt;= #{to}
+            </if>
+        </where>
         ORDER BY r.report_created_at DESC, r.report_id DESC
         LIMIT #{limit}
         OFFSET #{offset}
