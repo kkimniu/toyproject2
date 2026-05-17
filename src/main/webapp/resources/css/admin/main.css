@@ -277,6 +277,33 @@ body {
   color: #98a2b3;
 }
 
+.member-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.member-role-action-btn {
+  min-width: 76px;
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.member-role-action-btn:hover {
+  background: #f9fafb;
+}
+
+.member-role-action-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 .report-search-form {
   display: grid;
   grid-template-columns: 140px minmax(0, 1fr) minmax(0, 1fr) 150px 150px auto;

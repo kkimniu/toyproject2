@@ -165,4 +165,12 @@
         WHERE member_id = #{memberId}
         AND deleted = 0
     </update>
+
+    <update id="updateMemberRoleForAdmin">
+        UPDATE members
+        SET role = #{role},
+            member_updated_at = NOW()
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
 </mapper>

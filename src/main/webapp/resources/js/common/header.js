@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await res.json();
     const name = data.name || "";
     const email = data.email || "";
-    const isAdmin = data.member_role_enum === "ADMIN";
+    const isAdmin = data.member_role_enum === "ADMIN" || data.member_role_enum === "SUPER_ADMIN";
     const handle = email && email.includes("@") ? email.split("@")[0] : name || "user";
 
     if (headerUsername) headerUsername.textContent = handle;

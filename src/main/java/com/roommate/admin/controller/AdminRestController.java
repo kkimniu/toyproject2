@@ -5,6 +5,7 @@ import com.roommate.admin.dto.AdminDashboardSummaryResponse;
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
 import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
+import com.roommate.admin.dto.AdminMemberRoleUpdateRequest;
 import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
@@ -54,7 +55,24 @@ public class AdminRestController {
     public AdminMemberListItemResponse updateMemberStatus(@PathVariable Long memberId,
                                                           @RequestBody AdminMemberStatusUpdateRequest request,
                                                           @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return adminMemberService.updateMemberStatus(memberId, request.getStatus(), userDetails.getMemberId());
+        return adminMemberService.updateMemberStatus(
+                memberId,
+                request.getStatus(),
+                userDetails.getMemberId(),
+                userDetails.getRole()
+        );
+    }
+
+    @PatchMapping("/members/{memberId}/role")
+    public AdminMemberListItemResponse updateMemberRole(@PathVariable Long memberId,
+                                                        @RequestBody AdminMemberRoleUpdateRequest request,
+                                                        @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminMemberService.updateMemberRole(
+                memberId,
+                request.getRole(),
+                userDetails.getMemberId(),
+                userDetails.getRole()
+        );
     }
 
     @GetMapping("/reports")

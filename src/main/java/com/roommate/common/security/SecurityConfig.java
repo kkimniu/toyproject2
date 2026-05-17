@@ -113,7 +113,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.DELETE, "/api/chat/rooms/**").authenticated()
 
                 // 10) 관리자 API
-                .antMatchers("/api/admin/**").hasRole("ADMIN")
+                .antMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
                 // 11) 그 외 나머지 요청은 전부 인증 필요
                 .anyRequest().authenticated();
