@@ -33,6 +33,10 @@ public enum ErrorCode {
     ADMIN_SELF_STATUS_CHANGE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD005", "관리자는 본인 계정을 정지하거나 해제할 수 없습니다."),
     ADMIN_TARGET_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD006", "다른 관리자 계정은 정지하거나 해제할 수 없습니다."),
     ADMIN_MEMBER_STATUS_INVALID(HttpStatus.BAD_REQUEST, "AD007", "변경할 수 없는 회원 상태입니다."),
+    ADMIN_REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "AD008", "관리 대상 신고가 존재하지 않습니다."),
+    ADMIN_REPORT_ALREADY_RESOLVED(HttpStatus.CONFLICT, "AD009", "이미 처리 완료된 신고입니다."),
+    ADMIN_REPORT_STATUS_INVALID(HttpStatus.BAD_REQUEST, "AD010", "변경할 수 없는 신고 상태입니다."),
+    ADMIN_REPORT_RESOLVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AD011", "신고 처리에 실패했습니다."),
 
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),

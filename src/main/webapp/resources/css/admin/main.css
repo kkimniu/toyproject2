@@ -210,6 +210,31 @@ body {
   color: #027a48;
 }
 
+.report-action-btn {
+  min-width: 76px;
+  height: 34px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  background: #fff;
+  color: #101828;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.report-action-btn:hover {
+  background: #f9fafb;
+}
+
+.report-action-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.report-action-empty {
+  color: #98a2b3;
+}
+
 @media (max-width: 720px) {
   .admin-page {
     padding: 32px 18px 72px;

@@ -28,4 +28,29 @@
         LIMIT #{limit}
         OFFSET #{offset}
     </select>
+
+    <select id="findReportForAdminById" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.reporter_id AS reporterId,
+            reporter.email AS reporterEmail,
+            reporter.name AS reporterName,
+            r.reason AS reason,
+            r.status AS status,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        WHERE r.report_id = #{reportId}
+    </select>
+
+    <update id="updateReportStatusForAdmin">
+        UPDATE report
+        SET status = #{status}
+        WHERE report_id = #{reportId}
+        AND status = 'PENDING'
+    </update>
 </mapper>
