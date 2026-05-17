@@ -482,6 +482,36 @@ body {
   margin-top: 22px;
 }
 
+.report-resolution-summary {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eaecf0;
+  border-radius: 6px;
+  background: #f9fafb;
+}
+
+.report-resolution-summary div {
+  display: grid;
+  gap: 4px;
+}
+
+.report-resolution-summary span {
+  color: #475467;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.report-resolution-summary strong {
+  color: #101828;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.report-resolution-reason strong {
+  white-space: pre-wrap;
+}
+
 .report-resolution-form label {
   display: grid;
   gap: 8px;
