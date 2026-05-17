@@ -4,6 +4,8 @@ import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
 import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
 import com.roommate.admin.dto.AdminReportListResponse;
+import com.roommate.admin.dto.AdminReportListItemResponse;
+import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
 import com.roommate.admin.service.AdminMemberService;
 import com.roommate.admin.service.AdminReportService;
 import com.roommate.common.security.UserDetailsImpl;
@@ -42,5 +44,11 @@ public class AdminRestController {
     public AdminReportListResponse getReports(@RequestParam(defaultValue = "1") int page,
                                               @RequestParam(defaultValue = "20") int size) {
         return adminReportService.getReports(page, size);
+    }
+
+    @PatchMapping("/reports/{reportId}/status")
+    public AdminReportListItemResponse updateReportStatus(@PathVariable Long reportId,
+                                                          @RequestBody AdminReportStatusUpdateRequest request) {
+        return adminReportService.updateReportStatus(reportId, request.getStatus());
     }
 }

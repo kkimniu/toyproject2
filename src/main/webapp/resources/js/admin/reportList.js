@@ -32,7 +32,7 @@ async function loadReports() {
     count.textContent = "신고 목록을 불러오지 못했습니다.";
     tableBody.innerHTML = `
       <tr class="data-table-empty">
-        <td colspan="6">신고 목록을 불러오지 못했습니다.</td>
+        <td colspan="7">신고 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
   }
@@ -61,13 +61,14 @@ function renderReports() {
   if (visibleReports.length === 0) {
     tableBody.innerHTML = `
       <tr class="data-table-empty">
-        <td colspan="6">${emptyMessage()}</td>
+        <td colspan="7">${emptyMessage()}</td>
       </tr>
     `;
     return;
   }
 
   tableBody.innerHTML = visibleReports.map(renderReportRow).join("");
+  bindActionButtons(tableBody);
 }
 
 function renderReportRow(report) {
@@ -79,6 +80,7 @@ function renderReportRow(report) {
       <td class="report-reason">${escapeHtml(report.reason)}</td>
       <td><span class="report-status ${statusClass(report.status)}">${escapeHtml(statusLabel(report.status))}</span></td>
       <td>${escapeHtml(formatDate(report.report_created_at))}</td>
+      <td>${renderActionCell(report)}</td>
     </tr>
   `;
 }
@@ -90,6 +92,60 @@ function renderParty(name, email) {
       <span>${escapeHtml(email)}</span>
     </div>
   `;
+}
+
+function renderActionCell(report) {
+  if (report.status === "RESOLVED") {
+    return '<span class="report-action-empty">-</span>';
+  }
+
+  return `
+    <button
+      type="button"
+      class="report-action-btn"
+      data-report-id="${escapeHtml(report.report_id)}">
+      처리 완료
+    </button>
+  `;
+}
+
+function bindActionButtons(container) {
+  container.querySelectorAll(".report-action-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await resolveReport(button);
+    });
+  });
+}
+
+async function resolveReport(button) {
+  const reportId = button.dataset.reportId;
+  if (!reportId) return;
+
+  const ok = confirm("이 신고를 처리 완료로 변경하시겠습니까?");
+  if (!ok) return;
+
+  button.disabled = true;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "RESOLVED" }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`admin report status api failed: ${response.status}`);
+    }
+
+    const updatedReport = await response.json();
+    reports = reports.map((report) => (
+      report.report_id === updatedReport.report_id ? updatedReport : report
+    ));
+    renderReports();
+  } catch (error) {
+    console.error(error);
+    alert("신고 상태를 변경하지 못했습니다.");
+    button.disabled = false;
+  }
 }
 
 function emptyMessage() {

@@ -71,11 +71,12 @@
               <th scope="col">사유</th>
               <th scope="col">상태</th>
               <th scope="col">생성일</th>
+              <th scope="col">관리</th>
             </tr>
           </thead>
           <tbody id="adminReportTableBody">
             <tr class="data-table-empty">
-              <td colspan="6">신고 목록을 불러오는 중입니다.</td>
+              <td colspan="7">신고 목록을 불러오는 중입니다.</td>
             </tr>
           </tbody>
         </table>
