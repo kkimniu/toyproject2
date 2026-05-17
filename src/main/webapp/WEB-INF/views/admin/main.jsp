@@ -84,6 +84,43 @@
     </section>
   </main>
 
+  <div class="report-resolution-modal" id="reportResolutionModal" aria-hidden="true">
+    <div class="report-resolution-backdrop" data-close-resolution-modal></div>
+    <section class="report-resolution-dialog" role="dialog" aria-modal="true" aria-labelledby="reportResolutionTitle">
+      <div class="report-resolution-header">
+        <h2 id="reportResolutionTitle">신고 처리</h2>
+        <button type="button" class="report-resolution-close" data-close-resolution-modal aria-label="닫기">x</button>
+      </div>
+
+      <form id="reportResolutionForm" class="report-resolution-form">
+        <label>
+          <span>처리 결과</span>
+          <select name="resolution_type" required>
+            <option value="">선택</option>
+            <option value="ACCEPTED">신고 인정</option>
+            <option value="REJECTED">신고 반려</option>
+            <option value="NO_ACTION">조치 없음</option>
+          </select>
+        </label>
+
+        <label>
+          <span>신고자 안내 문구</span>
+          <textarea
+            name="resolution_message"
+            rows="5"
+            maxlength="500"
+            placeholder="처리 결과와 안내 내용을 입력하세요."
+            required></textarea>
+        </label>
+
+        <div class="report-resolution-actions">
+          <button type="button" class="btn-secondary" data-close-resolution-modal>취소</button>
+          <button type="submit" class="btn-primary">처리 완료</button>
+        </div>
+      </form>
+    </section>
+  </div>
+
   <script>
     window.contextPath = "${pageContext.request.contextPath}";
   </script>

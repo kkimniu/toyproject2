@@ -3,9 +3,11 @@ import { apiRequest } from "../common/apiClient.js";
 const contextPath = window.contextPath || "";
 let reports = [];
 let activeStatus = "ALL";
+let selectedReportId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindFilterButtons();
+  bindResolutionModal();
   await loadReports();
 });
 
@@ -47,6 +49,21 @@ function bindFilterButtons() {
       });
       renderReports();
     });
+  });
+}
+
+function bindResolutionModal() {
+  const modal = document.getElementById("reportResolutionModal");
+  const form = document.getElementById("reportResolutionForm");
+  if (!modal || !form) return;
+
+  modal.querySelectorAll("[data-close-resolution-modal]").forEach((button) => {
+    button.addEventListener("click", closeResolutionModal);
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    await submitResolution(form);
   });
 }
 
@@ -104,32 +121,61 @@ function renderActionCell(report) {
       type="button"
       class="report-action-btn"
       data-report-id="${escapeHtml(report.report_id)}">
-      처리 완료
+      처리
     </button>
   `;
 }
 
 function bindActionButtons(container) {
   container.querySelectorAll(".report-action-btn").forEach((button) => {
-    button.addEventListener("click", async () => {
-      await resolveReport(button);
+    button.addEventListener("click", () => {
+      openResolutionModal(button.dataset.reportId);
     });
   });
 }
 
-async function resolveReport(button) {
-  const reportId = button.dataset.reportId;
-  if (!reportId) return;
+function openResolutionModal(reportId) {
+  const modal = document.getElementById("reportResolutionModal");
+  const form = document.getElementById("reportResolutionForm");
+  if (!modal || !form || !reportId) return;
 
-  const ok = confirm("이 신고를 처리 완료로 변경하시겠습니까?");
-  if (!ok) return;
+  selectedReportId = reportId;
+  form.reset();
+  modal.classList.add("is-open");
+  modal.setAttribute("aria-hidden", "false");
+}
 
-  button.disabled = true;
+function closeResolutionModal() {
+  const modal = document.getElementById("reportResolutionModal");
+  const form = document.getElementById("reportResolutionForm");
+  if (!modal || !form) return;
+
+  selectedReportId = null;
+  form.reset();
+  modal.classList.remove("is-open");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+async function submitResolution(form) {
+  if (!selectedReportId) return;
+
+  const submitButton = form.querySelector('button[type="submit"]');
+  const formData = new FormData(form);
+  const resolutionType = String(formData.get("resolution_type") || "");
+  const resolutionMessage = String(formData.get("resolution_message") || "").trim();
+
+  if (!resolutionType || !resolutionMessage) return;
+
+  submitButton.disabled = true;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/status`, {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(selectedReportId)}/status`, {
       method: "PATCH",
-      body: JSON.stringify({ status: "RESOLVED" }),
+      body: JSON.stringify({
+        status: "RESOLVED",
+        resolution_type: resolutionType,
+        resolution_message: resolutionMessage,
+      }),
     });
 
     if (!response.ok) {
@@ -140,11 +186,13 @@ async function resolveReport(button) {
     reports = reports.map((report) => (
       report.report_id === updatedReport.report_id ? updatedReport : report
     ));
+    closeResolutionModal();
     renderReports();
   } catch (error) {
     console.error(error);
     alert("신고 상태를 변경하지 못했습니다.");
-    button.disabled = false;
+  } finally {
+    submitButton.disabled = false;
   }
 }
 
