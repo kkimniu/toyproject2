@@ -214,6 +214,21 @@
       </div>
 
       <form id="reportResolutionForm" class="report-resolution-form">
+        <div class="report-resolution-summary" id="reportResolutionSummary">
+          <div>
+            <span>신고 대상</span>
+            <strong id="resolutionTarget">-</strong>
+          </div>
+          <div>
+            <span>신고자</span>
+            <strong id="resolutionReporter">-</strong>
+          </div>
+          <div class="report-resolution-reason">
+            <span>신고 사유</span>
+            <strong id="resolutionReason">-</strong>
+          </div>
+        </div>
+
         <label>
           <span>처리 결과</span>
           <select name="resolution_type" required>

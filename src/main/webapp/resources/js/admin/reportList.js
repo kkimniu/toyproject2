@@ -214,8 +214,10 @@ function openResolutionModal(reportId) {
   const form = document.getElementById("reportResolutionForm");
   if (!modal || !form || !reportId) return;
 
+  const report = reports.find((item) => String(item.report_id) === String(reportId));
   selectedReportId = reportId;
   form.reset();
+  renderResolutionSummary(report);
   modal.classList.add("is-open");
   modal.setAttribute("aria-hidden", "false");
 }
@@ -227,8 +229,29 @@ function closeResolutionModal() {
 
   selectedReportId = null;
   form.reset();
+  renderResolutionSummary(null);
   modal.classList.remove("is-open");
   modal.setAttribute("aria-hidden", "true");
+}
+
+function renderResolutionSummary(report) {
+  setSummaryText("resolutionTarget", report ? formatParty(report.target_member_name, report.target_member_email) : "-");
+  setSummaryText("resolutionReporter", report ? formatParty(report.reporter_name, report.reporter_email) : "-");
+  setSummaryText("resolutionReason", report?.reason || "-");
+}
+
+function setSummaryText(id, value) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = value;
+  }
+}
+
+function formatParty(name, email) {
+  if (!name && !email) return "-";
+  if (!name) return email || "-";
+  if (!email) return name;
+  return `${name} (${email})`;
 }
 
 async function submitResolution(form) {
