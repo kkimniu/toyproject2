@@ -268,6 +268,11 @@ body {
   color: #b42318;
 }
 
+.member-action-btn[data-next-role="USER"] {
+  border-color: #fecdca;
+  color: #b42318;
+}
+
 .member-action-btn:disabled {
   cursor: wait;
   opacity: 0.6;

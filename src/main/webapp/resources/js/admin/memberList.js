@@ -143,7 +143,7 @@ function renderActionCell(member) {
         ${renderStatusActionButton(member)}
         <button
           type="button"
-          class="member-role-action-btn"
+          class="member-action-btn"
           data-member-id="${escapeHtml(member.member_id)}"
           data-next-role="USER">
           권한 회수
@@ -160,7 +160,7 @@ function renderActionCell(member) {
     ? `
       <button
         type="button"
-        class="member-role-action-btn"
+        class="member-action-btn"
         data-member-id="${escapeHtml(member.member_id)}"
         data-next-role="ADMIN">
         관리자 승격
@@ -197,7 +197,7 @@ function bindActionButtons(container) {
     });
   });
 
-  container.querySelectorAll(".member-role-action-btn").forEach((button) => {
+  container.querySelectorAll(".member-action-btn[data-next-role]").forEach((button) => {
     button.addEventListener("click", async () => {
       await updateMemberRole(button);
     });
