@@ -8,6 +8,7 @@ import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberStatusEnum;
 import com.roommate.domain.member.repository.MemberRepository;
+import com.roommate.domain.member.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
 
     private final MemberRepository memberRepository;
     private final AdminActionLogService adminActionLogService;
+    private final MemberService memberService;
 
     @Override
     public AdminMemberListResponse getMembers(int page,
@@ -154,6 +156,29 @@ public class AdminMemberServiceImpl implements AdminMemberService {
                 member.getBanCount(),
                 member.getMemberCreatedAt()
         );
+    }
+
+    @Override
+    public void deleteMember(Long memberId, Long currentAdminId, MemberRoleEnum currentAdminRole) {
+        if (currentAdminRole != MemberRoleEnum.SUPER_ADMIN) {
+            throw new ApiException(ErrorCode.SUPER_ADMIN_ONLY);
+        }
+
+        MemberEntity member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new ApiException(ErrorCode.ADMIN_MEMBER_NOT_FOUND));
+
+        if (member.getMemberId().equals(currentAdminId)) {
+            throw new ApiException(ErrorCode.ADMIN_SELF_DELETE_NOT_ALLOWED);
+        }
+        if (member.getRole() == MemberRoleEnum.SUPER_ADMIN) {
+            throw new ApiException(ErrorCode.ADMIN_TARGET_SUPER_ADMIN_NOT_ALLOWED);
+        }
+        if (member.getStatus() == MemberStatusEnum.DELETED || member.getDeleted() == 1) {
+            throw new ApiException(ErrorCode.ADMIN_MEMBER_DELETE_INVALID);
+        }
+
+        memberService.deleteMember(memberId);
+        adminActionLogService.logMemberDeleted(currentAdminId, memberId);
     }
 
     private String normalize(String value) {

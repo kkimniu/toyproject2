@@ -43,6 +43,8 @@ public enum ErrorCode {
     ADMIN_SELF_ROLE_CHANGE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD015", "관리자는 본인 권한을 변경할 수 없습니다."),
     ADMIN_TARGET_SUPER_ADMIN_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD016", "상위 관리자 계정은 제어할 수 없습니다."),
     ADMIN_MEMBER_ROLE_INVALID(HttpStatus.BAD_REQUEST, "AD017", "변경할 수 없는 회원 권한입니다."),
+    ADMIN_SELF_DELETE_NOT_ALLOWED(HttpStatus.FORBIDDEN, "AD018", "관리자는 본인 계정을 탈퇴 처리할 수 없습니다."),
+    ADMIN_MEMBER_DELETE_INVALID(HttpStatus.BAD_REQUEST, "AD019", "탈퇴 처리할 수 없는 회원입니다."),
 
     // ===== MEMBER / 회원 관련 =====
     DUPLICATE_EMAIL(HttpStatus.CONFLICT, "M001", "이미 사용중인 이메일입니다."),

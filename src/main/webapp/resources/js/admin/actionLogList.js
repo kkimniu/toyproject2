@@ -146,6 +146,7 @@ function actionTypeLabel(value) {
   if (value === "REPORT_RESOLVED") return "신고 처리";
   if (value === "MEMBER_PROMOTED_TO_ADMIN") return "관리자 승격";
   if (value === "MEMBER_DEMOTED_TO_USER") return "권한 회수";
+  if (value === "MEMBER_DELETED") return "회원 탈퇴";
   return value || "-";
 }
 

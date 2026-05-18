@@ -30,6 +30,11 @@ public class AdminActionLogServiceImpl implements AdminActionLogService {
     }
 
     @Override
+    public void logMemberDeleted(Long adminId, Long memberId) {
+        adminActionLogRepository.save(adminId, "MEMBER_DELETED", "MEMBER", memberId, null);
+    }
+
+    @Override
     public AdminActionLogListResponse getLogs(int page,
                                               int size,
                                               String actionType,
