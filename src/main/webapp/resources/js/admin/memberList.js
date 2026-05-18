@@ -1,6 +1,7 @@
 import { apiRequest } from "../common/apiClient.js";
 
 const contextPath = window.contextPath || "";
+const REPEAT_PENALTY_THRESHOLD = 3;
 let pageSize = 20;
 let currentPage = 1;
 let totalPages = 0;
@@ -134,19 +135,38 @@ function renderPagination() {
 function renderMemberRow(member) {
   const role = member.role || "-";
   const status = member.status || "-";
+  const banCount = Number(member.ban_count || 0);
+  const repeatPenaltyClass = isRepeatPenaltyMember(banCount) ? " member-row-repeat-penalty" : "";
 
   return `
-    <tr>
+    <tr class="${repeatPenaltyClass.trim()}">
       <td>${escapeHtml(member.member_id)}</td>
       <td>${escapeHtml(member.email)}</td>
       <td>${escapeHtml(member.name)}</td>
       <td><span class="member-role">${escapeHtml(role)}</span></td>
       <td><span class="member-status ${statusClass(status)}">${escapeHtml(status)}</span></td>
-      <td>${escapeHtml(formatNumber(member.ban_count || 0))}</td>
+      <td>${renderBanCount(banCount)}</td>
       <td>${escapeHtml(formatDate(member.member_created_at))}</td>
       <td>${renderActionCell(member)}</td>
     </tr>
   `;
+}
+
+function renderBanCount(banCount) {
+  if (!isRepeatPenaltyMember(banCount)) {
+    return escapeHtml(formatNumber(banCount));
+  }
+
+  return `
+    <div class="member-ban-count">
+      <strong>${escapeHtml(formatNumber(banCount))}</strong>
+      <span>반복 제재</span>
+    </div>
+  `;
+}
+
+function isRepeatPenaltyMember(banCount) {
+  return banCount >= REPEAT_PENALTY_THRESHOLD;
 }
 
 function renderActionCell(member) {

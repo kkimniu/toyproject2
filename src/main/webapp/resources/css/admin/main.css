@@ -287,6 +287,33 @@ body {
   white-space: nowrap;
 }
 
+.member-row-repeat-penalty td {
+  background: #fff7ed;
+}
+
+.member-ban-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.member-ban-count strong {
+  font-size: 14px;
+}
+
+.member-ban-count span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #ffedd5;
+  color: #c2410c;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .member-search-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px 150px 150px 150px auto;
