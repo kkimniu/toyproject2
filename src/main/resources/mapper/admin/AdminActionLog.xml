@@ -23,7 +23,23 @@
 
     <select id="countLogsForAdmin" resultType="long">
         SELECT COUNT(*)
-        FROM admin_action_log
+        FROM admin_action_log l
+        INNER JOIN members m ON m.member_id = l.admin_id
+        <where>
+            <if test="actionType != null">
+                AND l.action_type = #{actionType}
+            </if>
+            <if test="admin != null">
+                AND (m.email LIKE CONCAT('%', #{admin}, '%')
+                    OR m.name LIKE CONCAT('%', #{admin}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(l.created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(l.created_at) &lt;= #{to}
+            </if>
+        </where>
     </select>
 
     <select id="findLogsForAdmin" resultType="com.roommate.admin.dto.AdminActionLogItemResponse">
@@ -39,6 +55,21 @@
             l.created_at AS createdAt
         FROM admin_action_log l
         INNER JOIN members m ON m.member_id = l.admin_id
+        <where>
+            <if test="actionType != null">
+                AND l.action_type = #{actionType}
+            </if>
+            <if test="admin != null">
+                AND (m.email LIKE CONCAT('%', #{admin}, '%')
+                    OR m.name LIKE CONCAT('%', #{admin}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(l.created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(l.created_at) &lt;= #{to}
+            </if>
+        </where>
         ORDER BY l.created_at DESC, l.admin_action_log_id DESC
         LIMIT #{limit}
         OFFSET #{offset}

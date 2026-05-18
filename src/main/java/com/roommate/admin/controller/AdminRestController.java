@@ -47,8 +47,12 @@ public class AdminRestController {
 
     @GetMapping("/action-logs")
     public AdminActionLogListResponse getActionLogs(@RequestParam(defaultValue = "1") int page,
-                                                    @RequestParam(defaultValue = "20") int size) {
-        return adminActionLogService.getLogs(page, size);
+                                                    @RequestParam(defaultValue = "20") int size,
+                                                    @RequestParam(name = "action_type", required = false) String actionType,
+                                                    @RequestParam(required = false) String admin,
+                                                    @RequestParam(required = false) String from,
+                                                    @RequestParam(required = false) String to) {
+        return adminActionLogService.getLogs(page, size, actionType, admin, from, to);
     }
 
     @PatchMapping("/members/{memberId}/status")
