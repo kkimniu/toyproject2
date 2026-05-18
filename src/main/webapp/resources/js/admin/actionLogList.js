@@ -4,20 +4,27 @@ const contextPath = window.contextPath || "";
 let pageSize = 20;
 let currentPage = 1;
 let totalPages = 0;
+let currentFilters = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
+  bindSearchForm();
   bindPageSizeSelect();
   bindPaginationButtons();
   await loadActionLogs();
 });
 
-async function loadActionLogs() {
+async function loadActionLogs(page = currentPage) {
   const count = document.getElementById("adminActionLogCount");
   const tableBody = document.getElementById("adminActionLogTableBody");
   if (!count || !tableBody) return;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/action-logs?page=${currentPage}&size=${pageSize}`, {
+    const params = new URLSearchParams({
+      page: String(page),
+      size: String(pageSize),
+      ...currentFilters,
+    });
+    const response = await apiRequest(`${contextPath}/api/admin/action-logs?${params.toString()}`, {
       method: "GET",
     });
 
@@ -27,7 +34,7 @@ async function loadActionLogs() {
 
     const data = await response.json();
     const logs = Array.isArray(data.items) ? data.items : [];
-    currentPage = Number(data.page || currentPage);
+    currentPage = Number(data.page || 1);
     totalPages = Number(data.total_pages || 0);
     count.textContent = `전체 작업 로그 ${formatNumber(data.total_count || 0)}건`;
     renderPagination();
@@ -55,26 +62,39 @@ async function loadActionLogs() {
   }
 }
 
+function bindSearchForm() {
+  const form = document.getElementById("actionLogSearchForm");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    currentFilters = Object.fromEntries(
+      [...formData.entries()]
+        .map(([key, value]) => [key, String(value).trim()])
+        .filter(([, value]) => value)
+    );
+    currentPage = 1;
+    await loadActionLogs(1);
+  });
+}
+
 function bindPageSizeSelect() {
   const select = document.getElementById("actionLogPageSize");
   select?.addEventListener("change", async () => {
     pageSize = Number(select.value || 20);
     currentPage = 1;
-    await loadActionLogs();
+    await loadActionLogs(1);
   });
 }
 
 function bindPaginationButtons() {
   document.getElementById("btnPrevActionLogs")?.addEventListener("click", async () => {
     if (currentPage <= 1) return;
-    currentPage -= 1;
-    await loadActionLogs();
+    await loadActionLogs(currentPage - 1);
   });
 
   document.getElementById("btnNextActionLogs")?.addEventListener("click", async () => {
     if (currentPage >= totalPages) return;
-    currentPage += 1;
-    await loadActionLogs();
+    await loadActionLogs(currentPage + 1);
   });
 }
 

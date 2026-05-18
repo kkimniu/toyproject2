@@ -178,6 +178,33 @@
       </div>
 
       <div class="data-table-wrap">
+        <form id="actionLogSearchForm" class="action-log-search-form">
+          <label>
+            <span>작업 종류</span>
+            <select name="action_type">
+              <option value="">전체</option>
+              <option value="MEMBER_BANNED">회원 정지</option>
+              <option value="MEMBER_UNBANNED">회원 해제</option>
+              <option value="REPORT_RESOLVED">신고 처리</option>
+              <option value="MEMBER_PROMOTED_TO_ADMIN">관리자 승격</option>
+              <option value="MEMBER_DEMOTED_TO_USER">권한 회수</option>
+            </select>
+          </label>
+          <label>
+            <span>수행 관리자</span>
+            <input type="search" name="admin" placeholder="이름 또는 이메일">
+          </label>
+          <label>
+            <span>시작일</span>
+            <input type="date" name="from">
+          </label>
+          <label>
+            <span>종료일</span>
+            <input type="date" name="to">
+          </label>
+          <button type="submit">검색</button>
+        </form>
+
         <table class="data-table action-log-table">
           <thead>
             <tr>

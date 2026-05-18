@@ -14,7 +14,15 @@ public interface AdminActionLogRepository {
               @Param("targetId") Long targetId,
               @Param("actionDetail") String actionDetail);
 
-    long countLogsForAdmin();
+    long countLogsForAdmin(@Param("actionType") String actionType,
+                           @Param("admin") String admin,
+                           @Param("from") String from,
+                           @Param("to") String to);
 
-    List<AdminActionLogItemResponse> findLogsForAdmin(@Param("limit") int limit, @Param("offset") int offset);
+    List<AdminActionLogItemResponse> findLogsForAdmin(@Param("actionType") String actionType,
+                                                      @Param("admin") String admin,
+                                                      @Param("from") String from,
+                                                      @Param("to") String to,
+                                                      @Param("limit") int limit,
+                                                      @Param("offset") int offset);
 }
