@@ -33,11 +33,21 @@ public interface MemberRepository {
 
     void updatePhotoUrl(@Param("memberId") Long memberId, @Param("photoUrl") String photoUrl);
 
-    long countMembersForAdmin();
+    long countMembersForAdmin(@Param("keyword") String keyword,
+                              @Param("role") String role,
+                              @Param("status") String status,
+                              @Param("from") String from,
+                              @Param("to") String to);
 
     long countMembersByStatusForAdmin(@Param("status") MemberStatusEnum status);
 
-    List<AdminMemberListItemResponse> findMembersForAdmin(@Param("limit") int limit, @Param("offset") int offset);
+    List<AdminMemberListItemResponse> findMembersForAdmin(@Param("keyword") String keyword,
+                                                          @Param("role") String role,
+                                                          @Param("status") String status,
+                                                          @Param("from") String from,
+                                                          @Param("to") String to,
+                                                          @Param("limit") int limit,
+                                                          @Param("offset") int offset);
 
     int updateMemberStatusForAdmin(@Param("memberId") Long memberId, @Param("status") MemberStatusEnum status);
 

@@ -135,6 +135,24 @@
     <select id="countMembersForAdmin" resultType="long">
         SELECT COUNT(*)
         FROM members
+        <where>
+            <if test="keyword != null">
+                AND (email LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="from != null">
+                AND DATE(member_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(member_created_at) &lt;= #{to}
+            </if>
+        </where>
     </select>
 
     <select id="countMembersByStatusForAdmin" resultType="long">
@@ -152,6 +170,24 @@
             status,
             member_created_at AS memberCreatedAt
         FROM members
+        <where>
+            <if test="keyword != null">
+                AND (email LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="from != null">
+                AND DATE(member_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(member_created_at) &lt;= #{to}
+            </if>
+        </where>
         ORDER BY member_created_at DESC, member_id DESC
         LIMIT #{limit}
         OFFSET #{offset}

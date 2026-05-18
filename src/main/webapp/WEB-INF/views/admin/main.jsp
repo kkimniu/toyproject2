@@ -51,6 +51,40 @@
         </label>
       </div>
 
+      <form id="memberSearchForm" class="member-search-form">
+        <label>
+          <span>검색어</span>
+          <input type="search" name="keyword" placeholder="이름 또는 이메일">
+        </label>
+        <label>
+          <span>권한</span>
+          <select name="role">
+            <option value="">전체</option>
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+            <option value="SUPER_ADMIN">SUPER_ADMIN</option>
+          </select>
+        </label>
+        <label>
+          <span>상태</span>
+          <select name="status">
+            <option value="">전체</option>
+            <option value="ACTIVE">ACTIVE</option>
+            <option value="BANNED">BANNED</option>
+            <option value="DELETED">DELETED</option>
+          </select>
+        </label>
+        <label>
+          <span>시작일</span>
+          <input type="date" name="from">
+        </label>
+        <label>
+          <span>종료일</span>
+          <input type="date" name="to">
+        </label>
+        <button type="submit">검색</button>
+      </form>
+
       <div class="data-table-wrap">
         <table class="data-table member-table">
           <thead>

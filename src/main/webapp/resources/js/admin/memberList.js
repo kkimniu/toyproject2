@@ -6,9 +6,11 @@ let currentPage = 1;
 let totalPages = 0;
 let currentAdminId = null;
 let currentAdminRole = null;
+let currentFilters = {};
 
 document.addEventListener("DOMContentLoaded", async () => {
   await loadCurrentAdmin();
+  bindSearchForm();
   bindPageSizeSelect();
   bindPaginationButtons();
   await loadMembers();
@@ -29,13 +31,18 @@ async function loadCurrentAdmin() {
   }
 }
 
-async function loadMembers() {
+async function loadMembers(page = currentPage) {
   const count = document.getElementById("adminMemberCount");
   const tableBody = document.getElementById("adminMemberTableBody");
   if (!count || !tableBody) return;
 
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/members?page=${currentPage}&size=${pageSize}`, {
+    const params = new URLSearchParams({
+      page: String(page),
+      size: String(pageSize),
+      ...currentFilters,
+    });
+    const response = await apiRequest(`${contextPath}/api/admin/members?${params.toString()}`, {
       method: "GET",
     });
 
@@ -45,7 +52,7 @@ async function loadMembers() {
 
     const data = await response.json();
     const members = Array.isArray(data.items) ? data.items : [];
-    currentPage = Number(data.page || currentPage);
+    currentPage = Number(data.page || 1);
     totalPages = Number(data.total_pages || 0);
     renderPagination();
     count.textContent = `전체 회원 ${formatNumber(data.total_count || 0)}명`;
@@ -74,20 +81,33 @@ async function loadMembers() {
   }
 }
 
+function bindSearchForm() {
+  const form = document.getElementById("memberSearchForm");
+  form?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    currentFilters = Object.fromEntries(
+      [...formData.entries()]
+        .map(([key, value]) => [key, String(value).trim()])
+        .filter(([, value]) => value)
+    );
+    currentPage = 1;
+    await loadMembers(1);
+  });
+}
+
 function bindPaginationButtons() {
   const prevButton = document.getElementById("btnPrevMembers");
   const nextButton = document.getElementById("btnNextMembers");
 
   prevButton?.addEventListener("click", async () => {
     if (currentPage <= 1) return;
-    currentPage -= 1;
-    await loadMembers();
+    await loadMembers(currentPage - 1);
   });
 
   nextButton?.addEventListener("click", async () => {
     if (currentPage >= totalPages) return;
-    currentPage += 1;
-    await loadMembers();
+    await loadMembers(currentPage + 1);
   });
 }
 
@@ -96,7 +116,7 @@ function bindPageSizeSelect() {
   select?.addEventListener("change", async () => {
     pageSize = Number(select.value || 20);
     currentPage = 1;
-    await loadMembers();
+    await loadMembers(1);
   });
 }
 
