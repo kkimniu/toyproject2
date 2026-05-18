@@ -41,8 +41,13 @@ public class AdminRestController {
 
     @GetMapping("/members")
     public AdminMemberListResponse getMembers(@RequestParam(defaultValue = "1") int page,
-                                              @RequestParam(defaultValue = "20") int size) {
-        return adminMemberService.getMembers(page, size);
+                                              @RequestParam(defaultValue = "20") int size,
+                                              @RequestParam(required = false) String keyword,
+                                              @RequestParam(required = false) String role,
+                                              @RequestParam(required = false) String status,
+                                              @RequestParam(required = false) String from,
+                                              @RequestParam(required = false) String to) {
+        return adminMemberService.getMembers(page, size, keyword, role, status, from, to);
     }
 
     @GetMapping("/action-logs")

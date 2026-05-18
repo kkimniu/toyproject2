@@ -17,7 +17,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     @Override
     public AdminDashboardSummaryResponse getSummary() {
         return new AdminDashboardSummaryResponse(
-                memberRepository.countMembersForAdmin(),
+                memberRepository.countMembersForAdmin(null, null, null, null, null),
                 memberRepository.countMembersByStatusForAdmin(MemberStatusEnum.BANNED),
                 reportRepository.countReportsByStatusForAdmin("PENDING"),
                 reportRepository.countReportsByStatusForAdmin("RESOLVED")

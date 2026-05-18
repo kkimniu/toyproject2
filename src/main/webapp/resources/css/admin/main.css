@@ -225,6 +225,7 @@ body {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .member-role {
@@ -280,6 +281,47 @@ body {
 
 .member-action-empty {
   color: #98a2b3;
+}
+
+.member-search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 150px 150px 150px auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+
+.member-search-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.member-search-form span {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.member-search-form select,
+.member-search-form input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #fff;
+  color: #101828;
+}
+
+.member-search-form button {
+  min-width: 72px;
+  height: 42px;
+  border: 1px solid #101828;
+  border-radius: 6px;
+  background: #101828;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .report-search-form {
@@ -424,6 +466,49 @@ body {
   color: #344054;
   font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
+}
+
+.action-log-search-form {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr) 150px 150px auto;
+  gap: 12px;
+  align-items: end;
+  padding: 18px;
+  border-bottom: 1px solid #eaecf0;
+}
+
+.action-log-search-form label {
+  display: grid;
+  gap: 8px;
+}
+
+.action-log-search-form span {
+  color: #475467;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.action-log-search-form select,
+.action-log-search-form input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #d0d5dd;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #fff;
+  color: #101828;
+}
+
+.action-log-search-form button {
+  min-width: 72px;
+  height: 42px;
+  border: 1px solid #101828;
+  border-radius: 6px;
+  background: #101828;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .action-log-search-form {
@@ -637,6 +722,11 @@ body {
   .section-controls {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .member-search-form,
+  .report-search-form {
+    grid-template-columns: 1fr;
   }
 
   .action-log-search-form {

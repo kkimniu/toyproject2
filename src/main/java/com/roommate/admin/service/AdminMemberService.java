@@ -6,7 +6,13 @@ import com.roommate.domain.member.entity.MemberRoleEnum;
 import com.roommate.domain.member.entity.MemberStatusEnum;
 
 public interface AdminMemberService {
-    AdminMemberListResponse getMembers(int page, int size);
+    AdminMemberListResponse getMembers(int page,
+                                       int size,
+                                       String keyword,
+                                       String role,
+                                       String status,
+                                       String from,
+                                       String to);
 
     AdminMemberListItemResponse updateMemberStatus(Long memberId,
                                                    MemberStatusEnum status,
