@@ -1,4 +1,5 @@
 import { apiRequest } from "../common/apiClient.js";
+import { loadDashboardSummary } from "./dashboardSummary.js";
 
 const contextPath = window.contextPath || "";
 const REPEAT_PENALTY_THRESHOLD = 3;
@@ -296,6 +297,7 @@ async function updateMemberStatus(button) {
     if (!row) return;
     row.outerHTML = renderMemberRow(updatedMember);
     bindActionButtons(document.getElementById("adminMemberTableBody"));
+    await loadDashboardSummary();
   } catch (error) {
     console.error(error);
     alert("회원 상태를 변경하지 못했습니다.");
@@ -356,6 +358,7 @@ async function deleteMember(button) {
     }
 
     await loadMembers(currentPage);
+    await loadDashboardSummary();
   } catch (error) {
     console.error(error);
     alert("회원 탈퇴 처리를 완료하지 못했습니다.");

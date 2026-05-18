@@ -1,4 +1,5 @@
 import { apiRequest } from "../common/apiClient.js";
+import { loadDashboardSummary } from "./dashboardSummary.js";
 
 const contextPath = window.contextPath || "";
 let reports = [];
@@ -43,6 +44,7 @@ async function loadReports(page = currentPage) {
     count.textContent = `전체 신고 ${formatNumber(data.total_count || 0)}건`;
     renderReports();
     renderPagination();
+    focusRequestedReport();
   } catch (error) {
     console.error(error);
     count.textContent = "신고 목록을 불러오지 못했습니다.";
@@ -165,7 +167,7 @@ function renderPagination() {
 
 function renderReportRow(report) {
   return `
-    <tr>
+    <tr id="admin-report-${escapeHtml(report.report_id)}">
       <td>${escapeHtml(report.report_id)}</td>
       <td>${renderParty(report.target_member_name, report.target_member_email)}</td>
       <td>${renderParty(report.reporter_name, report.reporter_email)}</td>
@@ -175,6 +177,18 @@ function renderReportRow(report) {
       <td>${renderActionCell(report)}</td>
     </tr>
   `;
+}
+
+function focusRequestedReport() {
+  const params = new URLSearchParams(window.location.search);
+  const reportId = params.get("report_id");
+  if (!reportId) return;
+
+  const targetRow = document.getElementById(`admin-report-${reportId}`);
+  if (!targetRow) return;
+
+  targetRow.classList.add("report-row-focused");
+  targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 function renderParty(name, email) {
@@ -282,6 +296,7 @@ async function submitResolution(form) {
 
     closeResolutionModal();
     await loadReports(currentPage);
+    await loadDashboardSummary();
   } catch (error) {
     console.error(error);
     alert("신고 상태를 변경하지 못했습니다.");

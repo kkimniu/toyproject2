@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadDashboardSummary();
 });
 
-async function loadDashboardSummary() {
+export async function loadDashboardSummary() {
   try {
     const response = await apiRequest(`${contextPath}/api/admin/dashboard/summary`, {
       method: "GET",

@@ -132,12 +132,28 @@ function renderAdmin(name, email) {
 }
 
 function renderTarget(type, id) {
+  const targetLabel = targetTypeLabel(type);
+  const targetHref = targetDetailHref(type, id);
+  const targetContent = targetHref
+    ? `<a href="${escapeHtml(targetHref)}">#${escapeHtml(id)}</a>`
+    : `<span>#${escapeHtml(id)}</span>`;
+
   return `
     <div class="action-log-target">
-      <strong>${escapeHtml(targetTypeLabel(type))}</strong>
-      <span>#${escapeHtml(id)}</span>
+      <strong>${escapeHtml(targetLabel)}</strong>
+      ${targetContent}
     </div>
   `;
+}
+
+function targetDetailHref(type, id) {
+  if (type === "MEMBER") {
+    return `${contextPath}/members/${encodeURIComponent(id)}`;
+  }
+  if (type === "REPORT") {
+    return `${contextPath}/admin?report_id=${encodeURIComponent(id)}#admin-report-${encodeURIComponent(id)}`;
+  }
+  return "";
 }
 
 function actionTypeLabel(value) {
