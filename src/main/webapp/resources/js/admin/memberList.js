@@ -189,6 +189,7 @@ function renderActionCell(member) {
           data-next-role="USER">
           권한 회수
         </button>
+        ${renderDeleteActionButton(member)}
       </div>
     `;
   }
@@ -208,11 +209,15 @@ function renderActionCell(member) {
       </button>
     `
     : "";
+  const deleteAction = currentAdminRole === "SUPER_ADMIN"
+    ? renderDeleteActionButton(member)
+    : "";
 
   return `
     <div class="member-actions">
       ${renderStatusActionButton(member)}
       ${roleAction}
+      ${deleteAction}
     </div>
   `;
 }
@@ -231,6 +236,21 @@ function renderStatusActionButton(member) {
   `;
 }
 
+function renderDeleteActionButton(member) {
+  if (currentAdminRole !== "SUPER_ADMIN" || member.status === "DELETED") {
+    return "";
+  }
+
+  return `
+    <button
+      type="button"
+      class="member-action-btn member-delete-btn"
+      data-member-id="${escapeHtml(member.member_id)}">
+      탈퇴
+    </button>
+  `;
+}
+
 function bindActionButtons(container) {
   container.querySelectorAll(".member-action-btn").forEach((button) => {
     button.addEventListener("click", async () => {
@@ -241,6 +261,12 @@ function bindActionButtons(container) {
   container.querySelectorAll(".member-action-btn[data-next-role]").forEach((button) => {
     button.addEventListener("click", async () => {
       await updateMemberRole(button);
+    });
+  });
+
+  container.querySelectorAll(".member-delete-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await deleteMember(button);
     });
   });
 }
@@ -307,6 +333,32 @@ async function updateMemberRole(button) {
   } catch (error) {
     console.error(error);
     alert("회원 권한을 변경하지 못했습니다.");
+    button.disabled = false;
+  }
+}
+
+async function deleteMember(button) {
+  const memberId = button.dataset.memberId;
+  if (!memberId) return;
+
+  const ok = confirm("이 회원을 탈퇴 처리하시겠습니까? 되돌릴 수 없는 운영 조치입니다.");
+  if (!ok) return;
+
+  button.disabled = true;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/members/${encodeURIComponent(memberId)}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      throw new Error(`admin member delete api failed: ${response.status}`);
+    }
+
+    await loadMembers(currentPage);
+  } catch (error) {
+    console.error(error);
+    alert("회원 탈퇴 처리를 완료하지 못했습니다.");
     button.disabled = false;
   }
 }

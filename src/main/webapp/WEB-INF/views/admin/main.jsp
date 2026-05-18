@@ -223,6 +223,7 @@
               <option value="REPORT_RESOLVED">신고 처리</option>
               <option value="MEMBER_PROMOTED_TO_ADMIN">관리자 승격</option>
               <option value="MEMBER_DEMOTED_TO_USER">권한 회수</option>
+              <option value="MEMBER_DELETED">회원 탈퇴</option>
             </select>
           </label>
           <label>

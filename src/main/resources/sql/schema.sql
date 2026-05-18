@@ -110,7 +110,8 @@ CREATE TABLE admin_action_log (
         'MEMBER_UNBANNED',
         'REPORT_RESOLVED',
         'MEMBER_PROMOTED_TO_ADMIN',
-        'MEMBER_DEMOTED_TO_USER'
+        'MEMBER_DEMOTED_TO_USER',
+        'MEMBER_DELETED'
     ) NOT NULL,
     target_type ENUM('MEMBER','REPORT') NOT NULL,
     target_id BIGINT NOT NULL,

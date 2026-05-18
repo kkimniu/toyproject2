@@ -23,4 +23,6 @@ public interface AdminMemberService {
                                                  MemberRoleEnum role,
                                                  Long currentAdminId,
                                                  MemberRoleEnum currentAdminRole);
+
+    void deleteMember(Long memberId, Long currentAdminId, MemberRoleEnum currentAdminRole);
 }

@@ -9,5 +9,7 @@ public interface AdminActionLogService {
 
     void logMemberRoleChange(Long adminId, Long memberId, String actionType);
 
+    void logMemberDeleted(Long adminId, Long memberId);
+
     AdminActionLogListResponse getLogs(int page, int size, String actionType, String admin, String from, String to);
 }

@@ -17,6 +17,7 @@ import com.roommate.common.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -79,6 +80,16 @@ public class AdminRestController {
         return adminMemberService.updateMemberRole(
                 memberId,
                 request.getRole(),
+                userDetails.getMemberId(),
+                userDetails.getRole()
+        );
+    }
+
+    @DeleteMapping("/members/{memberId}")
+    public void deleteMember(@PathVariable Long memberId,
+                             @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        adminMemberService.deleteMember(
+                memberId,
                 userDetails.getMemberId(),
                 userDetails.getRole()
         );
