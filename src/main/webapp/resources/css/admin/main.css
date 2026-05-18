@@ -283,6 +283,10 @@ body {
   color: #98a2b3;
 }
 
+.member-ban-count-col {
+  white-space: nowrap;
+}
+
 .member-search-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 150px 150px 150px 150px auto;

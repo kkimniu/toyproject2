@@ -94,13 +94,14 @@
               <th scope="col">이름</th>
               <th scope="col">권한</th>
               <th scope="col">상태</th>
+              <th scope="col" class="member-ban-count-col">정지 횟수</th>
               <th scope="col">가입일</th>
               <th scope="col">관리</th>
             </tr>
           </thead>
           <tbody id="adminMemberTableBody">
             <tr class="data-table-empty">
-              <td colspan="7">회원 목록을 불러오는 중입니다.</td>
+              <td colspan="8">회원 목록을 불러오는 중입니다.</td>
             </tr>
           </tbody>
         </table>

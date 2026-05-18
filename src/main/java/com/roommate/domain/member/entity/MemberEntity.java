@@ -29,6 +29,8 @@ public class MemberEntity {
     @Builder.Default
     private int reportCount = 0;
     @Builder.Default
+    private int banCount = 0;
+    @Builder.Default
     private int deleted = 0;
     @Builder.Default
     private LocalDateTime memberCreatedAt = LocalDateTime.now();
