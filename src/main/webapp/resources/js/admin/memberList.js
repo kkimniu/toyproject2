@@ -60,7 +60,7 @@ async function loadMembers(page = currentPage) {
     if (members.length === 0) {
       tableBody.innerHTML = `
         <tr class="member-table-empty">
-          <td colspan="7">표시할 회원이 없습니다.</td>
+          <td colspan="8">표시할 회원이 없습니다.</td>
         </tr>
       `;
       return;
@@ -73,7 +73,7 @@ async function loadMembers(page = currentPage) {
     count.textContent = "회원 목록을 불러오지 못했습니다.";
     tableBody.innerHTML = `
       <tr class="member-table-empty">
-        <td colspan="7">회원 목록을 불러오지 못했습니다.</td>
+        <td colspan="8">회원 목록을 불러오지 못했습니다.</td>
       </tr>
     `;
     totalPages = 0;
@@ -142,6 +142,7 @@ function renderMemberRow(member) {
       <td>${escapeHtml(member.name)}</td>
       <td><span class="member-role">${escapeHtml(role)}</span></td>
       <td><span class="member-status ${statusClass(status)}">${escapeHtml(status)}</span></td>
+      <td>${escapeHtml(formatNumber(member.ban_count || 0))}</td>
       <td>${escapeHtml(formatDate(member.member_created_at))}</td>
       <td>${renderActionCell(member)}</td>
     </tr>

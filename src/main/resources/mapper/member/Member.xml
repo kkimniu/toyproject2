@@ -18,6 +18,7 @@
         <result property="gender" column="gender" javaType="com.roommate.domain.member.entity.MemberGenderEnum"/>
         <result property="birthDate" column="birth_date"/>
         <result property="reportCount" column="report_count"/>
+        <result property="banCount" column="ban_count"/>
         <result property="deleted" column="deleted"/>
         <result property="memberCreatedAt" column="member_created_at"/>
         <result property="memberUpdatedAt" column="member_updated_at"/>
@@ -51,6 +52,7 @@
         gender,
         birth_date,
         report_count,
+        ban_count,
         deleted,
         sleep_time,
         smoking,
@@ -70,6 +72,7 @@
         #{gender},
         #{birthDate},
         #{reportCount},
+        #{banCount},
         #{deleted},
         #{sleepTime},
         #{smoking},
@@ -168,6 +171,7 @@
             name,
             role,
             status,
+            ban_count AS banCount,
             member_created_at AS memberCreatedAt
         FROM members
         <where>
@@ -196,6 +200,10 @@
     <update id="updateMemberStatusForAdmin">
         UPDATE members
         SET status = #{status},
+            ban_count = CASE
+                WHEN #{status} = 'BANNED' THEN ban_count + 1
+                ELSE ban_count
+            END,
             banned_until = NULL,
             member_updated_at = NOW()
         WHERE member_id = #{memberId}

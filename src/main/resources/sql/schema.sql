@@ -13,6 +13,7 @@ CREATE TABLE members (
     photo_url VARCHAR(500),
     role ENUM('USER','ADMIN','SUPER_ADMIN','BANNED') NOT NULL DEFAULT 'USER',
     report_count INT NOT NULL DEFAULT 0,
+    ban_count INT NOT NULL DEFAULT 0,
     deleted TINYINT NOT NULL DEFAULT 0,
     sleep_time VARCHAR(50),
     work_type_id BIGINT,

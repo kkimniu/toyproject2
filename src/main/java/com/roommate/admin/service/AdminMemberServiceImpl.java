@@ -103,6 +103,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
                 member.getName(),
                 member.getRole(),
                 member.getStatus(),
+                status == MemberStatusEnum.BANNED ? member.getBanCount() + 1 : member.getBanCount(),
                 member.getMemberCreatedAt()
         );
     }
@@ -150,6 +151,7 @@ public class AdminMemberServiceImpl implements AdminMemberService {
                 member.getName(),
                 member.getRole(),
                 member.getStatus(),
+                member.getBanCount(),
                 member.getMemberCreatedAt()
         );
     }

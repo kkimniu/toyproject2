@@ -18,5 +18,6 @@ public class AdminMemberListItemResponse {
     private String name;
     private MemberRoleEnum role;
     private MemberStatusEnum status;
+    private int banCount;
     private LocalDateTime memberCreatedAt;
 }
