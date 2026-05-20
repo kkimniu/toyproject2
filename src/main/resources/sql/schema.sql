@@ -204,6 +204,20 @@ CREATE TABLE notifications (
     FOREIGN KEY (member_id) REFERENCES members(member_id) ON DELETE CASCADE
 );
 
+CREATE TABLE notices (
+    notice_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    admin_id BIGINT NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    content TEXT NOT NULL,
+    pinned TINYINT NOT NULL DEFAULT 0,
+    published TINYINT NOT NULL DEFAULT 1,
+    deleted TINYINT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (admin_id) REFERENCES members(member_id)
+);
+
 CREATE TABLE token_refresh (
     token_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     member_id BIGINT NOT NULL,
@@ -350,6 +364,9 @@ ON notifications (member_id, is_read);
 
 CREATE INDEX idx_notifications_type_reference
 ON notifications (type, reference_id);
+
+CREATE INDEX idx_notices_public
+ON notices (deleted, published, pinned, created_at);
 
 CREATE INDEX idx_temp_member_used_created
 ON temp_upload_files (member_id, used, created_at);

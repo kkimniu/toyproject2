@@ -6,12 +6,23 @@
     <resultMap id="preferenceMap" type="com.roommate.domain.member.entity.PreferenceEntity">
         <id property="preferenceId" column="preference_id"/>
         <result property="preferenceName" column="preference_name"/>
+        <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <select id="findAll" resultMap="preferenceMap">
         SELECT *
         FROM preferences
         ORDER BY preference_name
+    </select>
+    <select id="findById" resultMap="preferenceMap">
+        SELECT *
+        FROM preferences
+        WHERE preference_id = #{preferenceId}
+    </select>
+    <select id="findByName" resultMap="preferenceMap">
+        SELECT *
+        FROM preferences
+        WHERE preference_name = #{name}
     </select>
     <select id="findByMemberId" parameterType="long" resultType="com.roommate.domain.member.entity.PreferenceEntity">
         SELECT p.preference_id,
@@ -21,5 +32,18 @@
         JOIN member_preferences mp ON p.preference_id = mp.preference_id
         WHERE mp.member_id = #{memberId}
     </select>
+    <insert id="insert">
+        INSERT INTO preferences (preference_name)
+        VALUES (#{name})
+    </insert>
+    <update id="update">
+        UPDATE preferences
+        SET preference_name = #{name}
+        WHERE preference_id = #{preferenceId}
+    </update>
+    <delete id="delete">
+        DELETE FROM preferences
+        WHERE preference_id = #{preferenceId}
+    </delete>
 
 </mapper>

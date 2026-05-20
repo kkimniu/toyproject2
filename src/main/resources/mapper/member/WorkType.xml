@@ -18,4 +18,22 @@
         FROM work_types
         WHERE work_type_id = #{workTypeId}
     </select>
+    <select id="findByName" resultMap="workTypeMap">
+        SELECT *
+        FROM work_types
+        WHERE work_type_name = #{name}
+    </select>
+    <insert id="insert">
+        INSERT INTO work_types (work_type_name)
+        VALUES (#{name})
+    </insert>
+    <update id="update">
+        UPDATE work_types
+        SET work_type_name = #{name}
+        WHERE work_type_id = #{workTypeId}
+    </update>
+    <delete id="delete">
+        DELETE FROM work_types
+        WHERE work_type_id = #{workTypeId}
+    </delete>
 </mapper>
