@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.notice.repository.NoticeRepository">
+    <resultMap id="noticeMap" type="com.roommate.domain.notice.entity.NoticeEntity">
+        <id property="noticeId" column="notice_id"/>
+        <result property="adminId" column="admin_id"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="pinned" column="pinned"/>
+        <result property="published" column="published"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="publicWhere">
+        deleted = 0
+        AND published = 1
+        <if test="keyword != null">
+            AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </sql>
+
+    <select id="countPublic" resultType="long">
+        SELECT COUNT(*)
+        FROM notices
+        WHERE <include refid="publicWhere"/>
+    </select>
+
+    <select id="findPublic" resultMap="noticeMap">
+        SELECT *
+        FROM notices
+        WHERE <include refid="publicWhere"/>
+        ORDER BY pinned DESC, created_at DESC, notice_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="findPublicById" resultMap="noticeMap">
+        SELECT *
+        FROM notices
+        WHERE notice_id = #{noticeId}
+        AND deleted = 0
+        AND published = 1
+    </select>
+
+    <select id="countForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM notices
+        <where>
+            deleted = 0
+            <if test="keyword != null">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="published != null">
+                AND published = #{published}
+            </if>
+        </where>
+    </select>
+
+    <select id="findForAdmin" resultMap="noticeMap">
+        SELECT *
+        FROM notices
+        <where>
+            deleted = 0
+            <if test="keyword != null">
+                AND (title LIKE CONCAT('%', #{keyword}, '%') OR content LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="published != null">
+                AND published = #{published}
+            </if>
+        </where>
+        ORDER BY pinned DESC, created_at DESC, notice_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="findForAdminById" resultMap="noticeMap">
+        SELECT *
+        FROM notices
+        WHERE notice_id = #{noticeId}
+        AND deleted = 0
+    </select>
+
+    <insert id="insert" parameterType="com.roommate.domain.notice.entity.NoticeEntity" useGeneratedKeys="true" keyProperty="noticeId">
+        INSERT INTO notices (
+            admin_id,
+            title,
+            content,
+            pinned,
+            published
+        ) VALUES (
+            #{adminId},
+            #{title},
+            #{content},
+            #{pinned},
+            #{published}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.roommate.domain.notice.entity.NoticeEntity">
+        UPDATE notices
+        SET title = #{title},
+            content = #{content},
+            pinned = #{pinned},
+            published = #{published},
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+        AND deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE notices
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE notice_id = #{noticeId}
+        AND deleted = 0
+    </update>
+</mapper>

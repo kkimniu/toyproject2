@@ -12,30 +12,42 @@
   <jsp:include page="/WEB-INF/views/common/header.jsp"/>
 
   <main class="admin-page">
-    <section class="admin-summary" aria-label="관리자 요약 지표">
-      <article class="summary-item">
-        <span>전체 회원</span>
-        <strong id="summaryTotalMembers">-</strong>
-      </article>
-      <article class="summary-item">
-        <span>정지 회원</span>
-        <strong id="summaryBannedMembers">-</strong>
-      </article>
-      <article class="summary-item">
-        <span>대기 신고</span>
-        <strong id="summaryPendingReports">-</strong>
-      </article>
-      <article class="summary-item">
-        <span>처리 완료 신고</span>
-        <strong id="summaryResolvedReports">-</strong>
-      </article>
-    </section>
     <section class="admin-heading">
       <p>관리자</p>
       <h1>운영 관리</h1>
     </section>
 
-    <section class="admin-section" aria-label="회원 목록">
+    <nav class="admin-navigation" aria-label="관리자 메뉴">
+      <button type="button" class="admin-navigation-btn is-active" data-admin-target="dashboard">대시보드</button>
+      <button type="button" class="admin-navigation-btn" data-admin-target="members">회원 관리</button>
+      <button type="button" class="admin-navigation-btn" data-admin-target="reports">신고 관리</button>
+      <button type="button" class="admin-navigation-btn" data-admin-target="notices">공지사항 관리</button>
+      <button type="button" class="admin-navigation-btn" data-admin-target="categories">카테고리 관리</button>
+      <button type="button" class="admin-navigation-btn" data-admin-target="logs">작업 로그</button>
+    </nav>
+
+    <section class="admin-panel is-active" data-admin-panel="dashboard" aria-label="관리자 요약 지표">
+      <div class="admin-summary">
+        <article class="summary-item">
+          <span>전체 회원</span>
+          <strong id="summaryTotalMembers">-</strong>
+        </article>
+        <article class="summary-item">
+          <span>정지 회원</span>
+          <strong id="summaryBannedMembers">-</strong>
+        </article>
+        <article class="summary-item">
+          <span>대기 신고</span>
+          <strong id="summaryPendingReports">-</strong>
+        </article>
+        <article class="summary-item">
+          <span>처리 완료 신고</span>
+          <strong id="summaryResolvedReports">-</strong>
+        </article>
+      </div>
+    </section>
+
+    <section class="admin-section admin-panel" data-admin-panel="members" aria-label="회원 목록">
       <div class="section-header">
         <div>
           <h2>회원 관리</h2>
@@ -114,7 +126,7 @@
       </div>
     </section>
 
-    <section class="admin-section" aria-label="신고 목록">
+    <section class="admin-section admin-panel" data-admin-panel="reports" aria-label="신고 목록">
       <div class="section-header section-header-reports">
         <div>
           <h2>신고 관리</h2>
@@ -204,7 +216,158 @@
       </div>
     </section>
 
-    <section class="admin-section" aria-label="작업 로그">
+    <section class="admin-section admin-panel" data-admin-panel="notices" aria-label="공지사항 관리">
+      <div class="section-header">
+        <div>
+          <h2>공지사항 관리</h2>
+          <p id="adminNoticeCount">공지사항을 불러오는 중입니다.</p>
+        </div>
+      </div>
+
+      <form id="noticeEditorForm" class="admin-editor-form">
+        <input type="hidden" name="notice_id">
+        <label>
+          <span>제목</span>
+          <input type="text" name="title" maxlength="150" required>
+        </label>
+        <label class="admin-editor-form__wide">
+          <span>내용</span>
+          <textarea name="content" rows="5" required></textarea>
+        </label>
+        <label class="admin-check-label">
+          <input type="checkbox" name="pinned">
+          <span>중요 공지</span>
+        </label>
+        <label class="admin-check-label">
+          <input type="checkbox" name="published" checked>
+          <span>공개</span>
+        </label>
+        <div class="admin-editor-actions">
+          <button type="button" id="btnResetNoticeForm" class="btn-secondary">초기화</button>
+          <button type="submit" class="btn-primary">저장</button>
+        </div>
+      </form>
+
+      <form id="noticeSearchForm" class="notice-admin-search-form">
+        <label>
+          <span>검색어</span>
+          <input type="search" name="keyword" placeholder="제목 또는 내용">
+        </label>
+        <label>
+          <span>공개 상태</span>
+          <select name="published">
+            <option value="">전체</option>
+            <option value="true">공개</option>
+            <option value="false">비공개</option>
+          </select>
+        </label>
+        <button type="submit">검색</button>
+      </form>
+
+      <div class="data-table-wrap">
+        <table class="data-table notice-admin-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">제목</th>
+              <th scope="col">상태</th>
+              <th scope="col">등록일</th>
+              <th scope="col">관리</th>
+            </tr>
+          </thead>
+          <tbody id="adminNoticeTableBody">
+            <tr class="data-table-empty">
+              <td colspan="5">공지사항을 불러오는 중입니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-pagination" aria-label="공지사항 페이지 이동">
+        <button type="button" id="btnPrevNotices" class="pagination-btn">이전</button>
+        <span id="noticeAdminPageInfo">-</span>
+        <button type="button" id="btnNextNotices" class="pagination-btn">다음</button>
+      </div>
+    </section>
+
+    <section class="admin-section admin-panel" data-admin-panel="categories" aria-label="카테고리 관리">
+      <div class="section-header">
+        <div>
+          <h2>카테고리 관리</h2>
+          <p id="adminCategoryCount">카테고리를 불러오는 중입니다.</p>
+        </div>
+        <label class="page-size-control">
+          <span>표시 개수</span>
+          <select id="categoryPageSize">
+            <option value="5">5개</option>
+            <option value="10" selected>10개</option>
+            <option value="20">20개</option>
+          </select>
+        </label>
+      </div>
+
+      <form id="categoryEditorForm" class="category-editor-form">
+        <label>
+          <span>구분</span>
+          <select name="type">
+            <option value="WORK_TYPE">직업</option>
+            <option value="HOBBY">취미</option>
+            <option value="PREFERENCE">생활 선호</option>
+            <option value="PET">반려동물</option>
+          </select>
+        </label>
+        <label>
+          <span>이름</span>
+          <input type="text" name="name" maxlength="50" required>
+        </label>
+        <input type="hidden" name="id">
+        <div class="admin-editor-actions">
+          <button type="button" id="btnResetCategoryForm" class="btn-secondary">초기화</button>
+          <button type="submit" class="btn-primary">저장</button>
+        </div>
+      </form>
+
+      <div class="category-tabs" role="group" aria-label="카테고리 구분">
+        <button type="button" class="category-tab is-active" data-type="WORK_TYPE">직업</button>
+        <button type="button" class="category-tab" data-type="HOBBY">취미</button>
+        <button type="button" class="category-tab" data-type="PREFERENCE">생활 선호</button>
+        <button type="button" class="category-tab" data-type="PET">반려동물</button>
+      </div>
+
+      <form id="categorySearchForm" class="category-search-form">
+        <label>
+          <span>검색어</span>
+          <input type="search" name="keyword" placeholder="카테고리 이름">
+        </label>
+        <button type="submit">검색</button>
+      </form>
+
+      <div class="data-table-wrap">
+        <table class="data-table category-table">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">이름</th>
+              <th scope="col">등록일</th>
+              <th scope="col">관리</th>
+            </tr>
+          </thead>
+          <tbody id="adminCategoryTableBody">
+            <tr class="data-table-empty">
+              <td colspan="4">카테고리를 불러오는 중입니다.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-pagination" aria-label="카테고리 페이지 이동">
+        <button type="button" id="btnPrevCategories" class="pagination-btn">이전</button>
+        <span id="categoryPageInfo">-</span>
+        <button type="button" id="btnNextCategories" class="pagination-btn">다음</button>
+      </div>
+    </section>
+
+    <section class="admin-section admin-panel" data-admin-panel="logs" aria-label="작업 로그">
       <div class="section-header">
         <div>
           <h2>작업 로그</h2>
@@ -333,9 +496,12 @@
     window.contextPath = "${pageContext.request.contextPath}";
   </script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/adminGuard.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/adminNavigation.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/dashboardSummary.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/memberList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/reportList.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/noticeManagement.js"></script>
+  <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/categoryManagement.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/admin/actionLogList.js"></script>
   <script type="module" src="${pageContext.request.contextPath}/resources/js/auth/login.js"></script>
 </body>

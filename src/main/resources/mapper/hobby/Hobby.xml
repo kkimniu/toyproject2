@@ -7,12 +7,23 @@
     <resultMap id="hobbyMap" type="com.roommate.domain.member.entity.HobbyEntity">
         <id property="hobbyId" column="hobby_id"/>
         <result property="hobbyName" column="hobby_name"/>
+        <result property="createdAt" column="created_at"/>
     </resultMap>
 
     <select id="findAll" resultMap="hobbyMap">
         SELECT *
         FROM hobbies
         ORDER BY hobby_name
+    </select>
+    <select id="findById" resultMap="hobbyMap">
+        SELECT *
+        FROM hobbies
+        WHERE hobby_id = #{hobbyId}
+    </select>
+    <select id="findByName" resultMap="hobbyMap">
+        SELECT *
+        FROM hobbies
+        WHERE hobby_name = #{name}
     </select>
 
     <!-- mapper/hobby/Hobby.xml -->
@@ -24,5 +35,18 @@
         JOIN member_hobbies mh ON h.hobby_id = mh.hobby_id
         WHERE mh.member_id = #{memberId}
     </select>
+    <insert id="insert">
+        INSERT INTO hobbies (hobby_name)
+        VALUES (#{name})
+    </insert>
+    <update id="update">
+        UPDATE hobbies
+        SET hobby_name = #{name}
+        WHERE hobby_id = #{hobbyId}
+    </update>
+    <delete id="delete">
+        DELETE FROM hobbies
+        WHERE hobby_id = #{hobbyId}
+    </delete>
 
 </mapper>
