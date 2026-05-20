@@ -16,6 +16,7 @@
     <div class="chat-header">
       <button type="button" id="btnBack" class="btn-link">목록</button>
       <h1 class="chat-title">채팅</h1>
+      <button type="button" id="btnReportChat" class="btn-link">신고</button>
       <button type="button" id="btnLeaveChat" class="btn-link">나가기</button>
     </div>
 
@@ -28,6 +29,24 @@
       <button id="btnSend" class="chat-send" type="submit">전송</button>
     </form>
   </section>
+
+  <div class="chat-report-modal-overlay" id="chatReportModal" aria-hidden="true">
+    <div class="chat-report-modal" role="dialog" aria-modal="true" aria-labelledby="chatReportTitle">
+      <div class="chat-report-modal-header">
+        <h3 id="chatReportTitle">채팅 신고</h3>
+        <button type="button" class="chat-report-modal-close" data-close-chat-report aria-label="닫기">x</button>
+      </div>
+      <form id="chatReportForm">
+        <label for="chatReportReason">신고 사유</label>
+        <textarea id="chatReportReason" name="reason" rows="5" maxlength="1000" placeholder="채팅에서 문제가 된 내용을 구체적으로 입력해주세요."></textarea>
+        <p class="chat-report-message" id="chatReportMessage"></p>
+        <div class="chat-report-modal-actions">
+          <button type="button" class="btn-link chat-report-cancel" data-close-chat-report>취소</button>
+          <button type="submit" class="chat-report-submit">접수</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>

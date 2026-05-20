@@ -35,6 +35,17 @@
          id="headerAdminLink"
          class="header-text-btn"
          style="display:none;">관리자</a>
+      <div class="header-notification">
+        <button id="btnHeaderNotifications" type="button" class="header-text-btn header-notification-btn" aria-expanded="false">
+          알림 <span id="headerNotificationBadge" class="header-notification-badge" style="display:none;">0</span>
+        </button>
+        <div id="headerNotificationPanel" class="header-notification-panel" style="display:none;">
+          <div class="header-notification-title">최근 알림</div>
+          <div id="headerNotificationList" class="header-notification-list">
+            <p class="header-notification-empty">알림이 없습니다.</p>
+          </div>
+        </div>
+      </div>
       <a href="${pageContext.request.contextPath}/members/mypage"
          class="header-username"
          id="headerUsername">user</a>

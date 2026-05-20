@@ -4,6 +4,98 @@
         "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.roommate.domain.report.repository.ReportRepository">
+    <insert id="saveMemberReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            NULL,
+            #{targetMemberId},
+            'MEMBER',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveRoomReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{roomId},
+            #{targetMemberId},
+            'ROOM',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveChatReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            chat_room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{roomId},
+            #{chatRoomId},
+            #{targetMemberId},
+            'CHAT',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <select id="existsMemberReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND target_member_id = #{targetMemberId}
+            AND report_type = 'MEMBER'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsRoomReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND room_id = #{roomId}
+            AND report_type = 'ROOM'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsChatReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND chat_room_id = #{chatRoomId}
+            AND report_type = 'CHAT'
+            LIMIT 1
+        )
+    </select>
+
     <select id="countReportsForAdmin" resultType="long">
         SELECT COUNT(*)
         FROM report r
@@ -12,6 +104,9 @@
         <where>
             <if test="status != null">
                 AND r.status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND r.report_type = #{reportType}
             </if>
             <if test="reporter != null">
                 AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
@@ -39,12 +134,15 @@
     <select id="findReportsForAdmin" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
         SELECT
             r.report_id AS reportId,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
             r.target_member_id AS targetMemberId,
             target.email AS targetMemberEmail,
             target.name AS targetMemberName,
             r.reporter_id AS reporterId,
             reporter.email AS reporterEmail,
             reporter.name AS reporterName,
+            r.report_type AS reportType,
             r.reason AS reason,
             r.status AS status,
             r.resolution_type AS resolutionType,
@@ -61,6 +159,9 @@
         <where>
             <if test="status != null">
                 AND r.status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND r.report_type = #{reportType}
             </if>
             <if test="reporter != null">
                 AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
@@ -85,12 +186,15 @@
     <select id="findReportForAdminById" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
         SELECT
             r.report_id AS reportId,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
             r.target_member_id AS targetMemberId,
             target.email AS targetMemberEmail,
             target.name AS targetMemberName,
             r.reporter_id AS reporterId,
             reporter.email AS reporterEmail,
             reporter.name AS reporterName,
+            r.report_type AS reportType,
             r.reason AS reason,
             r.status AS status,
             r.resolution_type AS resolutionType,
@@ -118,12 +222,36 @@
         AND status = 'PENDING'
     </update>
 
+    <select id="findMyReportById" resultType="com.roommate.domain.report.dto.MyReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.report_type AS reportType,
+            r.reason AS reason,
+            r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_at AS processedAt,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        WHERE r.reporter_id = #{reporterId}
+        AND r.report_id = #{reportId}
+    </select>
+
     <select id="findMyReports" resultType="com.roommate.domain.report.dto.MyReportListItemResponse">
         SELECT
             r.report_id AS reportId,
             r.target_member_id AS targetMemberId,
             target.email AS targetMemberEmail,
             target.name AS targetMemberName,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.report_type AS reportType,
             r.reason AS reason,
             r.status AS status,
             r.resolution_type AS resolutionType,

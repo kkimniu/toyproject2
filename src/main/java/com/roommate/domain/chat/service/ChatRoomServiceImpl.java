@@ -3,6 +3,7 @@ package com.roommate.domain.chat.service;
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
 import com.roommate.domain.chat.dto.response.ChatRoomListItemResponse;
+import com.roommate.domain.chat.dto.response.ChatRoomDetailResponse;
 import com.roommate.domain.chat.entity.ChatRoomEntity;
 import com.roommate.domain.chat.repository.ChatRoomRepository;
 import com.roommate.domain.room.entity.RoomEntity;
@@ -90,6 +91,17 @@ public class ChatRoomServiceImpl implements ChatRoomService {
             throw new ApiException(ErrorCode.AUTH_REQUIRED);
         }
         return chatRoomRepository.findMyChatRooms(currentMemberId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ChatRoomDetailResponse getMyChatRoom(Long chatRoomId, Long currentMemberId) {
+        ChatRoomEntity chatRoom = getParticipantRoom(chatRoomId, currentMemberId);
+        ChatRoomDetailResponse response = chatRoomRepository.findMyChatRoom(chatRoom.getChatRoomId(), currentMemberId);
+        if (response == null) {
+            throw new ApiException(ErrorCode.CHAT_ROOM_NOT_FOUND);
+        }
+        return response;
     }
 
     @Override

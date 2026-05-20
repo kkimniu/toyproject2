@@ -111,6 +111,16 @@
   background: #000000;
 }
 
+.btn-report {
+  background: #ffffff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.btn-report:hover {
+  background: #fef2f2;
+}
+
 /* 아래쪽: 태그 & 상세 정보 */
 .profile-summary-bottom {
   margin-top: 18px;
@@ -284,9 +294,34 @@
   box-shadow: 0 0 0 1px #4f46e5;
 }
 
+.report-reason-input {
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 120px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font: inherit;
+}
+
+.report-reason-input:focus {
+  outline: none;
+  border-color: #111827;
+  box-shadow: 0 0 0 1px #111827;
+}
+
 .modal-body .form-text {
   font-size: 0.8rem;
   color: #9ca3af;
+}
+
+.modal-body .form-text-error {
+  color: #dc2626;
+}
+
+.modal-body .form-text-success {
+  color: #047857;
 }
 
 .modal-footer {

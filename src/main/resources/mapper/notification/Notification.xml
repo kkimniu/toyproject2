@@ -25,6 +25,48 @@
         LIMIT 1
     </insert>
 
+    <insert id="insertReportResolutionNotification">
+        INSERT INTO notifications (
+            member_id,
+            type,
+            reference_id,
+            message
+        )
+        VALUES (
+            #{memberId},
+            'REPORT',
+            #{reportId},
+            LEFT(#{message}, 255)
+        )
+    </insert>
+
+    <select id="countUnreadByMemberId" resultType="long">
+        SELECT COUNT(*)
+        FROM notifications
+        WHERE member_id = #{memberId}
+        AND is_read = 0
+    </select>
+
+    <select id="findRecentByMemberId" resultType="com.roommate.domain.notification.dto.NotificationResponse">
+        SELECT
+            notification_id AS notificationId,
+            type,
+            reference_id AS referenceId,
+            message,
+            is_read AS isRead,
+            created_at AS createdAt
+        FROM notifications
+        WHERE member_id = #{memberId}
+        ORDER BY created_at DESC, notification_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <delete id="markAsRead">
+        DELETE FROM notifications
+        WHERE notification_id = #{notificationId}
+        AND member_id = #{memberId}
+    </delete>
+
     <delete id="deleteByMemberId" parameterType="long">
         DELETE FROM notifications
         WHERE member_id = #{memberId}

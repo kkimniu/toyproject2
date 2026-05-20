@@ -111,6 +111,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/chat/rooms/**").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/chat/rooms/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/chat/rooms/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/reports/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/reports/**").authenticated()
+                .antMatchers(HttpMethod.GET, "/api/notifications/**").authenticated()
+                .antMatchers(HttpMethod.PATCH, "/api/notifications/**").authenticated()
 
                 // 10) 관리자 API
                 .antMatchers("/api/admin/**").hasAnyRole("ADMIN", "SUPER_ADMIN")

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatRoomListItemResponse {
+public class ChatRoomDetailResponse {
     private Long chatRoomId;
     private Long roomId;
     private String roomTitle;
@@ -28,6 +28,5 @@ public class ChatRoomListItemResponse {
 
     private String lastMessage;
     private LocalDateTime lastSentAt;
-
     private Integer unreadCount;
 }

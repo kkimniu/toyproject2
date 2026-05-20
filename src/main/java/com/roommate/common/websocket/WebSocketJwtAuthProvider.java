@@ -5,6 +5,7 @@ import com.roommate.common.exception.ErrorCode;
 import com.roommate.common.jwt.JwtUtil;
 import com.roommate.common.security.UserDetailsImpl;
 import com.roommate.domain.member.entity.MemberEntity;
+import com.roommate.domain.member.entity.MemberStatusEnum;
 import com.roommate.domain.member.repository.MemberRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -47,6 +48,12 @@ public class WebSocketJwtAuthProvider {
             // 4) 회원 조회
             MemberEntity member = memberRepository.findById(memberId)
                     .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+            if (member.getDeleted() == 1 || member.getStatus() == MemberStatusEnum.DELETED) {
+                throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+            }
+            if (member.getStatus() == MemberStatusEnum.BANNED) {
+                throw new ApiException(ErrorCode.MEMBER_BANNED);
+            }
 
             // 5) Principal 생성
             UserDetailsImpl principal = new UserDetailsImpl(member);

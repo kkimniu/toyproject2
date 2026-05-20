@@ -395,3 +395,93 @@
   border: 1px dashed #cbd5e1;
   background: transparent;
 }
+
+.room-report-modal-overlay {
+    position: fixed;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.38);
+    z-index: 1000;
+}
+
+.room-report-modal {
+    width: 420px;
+    max-width: calc(100% - 32px);
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+}
+
+.room-report-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.room-report-modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.room-report-modal-close {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.room-report-modal label {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.room-report-modal textarea {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 120px;
+    resize: vertical;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font: inherit;
+}
+
+.room-report-modal textarea:focus {
+    outline: none;
+    border-color: #111827;
+    box-shadow: 0 0 0 1px #111827;
+}
+
+.room-report-message {
+    min-height: 18px;
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.room-report-message.is-error {
+    color: #dc2626;
+}
+
+.room-report-message.is-success {
+    color: #047857;
+}
+
+.room-report-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.room-report-modal-actions .btn-outline-full,
+.room-report-modal-actions .btn-primary-full {
+    width: auto;
+    min-width: 82px;
+}

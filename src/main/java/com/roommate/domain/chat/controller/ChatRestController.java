@@ -6,6 +6,7 @@ import com.roommate.domain.chat.dto.request.ChatRoomCreateRequest;
 import com.roommate.domain.chat.dto.response.ChatRoomListItemResponse;
 import com.roommate.domain.chat.dto.response.ChatMessageResponse;
 import com.roommate.domain.chat.dto.response.ChatRoomCreateResponse;
+import com.roommate.domain.chat.dto.response.ChatRoomDetailResponse;
 import com.roommate.domain.chat.service.ChatMessageService;
 import com.roommate.domain.chat.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,11 @@ public class ChatRestController {
     @GetMapping
     public List<ChatRoomListItemResponse> getMyChatRooms(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         return chatRoomService.getMyChatRooms(userDetails.getMemberId());
+    }
+
+    @GetMapping("/{chatRoomId}/me")
+    public ChatRoomDetailResponse getMyChatRoom(@PathVariable Long chatRoomId, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return chatRoomService.getMyChatRoom(chatRoomId, userDetails.getMemberId());
     }
 
     @GetMapping("/{chatRoomId}/messages")

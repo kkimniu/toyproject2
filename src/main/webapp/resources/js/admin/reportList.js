@@ -171,12 +171,29 @@ function renderReportRow(report) {
       <td>${escapeHtml(report.report_id)}</td>
       <td>${renderParty(report.target_member_name, report.target_member_email)}</td>
       <td>${renderParty(report.reporter_name, report.reporter_email)}</td>
-      <td class="report-reason">${escapeHtml(report.reason)}</td>
+      <td class="report-reason">${renderReportReason(report)}</td>
       <td><span class="report-status ${statusClass(report.status)}">${escapeHtml(statusLabel(report.status))}</span></td>
       <td>${escapeHtml(formatDate(report.report_created_at))}</td>
       <td>${renderActionCell(report)}</td>
     </tr>
   `;
+}
+
+function renderReportReason(report) {
+  return `
+    <div class="report-reason-content">
+      <span class="report-type-badge">${escapeHtml(reportTypeLabel(report.report_type))}</span>
+      <span>${escapeHtml(report.reason || "-")}</span>
+    </div>
+  `;
+}
+
+function reportTypeLabel(value) {
+  const type = String(value || "ROOM").toUpperCase();
+  if (type === "MEMBER") return "회원";
+  if (type === "ROOM") return "방";
+  if (type === "CHAT") return "채팅";
+  return type;
 }
 
 function focusRequestedReport() {

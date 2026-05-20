@@ -98,6 +98,11 @@
             END AS otherMemberId,
             other_member.name AS otherName,
             other_member.photo_url AS otherPhotoUrl,
+            CASE
+                WHEN other_member.deleted = 1 OR other_member.status IN ('DELETED', 'BANNED') THEN TRUE
+                ELSE FALSE
+            END AS otherDeleted,
+            other_member.status AS otherStatus,
             last_message.message AS lastMessage,
             last_message.sent_at AS lastSentAt,
             (
@@ -142,6 +147,69 @@
                 ELSE cr.created_at
             END DESC,
             cr.chat_room_id DESC
+    </select>
+
+    <select id="findMyChatRoom" resultType="com.roommate.domain.chat.dto.response.ChatRoomDetailResponse">
+        SELECT
+            cr.chat_room_id AS chatRoomId,
+            cr.room_id AS roomId,
+            r.room_title AS roomTitle,
+            (
+                SELECT ri.image_url
+                FROM room_image ri
+                WHERE ri.room_id = cr.room_id
+                AND ri.deleted = 0
+                ORDER BY ri.sort_order ASC, ri.image_id ASC
+                LIMIT 1
+            ) AS roomThumbnailUrl,
+            CASE
+                WHEN cr.owner_id = #{memberId} THEN cr.partner_id
+                ELSE cr.owner_id
+            END AS otherMemberId,
+            other_member.name AS otherName,
+            other_member.photo_url AS otherPhotoUrl,
+            CASE
+                WHEN other_member.deleted = 1 OR other_member.status IN ('DELETED', 'BANNED') THEN TRUE
+                ELSE FALSE
+            END AS otherDeleted,
+            other_member.status AS otherStatus,
+            last_message.message AS lastMessage,
+            last_message.sent_at AS lastSentAt,
+            (
+                SELECT COUNT(*)
+                FROM chat_messages unread_message
+                WHERE unread_message.chat_room_id = cr.chat_room_id
+                AND unread_message.sender_id != #{memberId}
+                AND unread_message.message_id > COALESCE(crm.last_read_message_id, 0)
+                AND (
+                    crm.left_at IS NULL
+                    OR unread_message.sent_at > crm.left_at
+                )
+            ) AS unreadCount
+        FROM chat_room_members crm
+        INNER JOIN chat_rooms cr ON crm.chat_room_id = cr.chat_room_id
+        INNER JOIN rooms r ON cr.room_id = r.room_id
+        INNER JOIN members other_member
+            ON other_member.member_id = CASE
+                WHEN cr.owner_id = #{memberId} THEN cr.partner_id
+                ELSE cr.owner_id
+            END
+        LEFT JOIN chat_messages last_message
+            ON last_message.message_id = (
+                SELECT visible_message.message_id
+                FROM chat_messages visible_message
+                WHERE visible_message.chat_room_id = cr.chat_room_id
+                AND (
+                    crm.left_at IS NULL
+                    OR visible_message.sent_at > crm.left_at
+                )
+                ORDER BY visible_message.sent_at DESC, visible_message.message_id DESC
+                LIMIT 1
+            )
+        WHERE crm.chat_room_id = #{chatRoomId}
+        AND crm.member_id = #{memberId}
+        AND crm.is_hidden = 0
+        LIMIT 1
     </select>
 
     <update id="updateLastMessage">

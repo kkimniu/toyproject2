@@ -4,6 +4,7 @@ import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
+import com.roommate.domain.notification.repository.NotificationRepository;
 import com.roommate.domain.report.repository.ReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,13 @@ public class AdminReportServiceImpl implements AdminReportService {
 
     private final ReportRepository reportRepository;
     private final AdminActionLogService adminActionLogService;
+    private final NotificationRepository notificationRepository;
 
     @Override
     public AdminReportListResponse getReports(int page,
                                               int size,
                                               String status,
+                                              String reportType,
                                               String reporter,
                                               String target,
                                               String from,
@@ -30,14 +33,16 @@ public class AdminReportServiceImpl implements AdminReportService {
         int offset = (safePage - 1) * safeSize;
 
         String safeStatus = normalize(status);
+        String safeReportType = normalizeReportType(reportType);
         String safeReporter = normalize(reporter);
         String safeTarget = normalize(target);
         String safeFrom = normalize(from);
         String safeTo = normalize(to);
 
-        long totalCount = reportRepository.countReportsForAdmin(safeStatus, safeReporter, safeTarget, safeFrom, safeTo);
+        long totalCount = reportRepository.countReportsForAdmin(safeStatus, safeReportType, safeReporter, safeTarget, safeFrom, safeTo);
         List<AdminReportListItemResponse> items = reportRepository.findReportsForAdmin(
                 safeStatus,
+                safeReportType,
                 safeReporter,
                 safeTarget,
                 safeFrom,
@@ -86,6 +91,11 @@ public class AdminReportServiceImpl implements AdminReportService {
         }
 
         adminActionLogService.logReportResolved(processedBy, reportId, resolutionType);
+        notificationRepository.insertReportResolutionNotification(
+                report.getReporterId(),
+                reportId,
+                buildReportResolutionNotificationMessage(resolutionType, resolutionMessage)
+        );
 
         return reportRepository.findReportForAdminById(reportId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ADMIN_REPORT_NOT_FOUND));
@@ -99,5 +109,29 @@ public class AdminReportServiceImpl implements AdminReportService {
 
     private String normalize(String value) {
         return value == null || value.isBlank() ? null : value.trim();
+    }
+
+    private String buildReportResolutionNotificationMessage(String resolutionType, String resolutionMessage) {
+        String resultLabel;
+        if ("ACCEPTED".equals(resolutionType)) {
+            resultLabel = "신고가 인정되었습니다.";
+        } else if ("REJECTED".equals(resolutionType)) {
+            resultLabel = "신고가 반려되었습니다.";
+        } else {
+            resultLabel = "신고 처리가 완료되었습니다.";
+        }
+        return resultLabel + " " + resolutionMessage;
+    }
+
+    private String normalizeReportType(String value) {
+        String normalized = normalize(value);
+        if (normalized == null) {
+            return null;
+        }
+        String upper = normalized.toUpperCase();
+        if (!"ROOM".equals(upper) && !"MEMBER".equals(upper) && !"CHAT".equals(upper)) {
+            throw new ApiException(ErrorCode.INVALID_ENUM_VALUE);
+        }
+        return upper;
     }
 }

@@ -22,8 +22,7 @@
         </button>
 
         <div class="room-detail-top-actions">
-            <!-- 신고 버튼도 나중에 JS 연결 -->
-            <button type="button" class="icon-btn" title="신고하기">
+            <button type="button" class="icon-btn" id="btn-report-room" title="신고하기">
                 🚩
             </button>
         </div>
@@ -182,6 +181,23 @@
             </section>
 
         </aside>
+    </div>
+    <div class="room-report-modal-overlay" id="roomReportModal" aria-hidden="true">
+        <div class="room-report-modal" role="dialog" aria-modal="true" aria-labelledby="roomReportTitle">
+            <div class="room-report-modal-header">
+                <h3 id="roomReportTitle">매물 신고</h3>
+                <button type="button" class="room-report-modal-close" data-close-room-report aria-label="닫기">x</button>
+            </div>
+            <form id="roomReportForm">
+                <label for="roomReportReason">신고 사유</label>
+                <textarea id="roomReportReason" name="reason" rows="5" maxlength="1000" placeholder="관리자가 확인할 수 있도록 구체적으로 입력해주세요."></textarea>
+                <p class="room-report-message" id="roomReportMessage"></p>
+                <div class="room-report-modal-actions">
+                    <button type="button" class="btn-outline-full" data-close-room-report>취소</button>
+                    <button type="submit" class="btn-primary-full">접수</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 <script type="module" src="${pageContext.request.contextPath}/resources/js/room/roomDetail.js"></script>

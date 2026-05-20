@@ -28,7 +28,7 @@
 
       <!-- 오른쪽: 문의하기 버튼 -->
       <div class="profile-summary-actions">
-
+        <button type="button" class="btn btn-report" id="btnOpenReportModal">신고</button>
       </div>
     </div>
 
@@ -85,6 +85,26 @@
   <section class="mypage-tab-content" id="tab-activities" style="display:none;">
     <!-- TODO: 활동 내역 내용 -->
   </section>
+
+  <div class="modal-overlay" id="memberReportModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="memberReportTitle">
+      <div class="modal-header">
+        <h3 id="memberReportTitle">회원 신고</h3>
+        <button type="button" class="modal-close-btn" data-close-report-modal aria-label="닫기">x</button>
+      </div>
+      <form id="memberReportForm">
+        <div class="modal-body">
+          <label for="memberReportReason">신고 사유</label>
+          <textarea id="memberReportReason" name="reason" class="report-reason-input" rows="5" maxlength="1000" placeholder="관리자가 확인할 수 있도록 구체적으로 입력해주세요."></textarea>
+          <p class="form-text" id="memberReportMessage"></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-close-report-modal>취소</button>
+          <button type="submit" class="btn btn-dark">접수</button>
+        </div>
+      </form>
+    </div>
+  </div>
 </main>
 
 <script type="module" src="${pageContext.request.contextPath}/resources/js/member/profileView.js"></script>
