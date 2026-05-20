@@ -124,6 +124,102 @@ function initTabs() {
   openTab(tabs[0].dataset.tab);
 }
 
+async function setupMemberReport(memberId) {
+  const openButton = document.getElementById("btnOpenReportModal");
+  const modal = document.getElementById("memberReportModal");
+  const form = document.getElementById("memberReportForm");
+  const reasonInput = document.getElementById("memberReportReason");
+  const message = document.getElementById("memberReportMessage");
+  if (!openButton || !modal || !form || !reasonInput) return;
+
+  try {
+    const meResponse = await apiRequest("/api/members/me", { method: "GET" });
+    if (meResponse.ok) {
+      const me = await meResponse.json();
+      const myId = me.member_id ?? me.memberId;
+      if (String(myId) === String(memberId)) {
+        openButton.style.display = "none";
+        return;
+      }
+    }
+  } catch (error) {
+    console.warn("member self check failed:", error);
+  }
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  };
+
+  const openModal = () => {
+    reasonInput.value = "";
+    if (message) {
+      message.textContent = "";
+      message.className = "form-text";
+    }
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+    reasonInput.focus();
+  };
+
+  openButton.addEventListener("click", openModal);
+  modal.querySelectorAll("[data-close-report-modal]").forEach((button) => {
+    button.addEventListener("click", closeModal);
+  });
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const reason = reasonInput.value.trim();
+    if (!reason) {
+      if (message) {
+        message.textContent = "신고 사유를 입력해주세요.";
+        message.className = "form-text form-text-error";
+      }
+      return;
+    }
+
+    try {
+      const response = await apiRequest(`/api/reports/members/${encodeURIComponent(memberId)}`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await readErrorMessage(response);
+        if (message) {
+          message.textContent = errorMessage || "신고 접수에 실패했습니다.";
+          message.className = "form-text form-text-error";
+        }
+        return;
+      }
+
+      if (message) {
+        message.textContent = "신고가 접수되었습니다.";
+        message.className = "form-text form-text-success";
+      }
+      setTimeout(closeModal, 700);
+    } catch (error) {
+      console.warn("member report failed:", error);
+      if (message) {
+        message.textContent = "신고 접수 중 오류가 발생했습니다.";
+        message.className = "form-text form-text-error";
+      }
+    }
+  });
+}
+
+async function readErrorMessage(response) {
+  try {
+    const data = await response.json();
+    return data.message || data.error || "";
+  } catch (error) {
+    return "";
+  }
+}
+
 function renderMemberRoomCard(room) {
   const roomId = pick(room, ["roomId", "room_id"]);
   const title = pick(room, ["roomTitle", "room_title"]) ?? "방 제목";
@@ -253,6 +349,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
+    await setupMemberReport(memberId);
     await loadMemberProfile(memberId);
     await loadMemberRooms(memberId);
   } catch (e) {

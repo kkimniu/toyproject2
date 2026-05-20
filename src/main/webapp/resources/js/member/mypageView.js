@@ -311,6 +311,10 @@ function renderMyReportCard(report) {
       </div>
       <dl class="my-report-meta">
         <div>
+          <dt>신고 유형</dt>
+          <dd>${escapeHtml(reportTypeText(report.report_type))}</dd>
+        </div>
+        <div>
           <dt>신고 사유</dt>
           <dd>${escapeHtml(report.reason || "-")}</dd>
         </div>
@@ -544,6 +548,14 @@ function resolutionTypeText(value) {
   if (value === "REJECTED") return "신고 반려";
   if (value === "NO_ACTION") return "조치 없음";
   return "-";
+}
+
+function reportTypeText(value) {
+  const type = String(value || "ROOM").toUpperCase();
+  if (type === "MEMBER") return "회원";
+  if (type === "ROOM") return "방";
+  if (type === "CHAT") return "채팅";
+  return type;
 }
 
 function formatMoney(value) {

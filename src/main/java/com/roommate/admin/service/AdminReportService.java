@@ -7,6 +7,7 @@ public interface AdminReportService {
     AdminReportListResponse getReports(int page,
                                        int size,
                                        String status,
+                                       String reportType,
                                        String reporter,
                                        String target,
                                        String from,

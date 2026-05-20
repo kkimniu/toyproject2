@@ -4,6 +4,7 @@ import { getAccessToken, getTokenType } from "../common/authTokenStorage.js";
 
 let stompClient = null;
 let reconnectTimer = null;
+let currentChatRoom = null;
 
 function getAccessTokenFallback() {
   return getAccessToken();
@@ -229,6 +230,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  bindChatReport(chatRoomId);
+  currentChatRoom = await loadChatRoomInfo(chatRoomId);
+
   const myMemberId = await fetchMyMemberId();
   if (myMemberId == null) {
     alert("로그인 정보가 만료되었습니다. 다시 로그인해주세요.");
@@ -237,7 +241,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   await loadMessages(chatRoomId, myMemberId);
 
-  connectStomp(chatRoomId, myMemberId);
+  if (!isUnavailableMember(currentChatRoom)) {
+    connectStomp(chatRoomId, myMemberId);
+  }
 
   const form = document.getElementById("chatForm");
   const input = document.getElementById("chatInput");
@@ -248,6 +254,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const text = String(input.value ?? "").trim();
       if (!text) return;
+
+      if (isUnavailableMember(currentChatRoom)) {
+        alert(`${unavailableMemberText(currentChatRoom)}에게는 메시지를 보낼 수 없습니다.`);
+        return;
+      }
 
       if (!stompClient || !stompClient.connected) {
         alert("채팅 서버에 연결되지 않았습니다.");
@@ -266,6 +277,146 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 });
+
+async function loadChatRoomInfo(chatRoomId) {
+  try {
+    const res = await apiRequest(`/api/chat/rooms/${encodeURIComponent(chatRoomId)}/me`, { method: "GET" });
+    if (!res.ok) return null;
+    const room = await res.json();
+    applyChatRoomInfo(room);
+    return room;
+  } catch (error) {
+    console.warn("[chat] room info failed:", error);
+    return null;
+  }
+}
+
+function applyChatRoomInfo(room) {
+  if (!room) return;
+  const title = document.querySelector(".chat-title");
+  const input = document.getElementById("chatInput");
+  const sendButton = document.getElementById("btnSend");
+  const unavailable = isUnavailableMember(room);
+  const otherName = unavailable ? unavailableMemberText(room) : (pick(room, ["otherName", "other_name"]) || "채팅");
+  if (title) {
+    title.innerHTML = `${escapeHtml(otherName)}${unavailable ? `<span class="chat-title-state">${escapeHtml(unavailableMemberBadge(room))}</span>` : ""}`;
+  }
+  if (unavailable) {
+    showChatSystemNotice(`상대방이 ${unavailableMemberText(room)}입니다. 기존 대화는 확인할 수 있지만 새 메시지는 보낼 수 없습니다.`);
+    if (input) {
+      input.value = "";
+      input.placeholder = `${unavailableMemberText(room)}에게는 메시지를 보낼 수 없습니다.`;
+      input.disabled = true;
+    }
+    if (sendButton) sendButton.disabled = true;
+  }
+}
+
+function showChatSystemNotice(message) {
+  const card = document.querySelector(".chat-card");
+  const list = document.getElementById("chatList");
+  if (!card || !list || document.querySelector(".chat-system-notice")) return;
+  const notice = document.createElement("div");
+  notice.className = "chat-system-notice";
+  notice.textContent = message;
+  card.insertBefore(notice, list);
+}
+
+function isUnavailableMember(room) {
+  const deleted = pick(room, ["otherDeleted", "other_deleted"]);
+  const status = pick(room, ["otherStatus", "other_status"]);
+  return deleted === true || deleted === 1 || deleted === "1" || status === "DELETED" || status === "BANNED";
+}
+
+function unavailableMemberText(room) {
+  return pick(room, ["otherStatus", "other_status"]) === "BANNED" ? "정지된 회원" : "탈퇴한 회원";
+}
+
+function unavailableMemberBadge(room) {
+  return pick(room, ["otherStatus", "other_status"]) === "BANNED" ? "정지" : "탈퇴";
+}
+
+function bindChatReport(chatRoomId) {
+  const reportBtn = document.getElementById("btnReportChat");
+  const modal = document.getElementById("chatReportModal");
+  const form = document.getElementById("chatReportForm");
+  const reasonInput = document.getElementById("chatReportReason");
+  const message = document.getElementById("chatReportMessage");
+  if (!reportBtn || !modal || !form || !reasonInput) return;
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  };
+
+  const openModal = () => {
+    reasonInput.value = "";
+    if (message) {
+      message.textContent = "";
+      message.className = "chat-report-message";
+    }
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+    reasonInput.focus();
+  };
+
+  reportBtn.addEventListener("click", openModal);
+  modal.querySelectorAll("[data-close-chat-report]").forEach((button) => {
+    button.addEventListener("click", closeModal);
+  });
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const reason = reasonInput.value.trim();
+    if (!reason) {
+      if (message) {
+        message.textContent = "신고 사유를 입력해주세요.";
+        message.className = "chat-report-message is-error";
+      }
+      return;
+    }
+
+    try {
+      const response = await apiRequest(`/api/reports/chat-rooms/${encodeURIComponent(chatRoomId)}`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await readErrorMessage(response);
+        if (message) {
+          message.textContent = errorMessage || "신고 접수에 실패했습니다.";
+          message.className = "chat-report-message is-error";
+        }
+        return;
+      }
+
+      if (message) {
+        message.textContent = "신고가 접수되었습니다.";
+        message.className = "chat-report-message is-success";
+      }
+      setTimeout(closeModal, 700);
+    } catch (error) {
+      console.error("[chat] report failed:", error);
+      if (message) {
+        message.textContent = "신고 접수 중 오류가 발생했습니다.";
+        message.className = "chat-report-message is-error";
+      }
+    }
+  });
+}
+
+async function readErrorMessage(response) {
+  try {
+    const data = await response.json();
+    return data.message || data.error || "";
+  } catch (error) {
+    return "";
+  }
+}
 
 window.addEventListener("beforeunload", () => {
   if (!stompClient) return;

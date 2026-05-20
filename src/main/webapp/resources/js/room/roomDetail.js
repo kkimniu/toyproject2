@@ -151,6 +151,7 @@ function applyActionVisibility(room) {
 
   const likeBtn = document.getElementById("btn-like");
   const chatBtn = document.getElementById("btn-start-chat");
+  const reportBtn = document.getElementById("btn-report-room");
 
   if (guestEl) guestEl.style.display = "none";
   if (notOwnerEl) notOwnerEl.style.display = "none";
@@ -163,6 +164,7 @@ function applyActionVisibility(room) {
     // 비로그인 UX: 찜/문의 버튼 숨김
     if (likeBtn) likeBtn.style.display = "none";
     if (chatBtn) chatBtn.style.display = "none";
+    if (reportBtn) reportBtn.style.display = "";
     return;
   }
   // 로그인
@@ -171,10 +173,12 @@ function applyActionVisibility(room) {
     if (ownerEl) ownerEl.style.display = "flex";
     if (likeBtn) likeBtn.style.display = "none";
     if (chatBtn) chatBtn.style.display = "none";
+    if (reportBtn) reportBtn.style.display = "none";
   } else {
     if (notOwnerEl) notOwnerEl.style.display = "flex";
     if (likeBtn) likeBtn.style.display = "";
     if (chatBtn) chatBtn.style.display = "";
+    if (reportBtn) reportBtn.style.display = "";
   }
 }
 
@@ -213,6 +217,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   applyActionVisibility(currentRoom);
 
   bindActionsOnce(roomId);
+  bindRoomReport(roomId);
   bindDetailActions();
 });
 
@@ -403,6 +408,94 @@ function bindActionsOnce(roomId) {
         deleteBtn.disabled = false;
       }
     });
+  }
+}
+
+function bindRoomReport(roomId) {
+  const reportBtn = document.getElementById("btn-report-room");
+  const modal = document.getElementById("roomReportModal");
+  const form = document.getElementById("roomReportForm");
+  const reasonInput = document.getElementById("roomReportReason");
+  const message = document.getElementById("roomReportMessage");
+  if (!reportBtn || !modal || !form || !reasonInput) return;
+
+  const closeModal = () => {
+    modal.style.display = "none";
+    modal.setAttribute("aria-hidden", "true");
+  };
+
+  const openModal = () => {
+    const ok = requireLogin();
+    if (!ok) return;
+    if (isOwnerOfRoom(currentRoom)) {
+      alert("본인 매물은 신고할 수 없습니다.");
+      return;
+    }
+    reasonInput.value = "";
+    if (message) {
+      message.textContent = "";
+      message.className = "room-report-message";
+    }
+    modal.style.display = "flex";
+    modal.setAttribute("aria-hidden", "false");
+    reasonInput.focus();
+  };
+
+  reportBtn.addEventListener("click", openModal);
+  modal.querySelectorAll("[data-close-room-report]").forEach((button) => {
+    button.addEventListener("click", closeModal);
+  });
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeModal();
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const reason = reasonInput.value.trim();
+    if (!reason) {
+      if (message) {
+        message.textContent = "신고 사유를 입력해주세요.";
+        message.className = "room-report-message is-error";
+      }
+      return;
+    }
+
+    try {
+      const response = await apiRequest(`/api/reports/rooms/${encodeURIComponent(roomId)}`, {
+        method: "POST",
+        body: JSON.stringify({ reason }),
+      });
+
+      if (!response.ok) {
+        const errorMessage = await readErrorMessage(response);
+        if (message) {
+          message.textContent = errorMessage || "신고 접수에 실패했습니다.";
+          message.className = "room-report-message is-error";
+        }
+        return;
+      }
+
+      if (message) {
+        message.textContent = "신고가 접수되었습니다.";
+        message.className = "room-report-message is-success";
+      }
+      setTimeout(closeModal, 700);
+    } catch (error) {
+      console.error("[room-detail] room report error:", error);
+      if (message) {
+        message.textContent = "신고 접수 중 오류가 발생했습니다.";
+        message.className = "room-report-message is-error";
+      }
+    }
+  });
+}
+
+async function readErrorMessage(response) {
+  try {
+    const data = await response.json();
+    return data.message || data.error || "";
+  } catch (error) {
+    return "";
   }
 }
 

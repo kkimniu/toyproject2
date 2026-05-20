@@ -64,8 +64,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 4) SecurityContext 등록
             setAuthentication(memberId);
 
-            filterChain.doFilter(request, response);
-
         } catch (ExpiredJwtException e) {
             log.debug("EXPIRED_JWT: {}", e.getMessage());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -84,6 +82,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
+
+        filterChain.doFilter(request, response);
     }
 
     /**

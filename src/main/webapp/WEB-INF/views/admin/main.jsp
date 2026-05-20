@@ -149,6 +149,15 @@
           </select>
         </label>
         <label>
+          <span>신고 유형</span>
+          <select name="report_type">
+            <option value="">전체</option>
+            <option value="ROOM">방</option>
+            <option value="MEMBER">회원</option>
+            <option value="CHAT">채팅</option>
+          </select>
+        </label>
+        <label>
           <span>신고자</span>
           <input type="search" name="reporter" placeholder="이름 또는 이메일">
         </label>

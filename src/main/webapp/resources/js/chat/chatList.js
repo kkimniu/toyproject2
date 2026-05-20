@@ -53,7 +53,8 @@ function pick(room, keys) {
 function renderRoom(room) {
   const chatRoomId = pick(room, ["chatRoomId", "chat_room_id"]);
   const roomTitle = pick(room, ["roomTitle", "room_title"]) ?? "게시글";
-  const otherName = pick(room, ["otherName", "other_name"]) ?? "상대방";
+  const otherUnavailable = isUnavailableMember(room);
+  const otherName = otherUnavailable ? unavailableMemberText(room) : (pick(room, ["otherName", "other_name"]) ?? "상대방");
   const lastMessage = pick(room, ["lastMessage", "last_message"]) ?? "아직 메시지가 없습니다.";
   const lastSentAt = pick(room, ["lastSentAt", "last_sent_at"]);
   const unreadCount = Number(pick(room, ["unreadCount", "unread_count"]) ?? 0);
@@ -62,11 +63,12 @@ function renderRoom(room) {
   const imageUrl = thumbnailUrl || otherPhotoUrl || "/resources/img/default-room.svg";
 
   return `
-    <a class="chat-room-item" href="/chats/${encodeURIComponent(chatRoomId)}">
+    <a class="chat-room-item ${otherUnavailable ? "is-deleted-member" : ""}" href="/chats/${encodeURIComponent(chatRoomId)}">
       <img class="chat-room-thumb" src="${escapeHtml(imageUrl)}" alt="">
       <div class="chat-room-main">
         <div class="chat-room-top">
           <strong class="chat-room-name">${escapeHtml(otherName)}</strong>
+          ${otherUnavailable ? `<span class="chat-room-member-state">${escapeHtml(unavailableMemberBadge(room))}</span>` : ""}
           <span class="chat-room-time">${escapeHtml(formatTime(lastSentAt))}</span>
         </div>
         <div class="chat-room-title">${escapeHtml(roomTitle)}</div>
@@ -75,6 +77,20 @@ function renderRoom(room) {
       ${unreadCount > 0 ? `<span class="chat-room-unread">${unreadCount > 99 ? "99+" : unreadCount}</span>` : ""}
     </a>
   `;
+}
+
+function isUnavailableMember(room) {
+  const deleted = pick(room, ["otherDeleted", "other_deleted"]);
+  const status = pick(room, ["otherStatus", "other_status"]);
+  return deleted === true || deleted === 1 || deleted === "1" || status === "DELETED" || status === "BANNED";
+}
+
+function unavailableMemberText(room) {
+  return pick(room, ["otherStatus", "other_status"]) === "BANNED" ? "정지된 회원" : "탈퇴한 회원";
+}
+
+function unavailableMemberBadge(room) {
+  return pick(room, ["otherStatus", "other_status"]) === "BANNED" ? "정지" : "탈퇴";
 }
 
 async function loadChatRooms() {

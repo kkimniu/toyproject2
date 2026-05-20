@@ -1,6 +1,7 @@
 package com.roommate.domain.chat.repository;
 
 import com.roommate.domain.chat.dto.response.ChatRoomListItemResponse;
+import com.roommate.domain.chat.dto.response.ChatRoomDetailResponse;
 import com.roommate.domain.chat.entity.ChatRoomEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -25,6 +26,8 @@ public interface ChatRoomRepository {
     boolean isHiddenForMember(@Param("chatRoomId") Long chatRoomId, @Param("memberId") Long memberId);
 
     List<ChatRoomListItemResponse> findMyChatRooms(@Param("memberId") Long memberId);
+
+    ChatRoomDetailResponse findMyChatRoom(@Param("chatRoomId") Long chatRoomId, @Param("memberId") Long memberId);
 
     void updateLastMessage(@Param("chatRoomId") Long chatRoomId, @Param("messageId") Long messageId, @Param("sentAt") LocalDateTime sentAt);
 

@@ -443,6 +443,24 @@ body {
   background: #eff8ff;
 }
 
+.report-reason-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.report-type-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #3730a3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .report-status-pending {
   background: #fffaeb;
   color: #b54708;

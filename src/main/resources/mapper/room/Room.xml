@@ -81,10 +81,13 @@
     </update>
 
     <select id="findById" resultMap="roomEntityMap">
-        SELECT *
-        FROM rooms
-        WHERE room_id = #{roomId}
-        AND deleted = 0
+        SELECT r.*
+        FROM rooms r
+        JOIN members m ON r.member_id = m.member_id
+        WHERE r.room_id = #{roomId}
+        AND r.deleted = 0
+        AND m.deleted = 0
+        AND m.status = 'ACTIVE'
     </select>
 
     <insert id="insertRoomView">
@@ -125,7 +128,10 @@
         ORDER BY ri.sort_order ASC, ri.image_id ASC
         LIMIT 1) AS thumbnailUrl
         FROM rooms r
+        JOIN members m ON r.member_id = m.member_id
         WHERE r.deleted = 0
+        AND m.deleted = 0
+        AND m.status = 'ACTIVE'
         AND r.status IN ('OPEN', 'RESERVED')  <!-- 왜: CLOSED/HIDDEN은 지도 표시 X -->
         AND r.lat BETWEEN #{south} AND #{north}
         AND r.lng BETWEEN #{west} AND #{east}
@@ -184,6 +190,8 @@
         LEFT JOIN room_types rt ON r.room_type_id = rt.room_type_id
         WHERE r.room_id = #{roomId}
         AND r.deleted = 0
+        AND m.deleted = 0
+        AND m.status = 'ACTIVE'
     </select>
 
     <update id="closeAndDeleteByMemberId" parameterType="long">

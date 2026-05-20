@@ -86,8 +86,10 @@ CREATE TABLE favorites (
 CREATE TABLE report (
     report_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     reporter_id BIGINT NOT NULL,
-    room_id BIGINT NOT NULL,
+    room_id BIGINT,
+    chat_room_id BIGINT,
     target_member_id BIGINT NOT NULL,
+    report_type ENUM('ROOM','MEMBER','CHAT') NOT NULL DEFAULT 'ROOM',
     reason TEXT,
     status ENUM('PENDING','RESOLVED') NOT NULL DEFAULT 'PENDING',
     resolution_type ENUM('ACCEPTED','REJECTED','NO_ACTION'),
@@ -97,6 +99,7 @@ CREATE TABLE report (
     report_created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 
     FOREIGN KEY (room_id) REFERENCES rooms(room_id) ON DELETE CASCADE,
+    FOREIGN KEY (chat_room_id) REFERENCES chat_rooms(chat_room_id) ON DELETE CASCADE,
     FOREIGN KEY (reporter_id) REFERENCES members(member_id) ON DELETE CASCADE,
     FOREIGN KEY (target_member_id) REFERENCES members(member_id) ON DELETE CASCADE,
     FOREIGN KEY (processed_by) REFERENCES members(member_id)
@@ -192,7 +195,7 @@ ON DELETE SET NULL;
 CREATE TABLE notifications (
     notification_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     member_id BIGINT NOT NULL,
-    type ENUM('CHAT','SYSTEM','ROOM') NOT NULL,
+    type ENUM('CHAT','SYSTEM','ROOM','REPORT') NOT NULL,
     reference_id BIGINT,
     message VARCHAR(255),
     is_read TINYINT NOT NULL DEFAULT 0,

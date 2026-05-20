@@ -7,6 +7,9 @@ import com.roommate.domain.chat.entity.ChatMessageEntity;
 import com.roommate.domain.chat.entity.ChatRoomEntity;
 import com.roommate.domain.chat.repository.ChatMessageRepository;
 import com.roommate.domain.chat.repository.ChatRoomRepository;
+import com.roommate.domain.member.entity.MemberEntity;
+import com.roommate.domain.member.entity.MemberStatusEnum;
+import com.roommate.domain.member.repository.MemberRepository;
 import com.roommate.domain.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +25,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final ChatRoomRepository chatRoomRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final NotificationRepository notificationRepository;
+    private final MemberRepository memberRepository;
 
 
     @Override
@@ -55,6 +59,16 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             throw new ApiException(ErrorCode.CHAT_ACCESS_DENIED);
         }
 
+        Long receiverId = senderId.equals(chatRoom.getOwnerId()) ? chatRoom.getPartnerId() : chatRoom.getOwnerId();
+        MemberEntity receiver = memberRepository.findById(receiverId)
+                .orElseThrow(() -> new ApiException(ErrorCode.MEMBER_NOT_FOUND));
+        if (receiver.getDeleted() == 1 || receiver.getStatus() == MemberStatusEnum.DELETED) {
+            throw new ApiException(ErrorCode.MEMBER_DEACTIVATED);
+        }
+        if (receiver.getStatus() == MemberStatusEnum.BANNED) {
+            throw new ApiException(ErrorCode.MEMBER_BANNED);
+        }
+
         ChatMessageEntity entity = new ChatMessageEntity();
         entity.setChatRoomId(chatRoomId);
         entity.setSenderId(senderId);
@@ -66,7 +80,6 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         chatMessageRepository.insert(entity);
         chatRoomRepository.updateLastMessage(chatRoomId, entity.getMessageId(), entity.getSentAt());
 
-        Long receiverId = senderId.equals(chatRoom.getOwnerId()) ? chatRoom.getPartnerId() : chatRoom.getOwnerId();
         notificationRepository.insertChatNotificationIfEnabled(receiverId, chatRoomId, trimmed);
 
         return new ChatMessageResponse(
