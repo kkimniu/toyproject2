@@ -44,7 +44,47 @@
           <span>처리 완료 신고</span>
           <strong id="summaryResolvedReports">-</strong>
         </article>
+        <article class="summary-item summary-item-attention">
+          <span>확인 필요</span>
+          <strong id="summaryActionRequired">-</strong>
+        </article>
       </div>
+
+      <div class="dashboard-workbench">
+        <section class="dashboard-card" aria-label="관리자 확인 필요 항목">
+          <div class="dashboard-card-header">
+            <h2>확인 필요</h2>
+            <button type="button" class="dashboard-link-btn" data-dashboard-panel="reports">신고 관리</button>
+          </div>
+          <div id="adminOperationAlerts" class="dashboard-alert-list">
+            <p class="dashboard-empty">확인 필요 항목을 불러오는 중입니다.</p>
+          </div>
+        </section>
+
+        <section class="dashboard-card" aria-label="제재 후보 회원">
+          <div class="dashboard-card-header">
+            <h2>제재 후보</h2>
+            <div class="dashboard-card-actions">
+              <button type="button" class="dashboard-link-btn" id="btnSanctionBanSelected">선택 정지</button>
+              <button type="button" class="dashboard-link-btn dashboard-danger-btn" id="btnSanctionDeleteSelected">선택 탈퇴</button>
+              <button type="button" class="dashboard-link-btn" data-dashboard-panel="members">회원 관리</button>
+            </div>
+          </div>
+          <div id="adminSanctionCandidates" class="sanction-candidate-list">
+            <p class="dashboard-empty">제재 후보를 불러오는 중입니다.</p>
+          </div>
+        </section>
+      </div>
+
+      <section class="dashboard-card dashboard-trend-card" aria-label="신고 운영 지표 추이">
+        <div class="dashboard-card-header">
+          <h2>신고 추이</h2>
+          <button type="button" class="dashboard-link-btn" data-dashboard-panel="reports">신고 관리</button>
+        </div>
+        <div id="adminReportTrends" class="report-trend-list">
+          <p class="dashboard-empty">신고 추이를 불러오는 중입니다.</p>
+        </div>
+      </section>
     </section>
 
     <section class="admin-section admin-panel" data-admin-panel="members" aria-label="회원 목록">

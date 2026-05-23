@@ -9,13 +9,19 @@ import com.roommate.admin.dto.AdminMemberRoleUpdateRequest;
 import com.roommate.admin.dto.AdminReportListResponse;
 import com.roommate.admin.dto.AdminReportListItemResponse;
 import com.roommate.admin.dto.AdminReportStatusUpdateRequest;
+import com.roommate.admin.dto.AdminReportTargetModerationRequest;
+import com.roommate.admin.dto.AdminRoomModerationRequest;
 import com.roommate.admin.dto.AdminCategoryRequest;
 import com.roommate.admin.dto.AdminCategoryResponse;
+import com.roommate.admin.dto.AdminCommunityModerationRequest;
 import com.roommate.admin.service.AdminActionLogService;
 import com.roommate.admin.service.AdminCategoryService;
+import com.roommate.admin.service.AdminCommunityModerationService;
 import com.roommate.admin.service.AdminDashboardService;
 import com.roommate.admin.service.AdminMemberService;
 import com.roommate.admin.service.AdminReportService;
+import com.roommate.admin.service.AdminReportTargetModerationService;
+import com.roommate.admin.service.AdminRoomModerationService;
 import com.roommate.common.security.UserDetailsImpl;
 import com.roommate.domain.notice.dto.NoticeListResponse;
 import com.roommate.domain.notice.dto.NoticeRequest;
@@ -46,6 +52,9 @@ public class AdminRestController {
     private final AdminDashboardService adminDashboardService;
     private final NoticeService noticeService;
     private final AdminCategoryService adminCategoryService;
+    private final AdminCommunityModerationService adminCommunityModerationService;
+    private final AdminRoomModerationService adminRoomModerationService;
+    private final AdminReportTargetModerationService adminReportTargetModerationService;
 
     @GetMapping("/dashboard/summary")
     public AdminDashboardSummaryResponse getDashboardSummary() {
@@ -130,6 +139,39 @@ public class AdminRestController {
                 request.getResolutionMessage(),
                 userDetails.getMemberId()
         );
+    }
+
+    @PatchMapping("/reports/{reportId}/community-moderation")
+    public AdminReportListItemResponse moderateCommunityReport(@PathVariable Long reportId,
+                                                               @RequestBody AdminCommunityModerationRequest request,
+                                                               @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminCommunityModerationService.moderateReport(reportId, request, userDetails.getMemberId());
+    }
+
+    @PatchMapping("/reports/{reportId}/room-delete")
+    public AdminReportListItemResponse deleteReportedRoom(@PathVariable Long reportId,
+                                                          @RequestBody AdminRoomModerationRequest request,
+                                                          @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminRoomModerationService.deleteReportedRoom(reportId, request, userDetails.getMemberId());
+    }
+
+    @PatchMapping("/reports/{reportId}/member-delete")
+    public AdminReportListItemResponse deleteReportedMember(@PathVariable Long reportId,
+                                                            @RequestBody AdminReportTargetModerationRequest request,
+                                                            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminReportTargetModerationService.deleteReportedMember(
+                reportId,
+                request,
+                userDetails.getMemberId(),
+                userDetails.getRole()
+        );
+    }
+
+    @PatchMapping("/reports/{reportId}/chat-delete")
+    public AdminReportListItemResponse deleteReportedChatRoom(@PathVariable Long reportId,
+                                                              @RequestBody AdminReportTargetModerationRequest request,
+                                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return adminReportTargetModerationService.deleteReportedChatRoom(reportId, request, userDetails.getMemberId());
     }
 
     @GetMapping("/notices")

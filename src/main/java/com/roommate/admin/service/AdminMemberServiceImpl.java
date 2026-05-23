@@ -160,10 +160,6 @@ public class AdminMemberServiceImpl implements AdminMemberService {
 
     @Override
     public void deleteMember(Long memberId, Long currentAdminId, MemberRoleEnum currentAdminRole) {
-        if (currentAdminRole != MemberRoleEnum.SUPER_ADMIN) {
-            throw new ApiException(ErrorCode.SUPER_ADMIN_ONLY);
-        }
-
         MemberEntity member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new ApiException(ErrorCode.ADMIN_MEMBER_NOT_FOUND));
 
@@ -172,6 +168,9 @@ public class AdminMemberServiceImpl implements AdminMemberService {
         }
         if (member.getRole() == MemberRoleEnum.SUPER_ADMIN) {
             throw new ApiException(ErrorCode.ADMIN_TARGET_SUPER_ADMIN_NOT_ALLOWED);
+        }
+        if (member.getRole() == MemberRoleEnum.ADMIN && currentAdminRole != MemberRoleEnum.SUPER_ADMIN) {
+            throw new ApiException(ErrorCode.ADMIN_TARGET_ADMIN_NOT_ALLOWED);
         }
         if (member.getStatus() == MemberStatusEnum.DELETED || member.getDeleted() == 1) {
             throw new ApiException(ErrorCode.ADMIN_MEMBER_DELETE_INVALID);

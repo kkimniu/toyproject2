@@ -243,6 +243,22 @@
         AND member_id = #{memberId}
     </update>
 
+    <update id="adminMarkDeleted">
+        UPDATE chat_rooms
+        SET deleted_by_owner = 1,
+            deleted_by_partner = 1,
+            updated_at = NOW()
+        WHERE chat_room_id = #{chatRoomId}
+    </update>
+
+    <update id="adminHideMembers">
+        UPDATE chat_room_members
+        SET is_hidden = 1,
+            hidden_at = NOW(),
+            left_at = NOW()
+        WHERE chat_room_id = #{chatRoomId}
+    </update>
+
     <update id="updateNotificationsEnabled">
         UPDATE chat_room_members
         SET notifications_enabled = #{notificationsEnabled}

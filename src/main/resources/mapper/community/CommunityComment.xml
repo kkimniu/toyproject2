@@ -11,6 +11,7 @@
         <result property="memberId" column="member_id"/>
         <result property="memberName" column="member_name"/>
         <result property="content" column="content"/>
+        <result property="blinded" column="blinded"/>
         <result property="deleted" column="deleted"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
@@ -27,6 +28,7 @@
         <include refid="baseSelect"/>
         WHERE cc.community_post_id = #{communityPostId}
         AND cc.deleted = 0
+        AND cc.blinded = 0
         ORDER BY
             COALESCE(cc.parent_comment_id, cc.community_comment_id) ASC,
             CASE WHEN cc.parent_comment_id IS NULL THEN 0 ELSE 1 END ASC,
@@ -38,6 +40,7 @@
         <include refid="baseSelect"/>
         WHERE cc.community_comment_id = #{communityCommentId}
         AND cc.deleted = 0
+        AND cc.blinded = 0
     </select>
 
     <insert id="insert" parameterType="com.roommate.domain.community.entity.CommunityCommentEntity" useGeneratedKeys="true" keyProperty="communityCommentId">
@@ -60,6 +63,23 @@
             updated_at = NOW()
         WHERE community_comment_id = #{communityCommentId}
         AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="adminBlind">
+        UPDATE community_comments
+        SET blinded = 1,
+            updated_at = NOW()
+        WHERE community_comment_id = #{communityCommentId}
+        AND deleted = 0
+        AND blinded = 0
+    </update>
+
+    <update id="adminDelete">
+        UPDATE community_comments
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_comment_id = #{communityCommentId}
         AND deleted = 0
     </update>
 </mapper>

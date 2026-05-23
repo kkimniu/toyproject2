@@ -164,6 +164,15 @@
         WHERE status = #{status}
     </select>
 
+    <select id="countRepeatPenaltyMembersForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+        WHERE deleted = 0
+        AND status != 'DELETED'
+        AND role = 'USER'
+        AND ban_count &gt;= #{threshold}
+    </select>
+
     <select id="findMembersForAdmin" resultType="com.roommate.admin.dto.AdminMemberListItemResponse">
         SELECT
             member_id AS memberId,

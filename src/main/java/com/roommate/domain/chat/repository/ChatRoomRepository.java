@@ -35,6 +35,10 @@ public interface ChatRoomRepository {
 
     void hideForMember(@Param("chatRoomId") Long chatRoomId, @Param("memberId") Long memberId);
 
+    int adminMarkDeleted(@Param("chatRoomId") Long chatRoomId);
+
+    int adminHideMembers(@Param("chatRoomId") Long chatRoomId);
+
     void updateNotificationsEnabled(
             @Param("chatRoomId") Long chatRoomId,
             @Param("memberId") Long memberId,

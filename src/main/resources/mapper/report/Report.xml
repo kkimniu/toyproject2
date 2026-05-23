@@ -193,6 +193,78 @@
         WHERE status = #{status}
     </select>
 
+    <select id="countSanctionCandidatesForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM (
+            SELECT r.target_member_id
+            FROM report r
+            INNER JOIN members target ON target.member_id = r.target_member_id
+            WHERE r.target_member_id IS NOT NULL
+            AND target.deleted = 0
+            AND target.status != 'DELETED'
+            AND target.role = 'USER'
+            AND (r.status = 'PENDING' OR r.resolution_type = 'ACCEPTED')
+            GROUP BY r.target_member_id
+            HAVING COUNT(*) &gt;= #{threshold}
+        ) candidates
+    </select>
+
+    <select id="findSanctionCandidatesForAdmin" resultType="com.roommate.admin.dto.AdminSanctionCandidateResponse">
+        SELECT
+            target.member_id AS memberId,
+            target.email AS email,
+            target.name AS name,
+            target.status AS status,
+            target.ban_count AS banCount,
+            COUNT(*) AS totalReports,
+            SUM(CASE WHEN r.status = 'PENDING' THEN 1 ELSE 0 END) AS pendingReports,
+            SUM(CASE WHEN r.resolution_type = 'ACCEPTED' THEN 1 ELSE 0 END) AS acceptedReports,
+            MAX(r.report_created_at) AS lastReportedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        WHERE r.target_member_id IS NOT NULL
+        AND target.deleted = 0
+        AND target.status != 'DELETED'
+        AND target.role = 'USER'
+        AND (r.status = 'PENDING' OR r.resolution_type = 'ACCEPTED')
+        GROUP BY
+            target.member_id,
+            target.email,
+            target.name,
+            target.status,
+            target.ban_count
+        HAVING COUNT(*) &gt;= #{threshold}
+        ORDER BY pendingReports DESC, totalReports DESC, lastReportedAt DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findReportTrendsForAdmin" resultType="com.roommate.admin.dto.AdminReportTrendResponse">
+        SELECT
+            trend_date AS trendDate,
+            SUM(created_reports) AS createdReports,
+            SUM(resolved_reports) AS resolvedReports
+        FROM (
+            SELECT
+                DATE(report_created_at) AS trend_date,
+                COUNT(*) AS created_reports,
+                0 AS resolved_reports
+            FROM report
+            WHERE report_created_at &gt;= DATE_SUB(CURDATE(), INTERVAL (#{days} - 1) DAY)
+            GROUP BY DATE(report_created_at)
+            UNION ALL
+            SELECT
+                DATE(processed_at) AS trend_date,
+                0 AS created_reports,
+                COUNT(*) AS resolved_reports
+            FROM report
+            WHERE processed_at IS NOT NULL
+            AND processed_at &gt;= DATE_SUB(CURDATE(), INTERVAL (#{days} - 1) DAY)
+            GROUP BY DATE(processed_at)
+        ) daily
+        GROUP BY trend_date
+        ORDER BY trend_date ASC
+    </select>
+
     <select id="findReportsForAdmin" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
         SELECT
             r.report_id AS reportId,

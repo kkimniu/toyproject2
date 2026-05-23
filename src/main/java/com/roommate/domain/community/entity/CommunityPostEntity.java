@@ -21,6 +21,7 @@ public class CommunityPostEntity {
     private String title;
     private String content;
     private int views;
+    private boolean blinded;
     private boolean deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

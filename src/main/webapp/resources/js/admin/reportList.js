@@ -224,22 +224,269 @@ function renderActionCell(report) {
     return '<span class="report-action-empty">-</span>';
   }
 
+  if (isCommunityReport(report)) {
+    return `
+      <div class="member-actions">
+        ${renderBanTargetButton(report)}
+        <button
+          type="button"
+          class="report-action-btn"
+          data-community-moderation="BLIND"
+          data-report-id="${escapeHtml(report.report_id)}">
+          블라인드
+        </button>
+        <button
+          type="button"
+          class="report-action-btn member-delete-btn"
+          data-community-moderation="DELETE"
+          data-report-id="${escapeHtml(report.report_id)}">
+          삭제
+        </button>
+        <button
+          type="button"
+          class="report-action-btn"
+          data-report-id="${escapeHtml(report.report_id)}">
+          처리
+        </button>
+      </div>
+    `;
+  }
+
   return `
-    <button
-      type="button"
-      class="report-action-btn"
-      data-report-id="${escapeHtml(report.report_id)}">
-      처리
-    </button>
+    <div class="member-actions">
+      ${renderBanTargetButton(report)}
+      ${renderMemberDeleteButton(report)}
+      ${renderRoomDeleteButton(report)}
+      ${renderChatDeleteButton(report)}
+      <button
+        type="button"
+        class="report-action-btn"
+        data-report-id="${escapeHtml(report.report_id)}">
+        처리
+      </button>
+    </div>
   `;
 }
 
 function bindActionButtons(container) {
+  container.querySelectorAll("[data-ban-target-member]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await banReportedMember(button.dataset.banTargetMember);
+    });
+  });
+
+  container.querySelectorAll("[data-community-moderation]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await submitCommunityModeration(button.dataset.reportId, button.dataset.communityModeration);
+    });
+  });
+
+  container.querySelectorAll("[data-room-delete]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await submitRoomDelete(button.dataset.reportId);
+    });
+  });
+
+  container.querySelectorAll("[data-member-delete]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await submitMemberDelete(button.dataset.reportId);
+    });
+  });
+
+  container.querySelectorAll("[data-chat-delete]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await submitChatDelete(button.dataset.reportId);
+    });
+  });
+
   container.querySelectorAll(".report-action-btn").forEach((button) => {
+    if (button.dataset.communityModeration) return;
+    if (button.dataset.roomDelete) return;
+    if (button.dataset.memberDelete) return;
+    if (button.dataset.chatDelete) return;
     button.addEventListener("click", () => {
       openResolutionModal(button.dataset.reportId);
     });
   });
+}
+
+function renderBanTargetButton(report) {
+  if (!report.target_member_id) return "";
+  return `
+    <button
+      type="button"
+      class="report-action-btn member-delete-btn"
+      data-ban-target-member="${escapeHtml(report.target_member_id)}">
+      대상 정지
+    </button>
+  `;
+}
+
+function renderMemberDeleteButton(report) {
+  if (!isMemberReport(report) || !report.target_member_id) return "";
+  return `
+    <button
+      type="button"
+      class="report-action-btn member-delete-btn"
+      data-member-delete="true"
+      data-report-id="${escapeHtml(report.report_id)}">
+      회원 탈퇴
+    </button>
+  `;
+}
+
+function renderRoomDeleteButton(report) {
+  if (!isRoomReport(report) || !report.room_id) return "";
+  return `
+    <button
+      type="button"
+      class="report-action-btn member-delete-btn"
+      data-room-delete="true"
+      data-report-id="${escapeHtml(report.report_id)}">
+      방 삭제
+    </button>
+  `;
+}
+
+function renderChatDeleteButton(report) {
+  if (!isChatReport(report) || !report.chat_room_id) return "";
+  return `
+    <button
+      type="button"
+      class="report-action-btn member-delete-btn"
+      data-chat-delete="true"
+      data-report-id="${escapeHtml(report.report_id)}">
+      채팅 삭제
+    </button>
+  `;
+}
+
+async function banReportedMember(memberId) {
+  if (!memberId) return;
+  if (!confirm("신고 대상 회원을 정지하시겠습니까?")) return;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/members/${encodeURIComponent(memberId)}/status`, {
+      method: "PATCH",
+      body: JSON.stringify({ status: "BANNED" }),
+    });
+    if (!response.ok) {
+      throw new Error(`admin member ban api failed: ${response.status}`);
+    }
+    await loadReports(currentPage);
+    await loadDashboardSummary();
+    alert("신고 대상 회원을 정지했습니다.");
+  } catch (error) {
+    console.error(error);
+    alert("신고 대상 회원을 정지하지 못했습니다.");
+  }
+}
+
+async function submitMemberDelete(reportId) {
+  if (!reportId) return;
+  if (!confirm("신고된 회원을 탈퇴 처리하고 신고를 완료하시겠습니까?")) return;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/member-delete`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        resolution_message: "신고된 회원을 운영 정책에 따라 탈퇴 처리했습니다.",
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`member delete api failed: ${response.status}`);
+    }
+    await loadReports(currentPage);
+    await loadDashboardSummary();
+  } catch (error) {
+    console.error(error);
+    alert("회원을 탈퇴 처리하지 못했습니다. 상위 관리자 권한이 필요한 작업일 수 있습니다.");
+  }
+}
+
+async function submitRoomDelete(reportId) {
+  if (!reportId) return;
+  if (!confirm("신고된 방을 삭제 처리하고 신고를 완료하시겠습니까?")) return;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/room-delete`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        resolution_message: "신고된 방을 운영 정책에 따라 삭제 처리했습니다.",
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`room delete api failed: ${response.status}`);
+    }
+    await loadReports(currentPage);
+    await loadDashboardSummary();
+  } catch (error) {
+    console.error(error);
+    alert("방을 삭제 처리하지 못했습니다.");
+  }
+}
+
+async function submitChatDelete(reportId) {
+  if (!reportId) return;
+  if (!confirm("신고된 채팅방을 삭제 처리하고 신고를 완료하시겠습니까?")) return;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/chat-delete`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        resolution_message: "신고된 채팅방을 운영 정책에 따라 삭제 처리했습니다.",
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`chat delete api failed: ${response.status}`);
+    }
+    await loadReports(currentPage);
+    await loadDashboardSummary();
+  } catch (error) {
+    console.error(error);
+    alert("채팅방을 삭제 처리하지 못했습니다.");
+  }
+}
+
+async function submitCommunityModeration(reportId, action) {
+  if (!reportId || !action) return;
+  const actionLabel = action === "DELETE" ? "삭제" : "블라인드";
+  if (!confirm(`신고된 커뮤니티 콘텐츠를 ${actionLabel} 처리하고 신고를 완료하시겠습니까?`)) return;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/reports/${encodeURIComponent(reportId)}/community-moderation`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        action,
+        resolution_message: `신고된 커뮤니티 콘텐츠를 ${actionLabel} 처리했습니다.`,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`community moderation api failed: ${response.status}`);
+    }
+    await loadReports(currentPage);
+    await loadDashboardSummary();
+  } catch (error) {
+    console.error(error);
+    alert("커뮤니티 콘텐츠를 처리하지 못했습니다.");
+  }
+}
+
+function isCommunityReport(report) {
+  const type = String(report?.report_type || "").toUpperCase();
+  return type === "COMMUNITY_POST" || type === "COMMUNITY_COMMENT";
+}
+
+function isMemberReport(report) {
+  return String(report?.report_type || "").toUpperCase() === "MEMBER";
+}
+
+function isRoomReport(report) {
+  return String(report?.report_type || "").toUpperCase() === "ROOM";
+}
+
+function isChatReport(report) {
+  return String(report?.report_type || "").toUpperCase() === "CHAT";
 }
 
 function openResolutionModal(reportId) {
