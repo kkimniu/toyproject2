@@ -193,6 +193,8 @@ function reportTypeLabel(value) {
   if (type === "MEMBER") return "회원";
   if (type === "ROOM") return "방";
   if (type === "CHAT") return "채팅";
+  if (type === "COMMUNITY_POST") return "커뮤니티 게시글";
+  if (type === "COMMUNITY_COMMENT") return "커뮤니티 댓글";
   return type;
 }
 

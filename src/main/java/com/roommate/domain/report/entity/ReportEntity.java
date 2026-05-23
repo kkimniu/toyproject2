@@ -16,6 +16,8 @@ public class ReportEntity {
     private Long reporterId;
     private Long roomId;
     private Long chatRoomId;
+    private Long communityPostId;
+    private Long communityCommentId;
     private Long targetMemberId;
     private String reportType;
     private String reason;

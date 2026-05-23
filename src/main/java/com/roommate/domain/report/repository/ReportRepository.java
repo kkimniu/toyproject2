@@ -17,6 +17,10 @@ public interface ReportRepository {
 
     int saveChatReport(ReportEntity report);
 
+    int saveCommunityPostReport(ReportEntity report);
+
+    int saveCommunityCommentReport(ReportEntity report);
+
     boolean existsMemberReport(@Param("reporterId") Long reporterId,
                                @Param("targetMemberId") Long targetMemberId);
 
@@ -25,6 +29,12 @@ public interface ReportRepository {
 
     boolean existsChatReport(@Param("reporterId") Long reporterId,
                              @Param("chatRoomId") Long chatRoomId);
+
+    boolean existsCommunityPostReport(@Param("reporterId") Long reporterId,
+                                      @Param("communityPostId") Long communityPostId);
+
+    boolean existsCommunityCommentReport(@Param("reporterId") Long reporterId,
+                                         @Param("communityCommentId") Long communityCommentId);
 
     long countReportsForAdmin(@Param("status") String status,
                               @Param("reportType") String reportType,

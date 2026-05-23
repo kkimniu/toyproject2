@@ -13,6 +13,10 @@ public interface ReportService {
 
     ReportResponse createChatReport(Long reporterId, Long chatRoomId, ReportRequest request);
 
+    ReportResponse createCommunityPostReport(Long reporterId, Long communityPostId, ReportRequest request);
+
+    ReportResponse createCommunityCommentReport(Long reporterId, Long communityCommentId, ReportRequest request);
+
     List<MyReportListItemResponse> getMyReports(Long reporterId);
 
     MyReportListItemResponse getMyReport(Long reporterId, Long reportId);

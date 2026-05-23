@@ -69,11 +69,14 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/members/**").permitAll()      // 마이페이지 (뷰)
                 .antMatchers("/chats", "/chats/**").permitAll()      // 채팅 페이지 (뷰)
                 .antMatchers("/notices", "/notices/**").permitAll()
+                .antMatchers("/community", "/community/**").permitAll()
                 .antMatchers("/admin", "/admin/**").permitAll()
 
                 // 2) 룸 조회용 API (지도/요약/상세 데이터) - 모두 허용
                 .antMatchers(HttpMethod.GET, "/api/rooms/**").permitAll()
                 .antMatchers(HttpMethod.GET, "/api/notices/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/community/posts/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/community/posts/*/comments").permitAll()
                 // 3) 찜 조회용 API- 허용
                 .antMatchers(HttpMethod.GET, "/api/favorites/**").permitAll()
                 .antMatchers(HttpMethod.GET,
@@ -113,6 +116,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers(HttpMethod.POST, "/api/chat/rooms/**").authenticated()
                 .antMatchers(HttpMethod.PATCH, "/api/chat/rooms/**").authenticated()
                 .antMatchers(HttpMethod.DELETE, "/api/chat/rooms/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/community/posts/**").authenticated()
+                .antMatchers(HttpMethod.PATCH, "/api/community/posts/**").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/community/posts/**").authenticated()
+                .antMatchers(HttpMethod.POST, "/api/community/posts/*/comments").authenticated()
+                .antMatchers(HttpMethod.DELETE, "/api/community/comments/**").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/reports/**").authenticated()
                 .antMatchers(HttpMethod.POST, "/api/reports/**").authenticated()
                 .antMatchers(HttpMethod.GET, "/api/notifications/**").authenticated()

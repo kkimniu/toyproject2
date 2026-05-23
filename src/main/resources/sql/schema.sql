@@ -88,8 +88,10 @@ CREATE TABLE report (
     reporter_id BIGINT NOT NULL,
     room_id BIGINT,
     chat_room_id BIGINT,
+    community_post_id BIGINT,
+    community_comment_id BIGINT,
     target_member_id BIGINT NOT NULL,
-    report_type ENUM('ROOM','MEMBER','CHAT') NOT NULL DEFAULT 'ROOM',
+    report_type ENUM('ROOM','MEMBER','CHAT','COMMUNITY_POST','COMMUNITY_COMMENT') NOT NULL DEFAULT 'ROOM',
     reason TEXT,
     status ENUM('PENDING','RESOLVED') NOT NULL DEFAULT 'PENDING',
     resolution_type ENUM('ACCEPTED','REJECTED','NO_ACTION'),
@@ -216,6 +218,46 @@ CREATE TABLE notices (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     FOREIGN KEY (admin_id) REFERENCES members(member_id)
+);
+
+CREATE TABLE community_posts (
+    community_post_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    member_id BIGINT NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    content TEXT NOT NULL,
+    views INT NOT NULL DEFAULT 0,
+    deleted TINYINT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (member_id) REFERENCES members(member_id)
+);
+
+CREATE TABLE community_comments (
+    community_comment_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    community_post_id BIGINT NOT NULL,
+    parent_comment_id BIGINT,
+    member_id BIGINT NOT NULL,
+    content TEXT NOT NULL,
+    deleted TINYINT NOT NULL DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (community_post_id) REFERENCES community_posts(community_post_id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_comment_id) REFERENCES community_comments(community_comment_id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES members(member_id)
+);
+
+CREATE TABLE community_post_views (
+    community_post_view_id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    community_post_id BIGINT NOT NULL,
+    member_id BIGINT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uk_community_post_views_post_member (community_post_id, member_id),
+
+    FOREIGN KEY (community_post_id) REFERENCES community_posts(community_post_id) ON DELETE CASCADE,
+    FOREIGN KEY (member_id) REFERENCES members(member_id) ON DELETE CASCADE
 );
 
 CREATE TABLE token_refresh (
@@ -367,6 +409,18 @@ ON notifications (type, reference_id);
 
 CREATE INDEX idx_notices_public
 ON notices (deleted, published, pinned, created_at);
+
+CREATE INDEX idx_community_posts_list
+ON community_posts (deleted, created_at, community_post_id);
+
+CREATE INDEX idx_community_comments_post
+ON community_comments (community_post_id, deleted, created_at, community_comment_id);
+
+CREATE INDEX idx_community_comments_parent
+ON community_comments (parent_comment_id, deleted, created_at, community_comment_id);
+
+CREATE INDEX idx_community_post_views_post
+ON community_post_views (community_post_id);
 
 CREATE INDEX idx_temp_member_used_created
 ON temp_upload_files (member_id, used, created_at);
