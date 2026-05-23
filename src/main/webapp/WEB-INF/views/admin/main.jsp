@@ -167,6 +167,8 @@
             <option value="ROOM">방</option>
             <option value="MEMBER">회원</option>
             <option value="CHAT">채팅</option>
+            <option value="COMMUNITY_POST">커뮤니티 게시글</option>
+            <option value="COMMUNITY_COMMENT">커뮤니티 댓글</option>
           </select>
         </label>
         <label>

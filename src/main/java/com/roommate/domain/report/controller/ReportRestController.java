@@ -45,6 +45,20 @@ public class ReportRestController {
         return reportService.createChatReport(userDetails.getMemberId(), chatRoomId, request);
     }
 
+    @PostMapping("/community-posts/{communityPostId}")
+    public ReportResponse reportCommunityPost(@PathVariable Long communityPostId,
+                                              @Valid @RequestBody ReportRequest request,
+                                              @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return reportService.createCommunityPostReport(userDetails.getMemberId(), communityPostId, request);
+    }
+
+    @PostMapping("/community-comments/{communityCommentId}")
+    public ReportResponse reportCommunityComment(@PathVariable Long communityCommentId,
+                                                 @Valid @RequestBody ReportRequest request,
+                                                 @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return reportService.createCommunityCommentReport(userDetails.getMemberId(), communityCommentId, request);
+    }
+
     @GetMapping("/me")
     public List<MyReportListItemResponse> getMyReports(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         return reportService.getMyReports(userDetails.getMemberId());

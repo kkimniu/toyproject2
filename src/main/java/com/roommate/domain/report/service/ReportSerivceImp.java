@@ -4,6 +4,10 @@ import com.roommate.common.exception.ApiException;
 import com.roommate.common.exception.ErrorCode;
 import com.roommate.domain.chat.entity.ChatRoomEntity;
 import com.roommate.domain.chat.repository.ChatRoomRepository;
+import com.roommate.domain.community.entity.CommunityCommentEntity;
+import com.roommate.domain.community.entity.CommunityPostEntity;
+import com.roommate.domain.community.repository.CommunityCommentRepository;
+import com.roommate.domain.community.repository.CommunityPostRepository;
 import com.roommate.domain.member.entity.MemberEntity;
 import com.roommate.domain.member.repository.MemberRepository;
 import com.roommate.domain.report.dto.MyReportListItemResponse;
@@ -27,6 +31,8 @@ public class ReportSerivceImp implements ReportService {
     private final MemberRepository memberRepository;
     private final RoomRepository roomRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final CommunityPostRepository communityPostRepository;
+    private final CommunityCommentRepository communityCommentRepository;
 
     @Override
     @Transactional
@@ -148,6 +154,75 @@ public class ReportSerivceImp implements ReportService {
             throw new ApiException(ErrorCode.REPORT_CREATE_FAILED);
         }
 
+        return new ReportResponse(report.getReportId(), "PENDING", "Report submitted.");
+    }
+
+    @Override
+    @Transactional
+    public ReportResponse createCommunityPostReport(Long reporterId, Long communityPostId, ReportRequest request) {
+        if (reporterId == null || communityPostId == null) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        }
+        String reason = request == null ? "" : String.valueOf(request.getReason()).trim();
+        if (reason.isEmpty()) {
+            throw new ApiException(ErrorCode.MISSING_REQUIRED_VALUE);
+        }
+        CommunityPostEntity post = communityPostRepository.findById(communityPostId)
+                .orElseThrow(() -> new ApiException(ErrorCode.REPORT_TARGET_NOT_FOUND));
+        if (reporterId.equals(post.getMemberId())) {
+            throw new ApiException(ErrorCode.NOT_ALLOWED_OPERATION);
+        }
+        if (reportRepository.existsCommunityPostReport(reporterId, communityPostId)) {
+            throw new ApiException(ErrorCode.REPORT_ALREADY_SUBMITTED);
+        }
+
+        ReportEntity report = ReportEntity.builder()
+                .reporterId(reporterId)
+                .communityPostId(communityPostId)
+                .targetMemberId(post.getMemberId())
+                .reportType("COMMUNITY_POST")
+                .reason(reason)
+                .build();
+
+        int updated = reportRepository.saveCommunityPostReport(report);
+        if (updated != 1 || report.getReportId() == null) {
+            throw new ApiException(ErrorCode.REPORT_CREATE_FAILED);
+        }
+        return new ReportResponse(report.getReportId(), "PENDING", "Report submitted.");
+    }
+
+    @Override
+    @Transactional
+    public ReportResponse createCommunityCommentReport(Long reporterId, Long communityCommentId, ReportRequest request) {
+        if (reporterId == null || communityCommentId == null) {
+            throw new ApiException(ErrorCode.INVALID_REQUEST);
+        }
+        String reason = request == null ? "" : String.valueOf(request.getReason()).trim();
+        if (reason.isEmpty()) {
+            throw new ApiException(ErrorCode.MISSING_REQUIRED_VALUE);
+        }
+        CommunityCommentEntity comment = communityCommentRepository.findById(communityCommentId)
+                .orElseThrow(() -> new ApiException(ErrorCode.REPORT_TARGET_NOT_FOUND));
+        if (reporterId.equals(comment.getMemberId())) {
+            throw new ApiException(ErrorCode.NOT_ALLOWED_OPERATION);
+        }
+        if (reportRepository.existsCommunityCommentReport(reporterId, communityCommentId)) {
+            throw new ApiException(ErrorCode.REPORT_ALREADY_SUBMITTED);
+        }
+
+        ReportEntity report = ReportEntity.builder()
+                .reporterId(reporterId)
+                .communityPostId(comment.getCommunityPostId())
+                .communityCommentId(comment.getCommunityCommentId())
+                .targetMemberId(comment.getMemberId())
+                .reportType("COMMUNITY_COMMENT")
+                .reason(reason)
+                .build();
+
+        int updated = reportRepository.saveCommunityCommentReport(report);
+        if (updated != 1 || report.getReportId() == null) {
+            throw new ApiException(ErrorCode.REPORT_CREATE_FAILED);
+        }
         return new ReportResponse(report.getReportId(), "PENDING", "Report submitted.");
     }
 

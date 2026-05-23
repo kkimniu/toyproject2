@@ -14,6 +14,8 @@ public class AdminReportListItemResponse {
     private Long reportId;
     private Long roomId;
     private Long chatRoomId;
+    private Long communityPostId;
+    private Long communityCommentId;
     private Long targetMemberId;
     private String targetMemberEmail;
     private String targetMemberName;

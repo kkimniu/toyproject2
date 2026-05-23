@@ -17,6 +17,8 @@ public class MyReportListItemResponse {
     private String targetMemberName;
     private Long roomId;
     private Long chatRoomId;
+    private Long communityPostId;
+    private Long communityCommentId;
     private String reportType;
     private String reason;
     private String status;

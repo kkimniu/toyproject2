@@ -63,6 +63,46 @@
         )
     </insert>
 
+    <insert id="saveCommunityPostReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            community_post_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{communityPostId},
+            #{targetMemberId},
+            'COMMUNITY_POST',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveCommunityCommentReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            community_post_id,
+            community_comment_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{communityPostId},
+            #{communityCommentId},
+            #{targetMemberId},
+            'COMMUNITY_COMMENT',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
     <select id="existsMemberReport" resultType="boolean">
         SELECT EXISTS (
             SELECT 1
@@ -92,6 +132,28 @@
             WHERE reporter_id = #{reporterId}
             AND chat_room_id = #{chatRoomId}
             AND report_type = 'CHAT'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsCommunityPostReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND community_post_id = #{communityPostId}
+            AND report_type = 'COMMUNITY_POST'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsCommunityCommentReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND community_comment_id = #{communityCommentId}
+            AND report_type = 'COMMUNITY_COMMENT'
             LIMIT 1
         )
     </select>
@@ -136,6 +198,8 @@
             r.report_id AS reportId,
             r.room_id AS roomId,
             r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
             r.target_member_id AS targetMemberId,
             target.email AS targetMemberEmail,
             target.name AS targetMemberName,
@@ -188,6 +252,8 @@
             r.report_id AS reportId,
             r.room_id AS roomId,
             r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
             r.target_member_id AS targetMemberId,
             target.email AS targetMemberEmail,
             target.name AS targetMemberName,
@@ -230,6 +296,8 @@
             target.name AS targetMemberName,
             r.room_id AS roomId,
             r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
             r.report_type AS reportType,
             r.reason AS reason,
             r.status AS status,
@@ -251,6 +319,8 @@
             target.name AS targetMemberName,
             r.room_id AS roomId,
             r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
             r.report_type AS reportType,
             r.reason AS reason,
             r.status AS status,

@@ -129,7 +129,11 @@ public class AdminReportServiceImpl implements AdminReportService {
             return null;
         }
         String upper = normalized.toUpperCase();
-        if (!"ROOM".equals(upper) && !"MEMBER".equals(upper) && !"CHAT".equals(upper)) {
+        if (!"ROOM".equals(upper)
+                && !"MEMBER".equals(upper)
+                && !"CHAT".equals(upper)
+                && !"COMMUNITY_POST".equals(upper)
+                && !"COMMUNITY_COMMENT".equals(upper)) {
             throw new ApiException(ErrorCode.INVALID_ENUM_VALUE);
         }
         return upper;
