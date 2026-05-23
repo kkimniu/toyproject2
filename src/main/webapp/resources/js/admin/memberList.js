@@ -210,15 +210,11 @@ function renderActionCell(member) {
       </button>
     `
     : "";
-  const deleteAction = currentAdminRole === "SUPER_ADMIN"
-    ? renderDeleteActionButton(member)
-    : "";
-
   return `
     <div class="member-actions">
       ${renderStatusActionButton(member)}
       ${roleAction}
-      ${deleteAction}
+      ${renderDeleteActionButton(member)}
     </div>
   `;
 }
@@ -238,7 +234,10 @@ function renderStatusActionButton(member) {
 }
 
 function renderDeleteActionButton(member) {
-  if (currentAdminRole !== "SUPER_ADMIN" || member.status === "DELETED") {
+  if (member.status === "DELETED" || member.role === "SUPER_ADMIN") {
+    return "";
+  }
+  if (member.role === "ADMIN" && currentAdminRole !== "SUPER_ADMIN") {
     return "";
   }
 

@@ -72,6 +72,15 @@
         AND deleted = 0
     </update>
 
+    <update id="adminDeleteRoom">
+        UPDATE rooms
+        SET deleted = 1,
+        status = 'CLOSED',
+        room_updated_at = NOW()
+        WHERE room_id = #{roomId}
+        AND deleted = 0
+    </update>
+
     <update id="updateRoomStatus">
         UPDATE rooms
         SET status = #{status}

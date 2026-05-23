@@ -41,6 +41,8 @@ public interface MemberRepository {
 
     long countMembersByStatusForAdmin(@Param("status") MemberStatusEnum status);
 
+    long countRepeatPenaltyMembersForAdmin(@Param("threshold") int threshold);
+
     List<AdminMemberListItemResponse> findMembersForAdmin(@Param("keyword") String keyword,
                                                           @Param("role") String role,
                                                           @Param("status") String status,

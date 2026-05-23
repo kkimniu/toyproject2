@@ -21,6 +21,8 @@ public interface RoomRepository {
 
     void softDeleteRoom(@Param("roomId") Long roomId, @Param("memberId") Long memberId);
 
+    int adminDeleteRoom(@Param("roomId") Long roomId);
+
     void updateRoomStatus(@Param("roomId") Long roomId, @Param("memberId") Long memberId, @Param("status") RoomStatusEnum status);
 
     RoomEntity findById(@Param("roomId") Long roomId);

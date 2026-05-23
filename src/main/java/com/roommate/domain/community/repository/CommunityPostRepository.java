@@ -24,6 +24,10 @@ public interface CommunityPostRepository {
     int softDelete(@Param("communityPostId") Long communityPostId,
                    @Param("memberId") Long memberId);
 
+    int adminBlind(@Param("communityPostId") Long communityPostId);
+
+    int adminDelete(@Param("communityPostId") Long communityPostId);
+
     int insertPostView(@Param("communityPostId") Long communityPostId,
                        @Param("memberId") Long memberId);
 

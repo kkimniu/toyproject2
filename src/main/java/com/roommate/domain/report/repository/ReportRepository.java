@@ -1,6 +1,8 @@
 package com.roommate.domain.report.repository;
 
 import com.roommate.admin.dto.AdminReportListItemResponse;
+import com.roommate.admin.dto.AdminReportTrendResponse;
+import com.roommate.admin.dto.AdminSanctionCandidateResponse;
 import com.roommate.domain.report.dto.MyReportListItemResponse;
 import com.roommate.domain.report.entity.ReportEntity;
 import org.apache.ibatis.annotations.Mapper;
@@ -44,6 +46,13 @@ public interface ReportRepository {
                               @Param("to") String to);
 
     long countReportsByStatusForAdmin(@Param("status") String status);
+
+    long countSanctionCandidatesForAdmin(@Param("threshold") int threshold);
+
+    List<AdminSanctionCandidateResponse> findSanctionCandidatesForAdmin(@Param("threshold") int threshold,
+                                                                        @Param("limit") int limit);
+
+    List<AdminReportTrendResponse> findReportTrendsForAdmin(@Param("days") int days);
 
     List<AdminReportListItemResponse> findReportsForAdmin(@Param("status") String status,
                                                           @Param("reportType") String reportType,

@@ -12,6 +12,7 @@
         <result property="title" column="title"/>
         <result property="content" column="content"/>
         <result property="views" column="views"/>
+        <result property="blinded" column="blinded"/>
         <result property="deleted" column="deleted"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>
@@ -29,6 +30,7 @@
         SELECT COUNT(*)
         FROM community_posts cp
         WHERE cp.deleted = 0
+        AND cp.blinded = 0
         <if test="keyword != null">
             AND (cp.title LIKE CONCAT('%', #{keyword}, '%') OR cp.content LIKE CONCAT('%', #{keyword}, '%'))
         </if>
@@ -37,6 +39,7 @@
     <select id="findAll" resultMap="communityPostMap">
         <include refid="baseSelect"/>
         WHERE cp.deleted = 0
+        AND cp.blinded = 0
         <if test="keyword != null">
             AND (cp.title LIKE CONCAT('%', #{keyword}, '%') OR cp.content LIKE CONCAT('%', #{keyword}, '%'))
         </if>
@@ -49,6 +52,7 @@
         <include refid="baseSelect"/>
         WHERE cp.community_post_id = #{communityPostId}
         AND cp.deleted = 0
+        AND cp.blinded = 0
     </select>
 
     <insert id="insert" parameterType="com.roommate.domain.community.entity.CommunityPostEntity" useGeneratedKeys="true" keyProperty="communityPostId">
@@ -79,6 +83,23 @@
             updated_at = NOW()
         WHERE community_post_id = #{communityPostId}
         AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="adminBlind">
+        UPDATE community_posts
+        SET blinded = 1,
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
+        AND deleted = 0
+        AND blinded = 0
+    </update>
+
+    <update id="adminDelete">
+        UPDATE community_posts
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
         AND deleted = 0
     </update>
 

@@ -20,6 +20,7 @@ public class CommunityCommentEntity {
     private Long memberId;
     private String memberName;
     private String content;
+    private boolean blinded;
     private boolean deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

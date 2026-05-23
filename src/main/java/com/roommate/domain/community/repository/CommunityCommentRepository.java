@@ -17,4 +17,8 @@ public interface CommunityCommentRepository {
 
     int softDelete(@Param("communityCommentId") Long communityCommentId,
                    @Param("memberId") Long memberId);
+
+    int adminBlind(@Param("communityCommentId") Long communityCommentId);
+
+    int adminDelete(@Param("communityCommentId") Long communityCommentId);
 }
