@@ -1,0 +1,29 @@
+package com.roommate.domain.room.service;
+
+import com.roommate.domain.room.dto.request.RoomCreateRequest;
+import com.roommate.domain.room.dto.request.RoomStatusUpdateRequest;
+import com.roommate.domain.room.dto.request.RoomUpdateRequest;
+import com.roommate.domain.room.dto.response.MyRoomListItemResponse;
+import com.roommate.domain.room.dto.response.RoomDetailResponse;
+import com.roommate.domain.room.dto.response.RoomMapItemResponse;
+
+import java.util.List;
+
+public interface RoomService {
+
+    public List<MyRoomListItemResponse> getRoomsByMember(Long memberId);
+
+    public Long createRoom(RoomCreateRequest roomCreateRequest, Long memberId);
+
+    public void updateRoom(Long roomId, RoomUpdateRequest roomUpdateRequest, Long memberId);
+
+    public void deleteRoom(Long roomId, Long memberId);
+
+    public void changeStatus(Long roomId, RoomStatusUpdateRequest roomStatusUpdateRequest, Long memberId);
+
+    public RoomDetailResponse getRoomDetail(Long roomId, Long currentMemberId, boolean countView);
+
+    public List<RoomMapItemResponse> getRoomsForMap(double north, double south, double east, double west, int zoom);
+
+    public List<MyRoomListItemResponse> getMyRooms(Long memberId);
+}

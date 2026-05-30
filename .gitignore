@@ -1,0 +1,96 @@
+# Git Ignore 
+############################################
+# Maven
+############################################
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+############################################
+# IDE (Eclipse/IntelliJ)
+############################################
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# STS & Eclipse 자동 생성 파일
+.factorypath
+.springBeans
+
+# Smart Tomcat 설정
+.smarttomcat/
+
+############################################
+# OS 파일
+############################################
+.DS_Store
+Thumbs.db
+
+############################################
+# Logs
+############################################
+*.log
+logs/
+log/
+
+############################################
+# Build 파일 & 임시 파일
+############################################
+*.war
+*.ear
+*.zip
+*.jar
+*.class
+*.tmp
+
+############################################
+# 환경 설정 (절대 Git에 올리면 안 되는 것)
+############################################
+# 환경파일 (DB 정보, JWT 키 등)
+src/main/resources/application.properties
+src/main/resources/application.yml
+src/main/resources/application.yaml
+
+# 실제 민감정보 들어갈 properties는 무시
+*.secret
+*.local
+*.env
+
+############################################
+# Example 파일은 올림
+############################################
+!src/main/resources/application.properties.example
+
+############################################
+# Upload / File 저장소
+############################################
+/uploads/
+/files/
+
+############################################
+# Node (혹시 프론트 병행 시)
+############################################
+node_modules/
+
+############################################
+# 기타 사용자가 임시로 만든 파일
+############################################
+*.swp
+*.swo
+*.bak
+*.orig
+# 업로드 이미지 / 파일은 Git에 올리지 않는다
+/uploads/
+/upload/

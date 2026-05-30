@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.community.repository.CommunityPostRepository">
+    <resultMap id="communityPostMap" type="com.roommate.domain.community.entity.CommunityPostEntity">
+        <id property="communityPostId" column="community_post_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="memberName" column="member_name"/>
+        <result property="memberEmail" column="member_email"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="views" column="views"/>
+        <result property="blinded" column="blinded"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="baseSelect">
+        SELECT cp.*,
+               m.name AS member_name,
+               m.email AS member_email
+        FROM community_posts cp
+        JOIN members m ON cp.member_id = m.member_id
+    </sql>
+
+    <select id="count" resultType="long">
+        SELECT COUNT(*)
+        FROM community_posts cp
+        WHERE cp.deleted = 0
+        AND cp.blinded = 0
+        <if test="keyword != null">
+            AND (cp.title LIKE CONCAT('%', #{keyword}, '%') OR cp.content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+    <select id="findAll" resultMap="communityPostMap">
+        <include refid="baseSelect"/>
+        WHERE cp.deleted = 0
+        AND cp.blinded = 0
+        <if test="keyword != null">
+            AND (cp.title LIKE CONCAT('%', #{keyword}, '%') OR cp.content LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY cp.created_at DESC, cp.community_post_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="findById" resultMap="communityPostMap">
+        <include refid="baseSelect"/>
+        WHERE cp.community_post_id = #{communityPostId}
+        AND cp.deleted = 0
+        AND cp.blinded = 0
+    </select>
+
+    <insert id="insert" parameterType="com.roommate.domain.community.entity.CommunityPostEntity" useGeneratedKeys="true" keyProperty="communityPostId">
+        INSERT INTO community_posts (
+            member_id,
+            title,
+            content
+        ) VALUES (
+            #{memberId},
+            #{title},
+            #{content}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.roommate.domain.community.entity.CommunityPostEntity">
+        UPDATE community_posts
+        SET title = #{title},
+            content = #{content},
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="softDelete">
+        UPDATE community_posts
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="adminBlind">
+        UPDATE community_posts
+        SET blinded = 1,
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
+        AND deleted = 0
+        AND blinded = 0
+    </update>
+
+    <update id="adminDelete">
+        UPDATE community_posts
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_post_id = #{communityPostId}
+        AND deleted = 0
+    </update>
+
+    <insert id="insertPostView">
+        INSERT IGNORE INTO community_post_views (
+            community_post_id,
+            member_id
+        ) VALUES (
+            #{communityPostId},
+            #{memberId}
+        )
+    </insert>
+
+    <update id="syncPostViewCount">
+        UPDATE community_posts
+        SET views = (
+            SELECT COUNT(*)
+            FROM community_post_views cpv
+            WHERE cpv.community_post_id = #{communityPostId}
+        )
+        WHERE community_post_id = #{communityPostId}
+    </update>
+</mapper>

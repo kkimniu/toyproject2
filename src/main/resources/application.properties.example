@@ -1,0 +1,28 @@
+###############################################
+# 🔐 JWT CONFIG
+###############################################
+jwt.secret.key=__CHANGE_ME__
+jwt.access.expiration.time=3600000
+jwt.refresh.expiration.time=604800000
+
+###############################################
+# 🗄️ DATABASE CONFIG
+###############################################
+db.driver=com.mysql.cj.jdbc.Driver
+db.url=jdbc:mysql://localhost:3306/roommate?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+db.username=roommate_user
+db.password=__CHANGE_ME__
+
+###############################################
+# 🗺️ KAKAO MAP CONFIG
+###############################################
+# 서버에서 REST API 호출용
+kakao.map.api.key=REST_API_키
+
+# JSP(JavaScript 지도)용
+kakao.js.key=JavaScript_키
+kakao.local.base-url=https://dapi.kakao.com
+kakao.ka.origin=roommate-service
+
+#사진 업로드
+file.upload.root-path=

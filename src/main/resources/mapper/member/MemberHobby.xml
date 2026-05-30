@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roommate.domain.member.repository.MemberHobbyRepository">
+    <delete id="deleteByMemberId" parameterType="long">
+        DELETE FROM member_hobbies WHERE member_id = #{memberId}
+    </delete>
+
+    <insert id="insertMemberHobbies">
+        INSERT INTO member_hobbies (member_id, hobby_id)
+        VALUES
+        <foreach collection="hobbyIds" item="hobbyId" separator=",">
+            (#{memberId}, #{hobbyId})
+        </foreach>
+    </insert>
+</mapper>

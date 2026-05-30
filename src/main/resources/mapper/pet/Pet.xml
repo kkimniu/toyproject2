@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.roommate.domain.member.repository.PetRepository">
+
+    <resultMap id="petMap" type="com.roommate.domain.member.entity.PetEntity">
+        <id property="petId" column="pet_id"/>
+        <result property="petName" column="pet_name"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <select id="findAll" resultMap="petMap">
+        SELECT *
+        FROM pets
+        ORDER BY pet_name
+    </select>
+    <select id="findById" resultMap="petMap">
+        SELECT *
+        FROM pets
+        WHERE pet_id = #{petId}
+    </select>
+    <select id="findByName" resultMap="petMap">
+        SELECT *
+        FROM pets
+        WHERE pet_name = #{name}
+    </select>
+    <select id="findByMemberId" parameterType="long" resultType="com.roommate.domain.member.entity.PetEntity">
+        SELECT p.pet_id,
+        p.pet_name,
+        p.created_at
+        FROM pets p
+        JOIN member_pets mp ON p.pet_id = mp.pet_id
+        WHERE mp.member_id = #{memberId}
+    </select>
+    <insert id="insert">
+        INSERT INTO pets (pet_name)
+        VALUES (#{name})
+    </insert>
+    <update id="update">
+        UPDATE pets
+        SET pet_name = #{name}
+        WHERE pet_id = #{petId}
+    </update>
+    <delete id="delete">
+        DELETE FROM pets
+        WHERE pet_id = #{petId}
+    </delete>
+
+</mapper>

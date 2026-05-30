@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.community.repository.CommunityCommentRepository">
+    <resultMap id="communityCommentMap" type="com.roommate.domain.community.entity.CommunityCommentEntity">
+        <id property="communityCommentId" column="community_comment_id"/>
+        <result property="communityPostId" column="community_post_id"/>
+        <result property="parentCommentId" column="parent_comment_id"/>
+        <result property="memberId" column="member_id"/>
+        <result property="memberName" column="member_name"/>
+        <result property="content" column="content"/>
+        <result property="blinded" column="blinded"/>
+        <result property="deleted" column="deleted"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <sql id="baseSelect">
+        SELECT cc.*,
+               m.name AS member_name
+        FROM community_comments cc
+        JOIN members m ON cc.member_id = m.member_id
+    </sql>
+
+    <select id="findByPostId" resultMap="communityCommentMap">
+        <include refid="baseSelect"/>
+        WHERE cc.community_post_id = #{communityPostId}
+        AND cc.deleted = 0
+        AND cc.blinded = 0
+        ORDER BY
+            COALESCE(cc.parent_comment_id, cc.community_comment_id) ASC,
+            CASE WHEN cc.parent_comment_id IS NULL THEN 0 ELSE 1 END ASC,
+            cc.created_at ASC,
+            cc.community_comment_id ASC
+    </select>
+
+    <select id="findById" resultMap="communityCommentMap">
+        <include refid="baseSelect"/>
+        WHERE cc.community_comment_id = #{communityCommentId}
+        AND cc.deleted = 0
+        AND cc.blinded = 0
+    </select>
+
+    <insert id="insert" parameterType="com.roommate.domain.community.entity.CommunityCommentEntity" useGeneratedKeys="true" keyProperty="communityCommentId">
+        INSERT INTO community_comments (
+            community_post_id,
+            parent_comment_id,
+            member_id,
+            content
+        ) VALUES (
+            #{communityPostId},
+            #{parentCommentId},
+            #{memberId},
+            #{content}
+        )
+    </insert>
+
+    <update id="softDelete">
+        UPDATE community_comments
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_comment_id = #{communityCommentId}
+        AND member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="adminBlind">
+        UPDATE community_comments
+        SET blinded = 1,
+            updated_at = NOW()
+        WHERE community_comment_id = #{communityCommentId}
+        AND deleted = 0
+        AND blinded = 0
+    </update>
+
+    <update id="adminDelete">
+        UPDATE community_comments
+        SET deleted = 1,
+            updated_at = NOW()
+        WHERE community_comment_id = #{communityCommentId}
+        AND deleted = 0
+    </update>
+</mapper>

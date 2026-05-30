@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.member.repository.MemberRepository">
+    <resultMap id="memberMap" type="com.roommate.domain.member.entity.MemberEntity">
+        <id property="memberId" column="member_id"/>
+        <result property="workTypeId" column="work_type_id"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="name" column="name"/>
+        <result property="phone" column="phone"/>
+        <result property="photoUrl" column="photo_url"/>
+        <result property="role" column="role" javaType="com.roommate.domain.member.entity.MemberRoleEnum"/>
+        <result property="status" column="status" javaType="com.roommate.domain.member.entity.MemberStatusEnum"/>
+        <result property="bannedUntil" column="banned_until"/>
+        <result property="gender" column="gender" javaType="com.roommate.domain.member.entity.MemberGenderEnum"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="reportCount" column="report_count"/>
+        <result property="banCount" column="ban_count"/>
+        <result property="deleted" column="deleted"/>
+        <result property="memberCreatedAt" column="member_created_at"/>
+        <result property="memberUpdatedAt" column="member_updated_at"/>
+        <result property="sleepTime" column="sleep_time"/>
+        <result property="smoking" column="smoking" javaType="com.roommate.domain.member.entity.MemberSmokingEnum"/>
+        <result property="drinking" column="drinking" javaType="com.roommate.domain.member.entity.MemberDrinkingEnum"/>
+        <result property="mbti" column="mbti"/>
+    </resultMap>
+
+    <select id="findById" resultMap="memberMap">
+        SELECT *
+        FROM members
+        WHERE member_id = #{memberId}
+    </select>
+    <select id="findByEmail" resultMap="memberMap">
+        SELECT *
+        FROM members
+        WHERE email = #{email}
+    </select>
+    <insert id="save" useGeneratedKeys="true" keyProperty="memberId" parameterType="com.roommate.domain.member.entity.MemberEntity">
+        INSERT INTO members (
+        work_type_id,
+        email,
+        password,
+        name,
+        phone,
+        photo_url,
+        role,
+        status,
+        banned_until,
+        gender,
+        birth_date,
+        report_count,
+        ban_count,
+        deleted,
+        sleep_time,
+        smoking,
+        drinking,
+        mbti
+        )
+        VALUES (
+        #{workTypeId},
+        #{email},
+        #{password},
+        #{name},
+        #{phone},
+        #{photoUrl},
+        #{role},
+        #{status},
+        #{bannedUntil},
+        #{gender},
+        #{birthDate},
+        #{reportCount},
+        #{banCount},
+        #{deleted},
+        #{sleepTime},
+        #{smoking},
+        #{drinking},
+        #{mbti}
+        )
+    </insert>
+    <insert id="insertMemberHobby">
+        INSERT INTO member_hobbies (member_id, hobby_id)
+        VALUES (#{memberId}, #{hobbyId})
+    </insert>
+
+    <insert id="insertMemberPreference">
+        INSERT INTO member_preferences (member_id, preference_id)
+        VALUES (#{memberId}, #{preferenceId})
+    </insert>
+
+    <insert id="insertMemberPet">
+        INSERT INTO member_pets (member_id, pet_id)
+        VALUES (#{memberId}, #{petId})
+    </insert>
+    <update id="updateMember" parameterType="com.roommate.domain.member.entity.MemberEntity">
+        UPDATE members
+        <set>
+            work_type_id = #{workTypeId},
+            name = #{name},
+            phone = #{phone},
+            photo_url = #{photoUrl},
+            gender = #{gender},
+            birth_date = #{birthDate},
+            sleep_time = #{sleepTime},
+            smoking = #{smoking},
+            drinking = #{drinking},
+            mbti = #{mbti},
+            member_updated_at = NOW()
+        </set>
+        WHERE
+            member_id = #{memberId}
+    </update>
+    <update id="softDeleteMember" parameterType="long">
+        UPDATE members
+        SET deleted = 1,
+            status = 'DELETED'
+        WHERE member_id = #{memberId}
+    </update>
+    <!-- 비밀번호 변경 전용 업데이트 -->
+    <update id="updatePassword">
+        UPDATE members
+        SET password = #{password},
+        member_updated_at = CURRENT_TIMESTAMP
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="updatePhotoUrl">
+        UPDATE members
+        SET photo_url = #{photoUrl},
+        member_updated_at = NOW()
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <select id="countMembersForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+        <where>
+            <if test="keyword != null">
+                AND (email LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="from != null">
+                AND DATE(member_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(member_created_at) &lt;= #{to}
+            </if>
+        </where>
+    </select>
+
+    <select id="countMembersByStatusForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+        WHERE status = #{status}
+    </select>
+
+    <select id="countRepeatPenaltyMembersForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM members
+        WHERE deleted = 0
+        AND status != 'DELETED'
+        AND role = 'USER'
+        AND ban_count &gt;= #{threshold}
+    </select>
+
+    <select id="findMembersForAdmin" resultType="com.roommate.admin.dto.AdminMemberListItemResponse">
+        SELECT
+            member_id AS memberId,
+            email,
+            name,
+            role,
+            status,
+            ban_count AS banCount,
+            member_created_at AS memberCreatedAt
+        FROM members
+        <where>
+            <if test="keyword != null">
+                AND (email LIKE CONCAT('%', #{keyword}, '%')
+                    OR name LIKE CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="role != null">
+                AND role = #{role}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="from != null">
+                AND DATE(member_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(member_created_at) &lt;= #{to}
+            </if>
+        </where>
+        ORDER BY member_created_at DESC, member_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <update id="updateMemberStatusForAdmin">
+        UPDATE members
+        SET status = #{status},
+            ban_count = CASE
+                WHEN #{status} = 'BANNED' THEN ban_count + 1
+                ELSE ban_count
+            END,
+            banned_until = NULL,
+            member_updated_at = NOW()
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
+
+    <update id="updateMemberRoleForAdmin">
+        UPDATE members
+        SET role = #{role},
+            member_updated_at = NOW()
+        WHERE member_id = #{memberId}
+        AND deleted = 0
+    </update>
+</mapper>

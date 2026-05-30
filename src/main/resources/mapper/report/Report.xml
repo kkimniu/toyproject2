@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.report.repository.ReportRepository">
+    <insert id="saveMemberReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            NULL,
+            #{targetMemberId},
+            'MEMBER',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveRoomReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{roomId},
+            #{targetMemberId},
+            'ROOM',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveChatReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            room_id,
+            chat_room_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{roomId},
+            #{chatRoomId},
+            #{targetMemberId},
+            'CHAT',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveCommunityPostReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            community_post_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{communityPostId},
+            #{targetMemberId},
+            'COMMUNITY_POST',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <insert id="saveCommunityCommentReport" parameterType="com.roommate.domain.report.entity.ReportEntity" useGeneratedKeys="true" keyProperty="reportId">
+        INSERT INTO report (
+            reporter_id,
+            community_post_id,
+            community_comment_id,
+            target_member_id,
+            report_type,
+            reason,
+            status
+        )
+        VALUES (
+            #{reporterId},
+            #{communityPostId},
+            #{communityCommentId},
+            #{targetMemberId},
+            'COMMUNITY_COMMENT',
+            #{reason},
+            'PENDING'
+        )
+    </insert>
+
+    <select id="existsMemberReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND target_member_id = #{targetMemberId}
+            AND report_type = 'MEMBER'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsRoomReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND room_id = #{roomId}
+            AND report_type = 'ROOM'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsChatReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND chat_room_id = #{chatRoomId}
+            AND report_type = 'CHAT'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsCommunityPostReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND community_post_id = #{communityPostId}
+            AND report_type = 'COMMUNITY_POST'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="existsCommunityCommentReport" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM report
+            WHERE reporter_id = #{reporterId}
+            AND community_comment_id = #{communityCommentId}
+            AND report_type = 'COMMUNITY_COMMENT'
+            LIMIT 1
+        )
+    </select>
+
+    <select id="countReportsForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        <where>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND r.report_type = #{reportType}
+            </if>
+            <if test="reporter != null">
+                AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
+                    OR reporter.name LIKE CONCAT('%', #{reporter}, '%'))
+            </if>
+            <if test="target != null">
+                AND (target.email LIKE CONCAT('%', #{target}, '%')
+                    OR target.name LIKE CONCAT('%', #{target}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(r.report_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(r.report_created_at) &lt;= #{to}
+            </if>
+        </where>
+    </select>
+
+    <select id="countReportsByStatusForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM report
+        WHERE status = #{status}
+    </select>
+
+    <select id="countSanctionCandidatesForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM (
+            SELECT r.target_member_id
+            FROM report r
+            INNER JOIN members target ON target.member_id = r.target_member_id
+            WHERE r.target_member_id IS NOT NULL
+            AND target.deleted = 0
+            AND target.status != 'DELETED'
+            AND target.role = 'USER'
+            AND (r.status = 'PENDING' OR r.resolution_type = 'ACCEPTED')
+            GROUP BY r.target_member_id
+            HAVING COUNT(*) &gt;= #{threshold}
+        ) candidates
+    </select>
+
+    <select id="findSanctionCandidatesForAdmin" resultType="com.roommate.admin.dto.AdminSanctionCandidateResponse">
+        SELECT
+            target.member_id AS memberId,
+            target.email AS email,
+            target.name AS name,
+            target.status AS status,
+            target.ban_count AS banCount,
+            COUNT(*) AS totalReports,
+            SUM(CASE WHEN r.status = 'PENDING' THEN 1 ELSE 0 END) AS pendingReports,
+            SUM(CASE WHEN r.resolution_type = 'ACCEPTED' THEN 1 ELSE 0 END) AS acceptedReports,
+            MAX(r.report_created_at) AS lastReportedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        WHERE r.target_member_id IS NOT NULL
+        AND target.deleted = 0
+        AND target.status != 'DELETED'
+        AND target.role = 'USER'
+        AND (r.status = 'PENDING' OR r.resolution_type = 'ACCEPTED')
+        GROUP BY
+            target.member_id,
+            target.email,
+            target.name,
+            target.status,
+            target.ban_count
+        HAVING COUNT(*) &gt;= #{threshold}
+        ORDER BY pendingReports DESC, totalReports DESC, lastReportedAt DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="findReportTrendsForAdmin" resultType="com.roommate.admin.dto.AdminReportTrendResponse">
+        SELECT
+            trend_date AS trendDate,
+            SUM(created_reports) AS createdReports,
+            SUM(resolved_reports) AS resolvedReports
+        FROM (
+            SELECT
+                DATE(report_created_at) AS trend_date,
+                COUNT(*) AS created_reports,
+                0 AS resolved_reports
+            FROM report
+            WHERE report_created_at &gt;= DATE_SUB(CURDATE(), INTERVAL (#{days} - 1) DAY)
+            GROUP BY DATE(report_created_at)
+            UNION ALL
+            SELECT
+                DATE(processed_at) AS trend_date,
+                0 AS created_reports,
+                COUNT(*) AS resolved_reports
+            FROM report
+            WHERE processed_at IS NOT NULL
+            AND processed_at &gt;= DATE_SUB(CURDATE(), INTERVAL (#{days} - 1) DAY)
+            GROUP BY DATE(processed_at)
+        ) daily
+        GROUP BY trend_date
+        ORDER BY trend_date ASC
+    </select>
+
+    <select id="findReportsForAdmin" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.reporter_id AS reporterId,
+            reporter.email AS reporterEmail,
+            reporter.name AS reporterName,
+            r.report_type AS reportType,
+            r.reason AS reason,
+            r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_by AS processedBy,
+            processor.email AS processedByEmail,
+            processor.name AS processedByName,
+            r.processed_at AS processedAt,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        LEFT JOIN members processor ON processor.member_id = r.processed_by
+        <where>
+            <if test="status != null">
+                AND r.status = #{status}
+            </if>
+            <if test="reportType != null">
+                AND r.report_type = #{reportType}
+            </if>
+            <if test="reporter != null">
+                AND (reporter.email LIKE CONCAT('%', #{reporter}, '%')
+                    OR reporter.name LIKE CONCAT('%', #{reporter}, '%'))
+            </if>
+            <if test="target != null">
+                AND (target.email LIKE CONCAT('%', #{target}, '%')
+                    OR target.name LIKE CONCAT('%', #{target}, '%'))
+            </if>
+            <if test="from != null">
+                AND DATE(r.report_created_at) &gt;= #{from}
+            </if>
+            <if test="to != null">
+                AND DATE(r.report_created_at) &lt;= #{to}
+            </if>
+        </where>
+        ORDER BY r.report_created_at DESC, r.report_id DESC
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="findReportForAdminById" resultType="com.roommate.admin.dto.AdminReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.reporter_id AS reporterId,
+            reporter.email AS reporterEmail,
+            reporter.name AS reporterName,
+            r.report_type AS reportType,
+            r.reason AS reason,
+            r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_by AS processedBy,
+            processor.email AS processedByEmail,
+            processor.name AS processedByName,
+            r.processed_at AS processedAt,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        INNER JOIN members reporter ON reporter.member_id = r.reporter_id
+        LEFT JOIN members processor ON processor.member_id = r.processed_by
+        WHERE r.report_id = #{reportId}
+    </select>
+
+    <update id="updateReportStatusForAdmin">
+        UPDATE report
+        SET status = #{status},
+            resolution_type = #{resolutionType},
+            resolution_message = #{resolutionMessage},
+            processed_by = #{processedBy},
+            processed_at = NOW()
+        WHERE report_id = #{reportId}
+        AND status = 'PENDING'
+    </update>
+
+    <select id="findMyReportById" resultType="com.roommate.domain.report.dto.MyReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
+            r.report_type AS reportType,
+            r.reason AS reason,
+            r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_at AS processedAt,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        WHERE r.reporter_id = #{reporterId}
+        AND r.report_id = #{reportId}
+    </select>
+
+    <select id="findMyReports" resultType="com.roommate.domain.report.dto.MyReportListItemResponse">
+        SELECT
+            r.report_id AS reportId,
+            r.target_member_id AS targetMemberId,
+            target.email AS targetMemberEmail,
+            target.name AS targetMemberName,
+            r.room_id AS roomId,
+            r.chat_room_id AS chatRoomId,
+            r.community_post_id AS communityPostId,
+            r.community_comment_id AS communityCommentId,
+            r.report_type AS reportType,
+            r.reason AS reason,
+            r.status AS status,
+            r.resolution_type AS resolutionType,
+            r.resolution_message AS resolutionMessage,
+            r.processed_at AS processedAt,
+            r.report_created_at AS reportCreatedAt
+        FROM report r
+        INNER JOIN members target ON target.member_id = r.target_member_id
+        WHERE r.reporter_id = #{reporterId}
+        ORDER BY r.report_created_at DESC, r.report_id DESC
+    </select>
+</mapper>

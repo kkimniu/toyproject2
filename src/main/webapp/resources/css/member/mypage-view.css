@@ -1,0 +1,661 @@
+/* /resources/css/member/mypage-view.css */
+/* ===== 공통 레이아웃 ===== */
+
+.mypage-main {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* ===== 프로필 요약 카드 ===== */
+
+.profile-summary-card {
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  padding: 24px 28px;
+  margin-bottom: 24px;
+}
+
+/* 위쪽: 사진 + 기본 정보 + 버튼 */
+.profile-summary-top {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+/* 프로필 사진 */
+.profile-summary-photo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-photo-lg {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+}
+
+/* 사진 변경 버튼 */
+.btn-photo-upload {
+  margin-top: 4px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.btn-photo-upload:hover {
+  background: #eef2ff;
+  border-color: #4f46e5;
+}
+
+/* 가운데 정보 영역 */
+.profile-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-label {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  margin: 0 0 4px;
+}
+
+.profile-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+/* 이메일/전화/가입일 */
+.profile-contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+.profile-contact-item::before {
+  content: "• ";
+}
+
+/* 오른쪽: 프로필 수정 버튼 */
+.profile-summary-actions {
+  display: flex;
+  align-items: flex-start;
+}
+
+.btn {
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-dark {
+  background: #111827;
+  color: #ffffff;
+}
+
+.btn-dark:hover {
+  background: #000000;
+}
+
+/* 아래쪽: 태그 & 상세 정보 */
+.profile-summary-bottom {
+  margin-top: 18px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 16px;
+}
+
+/* 태그(라이프스타일) */
+.profile-tags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f3f4ff;
+  color: #4f46e5;
+  font-size: 0.8rem;
+}
+
+/* 취미/생활선호/반려동물 블록 */
+.profile-detail-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.profile-subsection {
+  flex: 1;
+  min-width: 180px;
+}
+
+.profile-subsection h3 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+/* chip 리스트 */
+.chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-list .chip {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  font-size: 0.8rem;
+}
+
+.chip-empty {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+/* ===== 탭 영역 ===== */
+
+.mypage-tabs {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mypage-tab {
+  padding: 6px 14px;
+  font-size: 0.85rem;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  cursor: pointer;
+}
+
+.mypage-tab.active {
+  background: #111827;
+  color: #ffffff;
+  border-color: #111827;
+}
+
+.mypage-tab-content {
+  margin-top: 16px;
+}
+
+/* ===== 계정 설정 섹션 (비밀번호 변경 카드 등) ===== */
+
+.mypage-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 22px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
+}
+
+.mypage-section--security h3 {
+  margin: 0 0 6px;
+}
+
+.mypage-section--security p {
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ===== 비밀번호 변경 모달 ===== */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.35);
+  display: none;            /* 기본 숨김 */
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal {
+  width: 420px;
+  max-width: 90%;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
+  padding: 20px 22px 18px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.modal-close-btn {
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.modal-body .form-group {
+  margin-bottom: 12px;
+}
+
+.modal-body label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.modal-body input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 0.9rem;
+}
+
+.modal-body input[type="password"]:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px #4f46e5;
+}
+
+.modal-body .form-text {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.modal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* 재사용 버튼 스타일 */
+.btn-primary {
+  background: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+
+.mypage-security__message {
+  margin-top: 4px;
+  font-size: 0.8rem;
+}
+
+.password-modal-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;           /* JS에서 flex로 바꿈 */
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.password-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 28px;
+  width: 360px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+
+.password-modal .form-group {
+  margin-bottom: 12px;
+}
+
+.password-modal .form-control {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.password-modal-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.password-message {
+  min-height: 18px;
+  font-size: 13px;
+  margin-top: 4px;
+}
+/* ===== 관심 방 카드(내 게시글 카드 톤으로) ===== */
+.favorite-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.favorite-card{
+  position:relative;
+  display:flex;
+  gap:18px;
+  padding:18px;
+  border:1px solid #eee;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
+  cursor:pointer;
+}
+
+.favorite-thumb{
+  width:140px;
+  height:100px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#f3f4f6;
+  flex:0 0 140px;
+}
+
+.favorite-body{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+
+.favorite-title{
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.favorite-price{
+  margin:0;
+  font-size:15px;
+  font-weight:800;
+  color:#111827;
+}
+
+.favorite-status{
+  display:inline-flex;
+  align-items:center;
+  width:fit-content;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  background:#0b0f1a;
+  color:#fff;
+}
+.favorite-status.RESERVED{ background:#0f766e; }
+.favorite-status.CLOSED{ background:#6b7280; }
+.favorite-status.HIDDEN{ background:#ef4444; }
+
+/* 모바일 */
+@media (max-width: 720px){
+  .favorite-card{ flex-direction:column; }
+  .favorite-thumb{ width:100%; height:180px; flex:auto; }
+}
+
+/* ===== 내 게시글 헤더(레퍼런스처럼 오른쪽 버튼) ===== */
+.mypage-posts-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin: 16px 0 14px;
+}
+.mypage-posts-title{
+  margin:0;
+  font-size:22px;
+  font-weight:800;
+}
+
+.btn-post-create{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:12px 18px;
+  border-radius:14px;
+  background:#0b0f1a;
+  color:#fff;
+  text-decoration:none;
+  font-weight:800;
+  border: none;
+}
+.btn-post-create:hover{ opacity:.92; }
+
+/* ===== 내 게시글 카드(레퍼런스 형태) ===== */
+.my-room-list{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.my-post-card{
+  position:relative;
+  display:flex;
+  gap:18px;
+  padding:18px;
+  border:1px solid #eee;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 20px rgba(0,0,0,0.05);
+}
+
+.my-post-thumb{
+  width:140px;
+  height:100px;
+  border-radius:14px;
+  object-fit:cover;
+  background:#f3f4f6;
+  flex:0 0 140px;
+}
+
+.my-post-body{
+  flex:1;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.my-post-title{
+  margin:0;
+  font-size:18px;
+  font-weight:900;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.my-post-sub{
+  margin:0;
+  font-size:14px;
+  color:#6b7280;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.my-post-price{
+  margin:0;
+  font-size:15px;
+  font-weight:800;
+}
+
+/* 카드 오른쪽 위 상태 배지 */
+.my-post-status{
+  position:absolute;
+  top:16px;
+  right:16px;
+  padding:7px 12px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  color:#fff;
+}
+
+/* 상태별 컬러 */
+.my-post-status.OPEN     { background:#111827; } /* 검정 */
+.my-post-status.RESERVED { background:#0f766e; } /* 청록/초록 */
+.my-post-status.CLOSED   { background:#6b7280; } /* 회색 */
+.my-post-status.HIDDEN   { background:#ef4444; } /* 빨강(비공개 강조) */
+
+/* 카드 오른쪽 아래 버튼들 */
+.my-post-actions{
+  position:absolute;
+  right:16px;
+  bottom:16px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.my-post-btn{
+  padding:10px 14px;
+  border-radius:12px;
+  border:1px solid #e5e7eb;
+  background:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+.my-post-btn:hover{ background:#f9fafb; }
+
+.my-post-btn-danger{
+  border:none;
+  background:none;
+  color:#ef4444;
+  font-weight:900;
+  cursor:pointer;
+}
+.my-post-btn-danger:hover{ opacity:.85; }
+
+/* 작성일 */
+.my-post-date{
+  margin-top:10px;
+  font-size:13px;
+  color:#9ca3af;
+}
+
+.my-report-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.my-report-card {
+  padding: 18px;
+  border: 1px solid #eee;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.my-report-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.my-report-head h4,
+.my-report-head p {
+  margin: 0;
+}
+
+.my-report-head p {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.my-report-status {
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.my-report-status.PENDING {
+  background: #b54708;
+}
+
+.my-report-status.RESOLVED {
+  background: #027a48;
+}
+
+.my-report-meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+}
+
+.my-report-meta dt {
+  color: #667085;
+  font-size: 13px;
+}
+
+.my-report-meta dd {
+  margin: 6px 0 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.my-report-message {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #f9fafb;
+  color: #475467;
+  line-height: 1.6;
+}
+
+/* (선택) 모바일 대응 */
+@media (max-width: 720px){
+  .my-post-card{ flex-direction:column; }
+  .my-post-thumb{ width:100%; height:180px; flex:auto; }
+  .my-post-actions{ position:static; justify-content:flex-end; margin-top:10px; }
+  .my-post-status{ top:14px; right:14px; }
+  .my-report-meta{ grid-template-columns: 1fr 1fr; }
+}

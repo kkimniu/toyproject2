@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.roommate.domain.favorite.repository.FavoriteRepository">
+    <select id="findMyFavoriteRooms" parameterType="long" resultType="com.roommate.domain.favorite.dto.response.FavoriteRoomResponse">
+        SELECT
+        r.room_id           AS roomId,
+        r.room_title        AS roomTitle,
+        r.deposit           AS deposit,
+        r.monthly_rent      AS monthlyRent,
+        r.status            AS status,
+        (
+        SELECT ri.image_url
+        FROM room_image ri
+        WHERE ri.room_id = r.room_id
+        ORDER BY ri.sort_order ASC, ri.image_id ASC
+        LIMIT 1
+        ) AS thumbnailUrl
+        FROM favorites f
+        INNER JOIN rooms r ON f.room_id = r.room_id
+        WHERE f.member_id = #{memberId}
+        AND r.deleted = 0
+        AND r.status NOT IN ('CLOSED', 'HIDDEN')
+        ORDER BY f.created_at DESC
+    </select>
+    <select id="existsByMemberIdAndRoomId" resultType="int">
+        SELECT COUNT(*)
+        FROM favorites
+        WHERE member_id = #{memberId}
+        AND room_id = #{roomId}
+    </select>
+    <insert id="save">
+        INSERT INTO favorites (member_id, room_id)
+        VALUES (#{memberId}, #{roomId})
+    </insert>
+    <delete id="deleteByMemberIdAndRoomId">
+        DELETE FROM favorites
+        WHERE member_id = #{memberId}
+        AND room_id = #{roomId}
+    </delete>
+    <delete id="deleteByMemberId" parameterType="long">
+        DELETE FROM favorites
+        WHERE member_id = #{memberId}
+    </delete>
+
+</mapper>
