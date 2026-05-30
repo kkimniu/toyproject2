@@ -2,6 +2,8 @@ package com.roommate.admin.controller;
 
 import com.roommate.admin.dto.AdminActionLogListResponse;
 import com.roommate.admin.dto.AdminDashboardSummaryResponse;
+import com.roommate.admin.dto.AdminDashboardSettingsRequest;
+import com.roommate.admin.dto.AdminDashboardSettingsResponse;
 import com.roommate.admin.dto.AdminMemberListItemResponse;
 import com.roommate.admin.dto.AdminMemberListResponse;
 import com.roommate.admin.dto.AdminMemberStatusUpdateRequest;
@@ -57,8 +59,18 @@ public class AdminRestController {
     private final AdminReportTargetModerationService adminReportTargetModerationService;
 
     @GetMapping("/dashboard/summary")
-    public AdminDashboardSummaryResponse getDashboardSummary() {
-        return adminDashboardService.getSummary();
+    public AdminDashboardSummaryResponse getDashboardSummary(@RequestParam(name = "trend_days", required = false) Integer trendDays) {
+        return adminDashboardService.getSummary(trendDays);
+    }
+
+    @GetMapping("/dashboard/settings")
+    public AdminDashboardSettingsResponse getDashboardSettings() {
+        return adminDashboardService.getSettings();
+    }
+
+    @PatchMapping("/dashboard/settings")
+    public AdminDashboardSettingsResponse updateDashboardSettings(@RequestBody AdminDashboardSettingsRequest request) {
+        return adminDashboardService.updateSettings(request);
     }
 
     @GetMapping("/members")

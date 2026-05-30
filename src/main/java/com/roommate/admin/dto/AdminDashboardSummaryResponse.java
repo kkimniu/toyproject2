@@ -39,4 +39,7 @@ public class AdminDashboardSummaryResponse {
 
     @JsonProperty("report_trends")
     private final List<AdminReportTrendResponse> reportTrends;
+
+    @JsonProperty("settings")
+    private final AdminDashboardSettingsResponse settings;
 }
