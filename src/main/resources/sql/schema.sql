@@ -126,6 +126,17 @@ CREATE TABLE admin_action_log (
     FOREIGN KEY (admin_id) REFERENCES members(member_id)
 );
 
+CREATE TABLE admin_settings (
+    setting_key VARCHAR(100) PRIMARY KEY,
+    setting_value VARCHAR(100) NOT NULL,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+INSERT INTO admin_settings (setting_key, setting_value)
+VALUES
+    ('SANCTION_CANDIDATE_REPORT_THRESHOLD', '3'),
+    ('REPORT_TREND_DAYS', '7');
+
 CREATE TABLE chat_rooms (
     chat_room_id BIGINT PRIMARY KEY AUTO_INCREMENT,
     room_id BIGINT NOT NULL,

@@ -50,6 +50,31 @@
         </article>
       </div>
 
+      <section class="dashboard-card dashboard-settings-card" aria-label="운영 기준 설정">
+        <div class="dashboard-card-header">
+          <h2>운영 기준</h2>
+          <div class="dashboard-card-actions">
+            <button type="button" class="dashboard-link-btn" id="btnExportReportTrendCsv">CSV</button>
+            <button type="button" class="dashboard-link-btn" id="btnSaveDashboardSettings">저장</button>
+          </div>
+        </div>
+        <div class="dashboard-settings-grid">
+          <label>
+            <span>제재 후보 신고 기준</span>
+            <input type="number" id="sanctionThresholdInput" min="1" max="20" step="1" value="3">
+          </label>
+          <label>
+            <span>신고 추이 기간</span>
+            <select id="reportTrendDaysSelect">
+              <option value="7">최근 7일</option>
+              <option value="14">최근 14일</option>
+              <option value="30">최근 30일</option>
+              <option value="90">최근 90일</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
       <div class="dashboard-workbench">
         <section class="dashboard-card" aria-label="관리자 확인 필요 항목">
           <div class="dashboard-card-header">
