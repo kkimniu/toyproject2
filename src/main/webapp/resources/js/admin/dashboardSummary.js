@@ -2,16 +2,25 @@ import { apiRequest } from "../common/apiClient.js";
 
 const contextPath = window.contextPath || "";
 const selectedCandidateIds = new Set();
+let currentTrendDays = null;
+let currentReportTrends = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
   bindDashboardLinks();
   bindSanctionBulkActions();
+  bindDashboardSettings();
+  bindReportTrendCsv();
   await loadDashboardSummary();
 });
 
 export async function loadDashboardSummary() {
   try {
-    const response = await apiRequest(`${contextPath}/api/admin/dashboard/summary`, {
+    const params = new URLSearchParams();
+    if (currentTrendDays) {
+      params.set("trend_days", String(currentTrendDays));
+    }
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const response = await apiRequest(`${contextPath}/api/admin/dashboard/summary${query}`, {
       method: "GET",
     });
 
@@ -21,6 +30,7 @@ export async function loadDashboardSummary() {
 
     const data = await response.json();
     selectedCandidateIds.clear();
+    currentTrendDays = Number(data.settings?.report_trend_days || currentTrendDays || 7);
     setValue("summaryTotalMembers", data.total_members);
     setValue("summaryBannedMembers", data.banned_members);
     setValue("summaryPendingReports", data.pending_reports);
@@ -29,6 +39,7 @@ export async function loadDashboardSummary() {
     renderOperationAlerts(data.operation_alerts);
     renderSanctionCandidates(data.sanction_candidates);
     renderReportTrends(data.report_trends);
+    renderDashboardSettings(data.settings);
   } catch (error) {
     console.error(error);
     ["summaryTotalMembers", "summaryBannedMembers", "summaryPendingReports", "summaryResolvedReports", "summaryActionRequired"]
@@ -36,6 +47,74 @@ export async function loadDashboardSummary() {
     renderOperationAlerts([]);
     renderSanctionCandidates([]);
     renderReportTrends([]);
+  }
+}
+
+function bindDashboardSettings() {
+  document.getElementById("reportTrendDaysSelect")?.addEventListener("change", async (event) => {
+    currentTrendDays = Number(event.target.value || 7);
+    await loadDashboardSummary();
+  });
+
+  document.getElementById("btnSaveDashboardSettings")?.addEventListener("click", saveDashboardSettings);
+}
+
+function bindReportTrendCsv() {
+  document.getElementById("btnExportReportTrendCsv")?.addEventListener("click", exportReportTrendCsv);
+  syncReportTrendCsvButton();
+}
+
+function renderDashboardSettings(settings) {
+  if (!settings) return;
+
+  const thresholdInput = document.getElementById("sanctionThresholdInput");
+  const trendDaysSelect = document.getElementById("reportTrendDaysSelect");
+  if (thresholdInput) {
+    thresholdInput.value = String(settings.sanction_candidate_report_threshold || 3);
+  }
+  if (trendDaysSelect) {
+    trendDaysSelect.value = String(settings.report_trend_days || currentTrendDays || 7);
+  }
+}
+
+async function saveDashboardSettings() {
+  const thresholdInput = document.getElementById("sanctionThresholdInput");
+  const trendDaysSelect = document.getElementById("reportTrendDaysSelect");
+  const threshold = Number(thresholdInput?.value || 3);
+  const trendDays = Number(trendDaysSelect?.value || currentTrendDays || 7);
+
+  if (!Number.isInteger(threshold) || threshold < 1 || threshold > 20) {
+    alert("제재 후보 신고 기준은 1~20 사이로 입력해야 합니다.");
+    return;
+  }
+  if (!Number.isInteger(trendDays) || trendDays < 7 || trendDays > 90) {
+    alert("신고 추이 기간은 7~90일 사이여야 합니다.");
+    return;
+  }
+
+  const button = document.getElementById("btnSaveDashboardSettings");
+  if (button) button.disabled = true;
+
+  try {
+    const response = await apiRequest(`${contextPath}/api/admin/dashboard/settings`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        sanction_candidate_report_threshold: threshold,
+        report_trend_days: trendDays,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`dashboard settings api failed: ${response.status}`);
+    }
+    const settings = await response.json();
+    currentTrendDays = Number(settings.report_trend_days || trendDays);
+    await loadDashboardSummary();
+    alert("운영 기준을 저장했습니다.");
+  } catch (error) {
+    console.error(error);
+    alert("운영 기준을 저장하지 못했습니다.");
+  } finally {
+    if (button) button.disabled = false;
   }
 }
 
@@ -205,6 +284,8 @@ function renderReportTrends(items) {
   if (!container) return;
 
   const trends = Array.isArray(items) ? items : [];
+  currentReportTrends = trends;
+  syncReportTrendCsvButton();
   if (trends.length === 0) {
     container.innerHTML = '<p class="dashboard-empty">최근 신고 추이가 없습니다.</p>';
     return;
@@ -241,6 +322,44 @@ function renderTrendBar(label, value, maxValue, type) {
       <strong>${formatNumber(value)}</strong>
     </div>
   `;
+}
+
+function syncReportTrendCsvButton() {
+  const button = document.getElementById("btnExportReportTrendCsv");
+  if (button) {
+    button.disabled = currentReportTrends.length === 0;
+  }
+}
+
+function exportReportTrendCsv() {
+  if (currentReportTrends.length === 0) return;
+
+  const rows = [
+    ["날짜", "접수 신고", "처리 신고"],
+    ...currentReportTrends.map((item) => [
+      item.trend_date || "",
+      String(item.created_reports || 0),
+      String(item.resolved_reports || 0),
+    ]),
+  ];
+  const csv = rows.map((row) => row.map(escapeCsv).join(",")).join("\r\n");
+  const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `admin-report-trends-${currentTrendDays || 7}d.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function escapeCsv(value) {
+  const text = String(value ?? "");
+  if (/[",\r\n]/.test(text)) {
+    return `"${text.replaceAll('"', '""')}"`;
+  }
+  return text;
 }
 
 function setValue(id, value) {
